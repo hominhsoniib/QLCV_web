@@ -1,0 +1,348 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Quản lý Bộ phận{% endblock %}
+
+{% block extra_css %}
+<style>
+  .master-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    max-width: 1000px;
+    margin: auto;
+    overflow: hidden;
+  }
+  .header-navy {
+    background: rgba(10, 15, 29, 0.4);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .input-section {
+    padding: 24px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    display: block;
+    border-left: 4px solid var(--accent-blue);
+    padding-left: 10px;
+  }
+  .readonly-id {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    font-weight: 700;
+    color: var(--accent-cyan) !important;
+    cursor: not-allowed;
+  }
+  .button-bar {
+    background: rgba(10, 15, 29, 0.2);
+    padding: 16px 24px;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-custom {
+    min-width: 120px;
+    font-size: 11px;
+  }
+  .table-area {
+    padding: 24px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="master-card mt-3">
+  <div class="header-navy d-flex justify-content-between align-items-center">
+    <h4 class="mb-0 text-uppercase" style="font-size: 18px; font-weight: 800; color: var(--text-main);">
+      <i class="fas fa-sitemap mr-2 text-primary"></i> QUẢN LÝ DANH MỤC BỘ PHẬN
+    </h4>
+    <small class="font-weight-bold text-muted">AMS PRO v5.0 - ORGANIZATIONAL STRUCTURE</small>
+  </div>
+
+  <div class="input-section">
+    <span class="section-title">Thông tin phòng ban / bộ phận</span>
+    <div class="row">
+      <div class="col-md-3 form-group">
+        <label class="field-label">MÃ BỘ PHẬN</label>
+        <input type="text" id="maBP" class="form-control form-control-lux" placeholder="VD: BP_FA" autocomplete="off">
+      </div>
+      <div class="col-md-5 form-group">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label class="field-label mb-0">TÊN PHÒNG BAN / BỘ PHẬN</label>
+          <button type="button" class="btn btn-sm p-0" onclick="generateFunctionsByAI()" style="font-size: 10px; font-weight: 700; background: transparent; border: none; cursor: pointer; color: var(--accent-cyan); outline: none;"><i class="fas fa-magic mr-1"></i> SINH BẰNG AI</button>
+        </div>
+        <input type="text" id="tenBP" class="form-control form-control-lux" placeholder="Nhập tên phòng ban...">
+      </div>
+      <div class="col-md-4 form-group">
+        <label class="field-label">KHỐI / PHÂN BAN PHỤ TRÁCH</label>
+        <input type="text" id="khoi" class="form-control form-control-lux" placeholder="VD: CFO, CEO...">
+      </div>
+    </div>
+    
+    <div class="row mt-2">
+      <div class="col-md-6 form-group">
+        <label class="field-label">CHỨC NĂNG CỐT LÕI</label>
+        <textarea id="chucNhang" class="form-control form-control-lux" style="height: 80px !important;" placeholder="Chức năng chính của phòng ban..."></textarea>
+      </div>
+      <div class="col-md-6 form-group">
+        <label class="field-label">NHIỆM VỤ CHI TIẾT</label>
+        <textarea id="nhiemVu" class="form-control form-control-lux" style="height: 80px !important;" placeholder="Nhiệm vụ cụ thể (các dòng phân tách nhau)..."></textarea>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 form-group">
+        <label class="field-label">QUYỀN HẠN</label>
+        <textarea id="quyenHan" class="form-control form-control-lux" style="height: 80px !important;" placeholder="Quyền hạn được giao..."></textarea>
+      </div>
+      <div class="col-md-4 form-group">
+        <label class="field-label">KPI CHÍNH</label>
+        <textarea id="kpiChinh" class="form-control form-control-lux" style="height: 80px !important;" placeholder="Các chỉ số KPI chính..."></textarea>
+      </div>
+      <div class="col-md-4 form-group">
+        <label class="field-label">KPI PHỤ</label>
+        <textarea id="kpiPhu" class="form-control form-control-lux" style="height: 80px !important;" placeholder="Các chỉ số KPI phụ..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="button-bar">
+    <button class="btn-lux-primary btn-custom" id="btnAdd" onclick="doAction('add')"><i class="fas fa-plus mr-2"></i> THÊM MỚI</button>
+    <button class="btn-lux-primary btn-custom" style="background: linear-gradient(135deg, var(--accent-orange), #ea580c); box-shadow: none;" id="btnUpdate" onclick="doAction('update')" disabled><i class="fas fa-save mr-2"></i> CẬP NHẬT</button>
+    <button class="btn-lux-danger btn-custom" onclick="doDelete()"><i class="fas fa-trash-alt mr-2"></i> XÓA BỎ</button>
+    <button class="btn-lux-secondary btn-custom" onclick="resetForm()"><i class="fas fa-sync-alt mr-2"></i> LÀM MỚI</button>
+    <button class="btn-lux-secondary btn-custom" onclick="goBack()"><i class="fas fa-chevron-left mr-2"></i> QUAY VỀ</button>
+  </div>
+
+  <div class="table-area">
+    <div class="premium-table-container">
+      <table class="premium-table" id="deptTable">
+        <thead>
+          <tr>
+            <th style="width: 25%;">MÃ BỘ PHẬN</th>
+            <th style="width: 45%; text-align: left;">TÊN PHÒNG BAN / BỘ PHẬN</th>
+            <th style="width: 30%;">KHỐI PHỤ TRÁCH</th>
+          </tr>
+        </thead>
+        <tbody id="deptBody">
+          <tr>
+            <td colspan="3" class="text-center py-4 text-muted">Đang tải danh sách phòng ban...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let deptList = [];
+
+  window.addEventListener("load", function() {
+    fetchDepts();
+  });
+
+  function fetchDepts() {
+    toggleLoader(true, "ĐANG TẢI PHÒNG BAN...");
+    fetch("/api/departments")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          deptList = res.data;
+          renderTable(res.data);
+        } else {
+          showNotify("error", "Lỗi", "Không bốc được danh sách phòng ban");
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi kết nối", err.message);
+      });
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("deptBody");
+    if (!tbody) return;
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-muted">Chưa có dữ liệu bộ phận nào</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(d => `
+      <tr onclick="fillInputs('${d.maBP}')">
+        <td class="text-center font-weight-bold" style="color: var(--accent-cyan);">${d.maBP}</td>
+        <td class="text-left font-weight-bold">${d.tenBP}</td>
+        <td class="text-center font-weight-bold text-muted">${d.khoi || '---'}</td>
+      </tr>
+    `).join("");
+  }
+
+  function fillInputs(ma) {
+    const d = deptList.find(x => x.maBP === ma);
+    if (d) {
+      document.getElementById("maBP").value = d.maBP;
+      document.getElementById("maBP").readOnly = true;
+      document.getElementById("maBP").classList.add("readonly-id");
+      document.getElementById("tenBP").value = d.tenBP;
+      document.getElementById("khoi").value = d.khoi || "";
+      document.getElementById("chucNhang").value = d.chucNhang || "";
+      document.getElementById("nhiemVu").value = d.nhiemVu || "";
+      document.getElementById("quyenHan").value = d.quyenHan || "";
+      document.getElementById("kpiChinh").value = d.kpiChinh || "";
+      document.getElementById("kpiPhu").value = d.kpiPhu || "";
+      
+      document.getElementById("btnAdd").disabled = true;
+      document.getElementById("btnUpdate").disabled = false;
+      
+      // Highlight row in table
+      document.querySelectorAll("#deptBody tr").forEach(row => {
+        if (row.cells[0].innerText === ma) {
+          row.classList.add("selected");
+        } else {
+          row.classList.remove("selected");
+        }
+      });
+    }
+  }
+
+  function doAction(mode) {
+    const data = {
+      maBP: document.getElementById("maBP").value.trim(),
+      tenBP: document.getElementById("tenBP").value.trim(),
+      khoi: document.getElementById("khoi").value.trim(),
+      chucNhang: document.getElementById("chucNhang").value.trim(),
+      nhiemVu: document.getElementById("nhiemVu").value.trim(),
+      quyenHan: document.getElementById("quyenHan").value.trim(),
+      kpiChinh: document.getElementById("kpiChinh").value.trim(),
+      kpiPhu: document.getElementById("kpiPhu").value.trim()
+    };
+    
+    if (!data.maBP || !data.tenBP) {
+      showNotify("warning", "Thiếu thông tin", "Vui lòng nhập đủ Mã và Tên bộ phận!");
+      return;
+    }
+    
+    const url = mode === 'add' ? "/api/departments" : "/api/departments/update";
+    const msg = mode === 'add' ? "ĐANG THÊM MỚI BỘ PHẬN..." : "ĐANG CẬP NHẬT PHÒNG BAN...";
+
+    toggleLoader(true, msg);
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        showToast("success", res.message);
+        resetForm();
+        fetchDepts();
+      } else {
+        showNotify("error", "Lỗi thực thi", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi kết nối", err.message);
+    });
+  }
+
+  function doDelete() {
+    const ma = document.getElementById("maBP").value.trim();
+    if (!ma) {
+      showNotify("warning", "Thiếu lựa chọn", "Hãy chọn một bộ phận từ bảng bên dưới trước!");
+      return;
+    }
+    
+    showNotify("warning", "CẢNH BÁO XÓA BỘ PHẬN", `Bạn có chắc muốn xóa vĩnh viễn bộ phận [${ma}]?`, function() {
+      toggleLoader(true, "ĐANG XÓA BỘ PHẬN...");
+      fetch(`/api/departments/${ma}`, {
+        method: "DELETE"
+      })
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showToast("success", res.message);
+          resetForm();
+          fetchDepts();
+        } else {
+          showNotify("error", "Lỗi xóa", res.message);
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", err.message);
+      });
+    });
+  }
+
+  function generateFunctionsByAI() {
+    const name = document.getElementById("tenBP").value.trim();
+    if (!name) {
+      showNotify("warning", "Thiếu thông tin", "Vui lòng nhập Tên phòng ban trước khi sinh bằng AI!");
+      return;
+    }
+    
+    toggleLoader(true, "AI ĐANG SINH CHỨC NĂNG NHIỆM VỤ...");
+    fetch("/api/departments/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: name })
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success && res.data) {
+        const d = res.data;
+        document.getElementById("chucNhang").value = d.function || "";
+        document.getElementById("nhiemVu").value = (d.responsibilities || []).join("\n");
+        document.getElementById("quyenHan").value = "Được chủ động điều hành công việc chuyên môn và đề xuất cải tiến.";
+        document.getElementById("kpiChinh").value = (d.kpi_main || []).join("\n");
+        document.getElementById("kpiPhu").value = (d.kpi_secondary || []).join("\n");
+        showToast("success", "AI đã sinh chức năng nhiệm vụ thành công!");
+      } else {
+        showNotify("error", "Lỗi sinh AI", res.message || "Không có dữ liệu trả về.");
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi kết nối", err.message);
+    });
+  }
+
+  function resetForm() {
+    document.getElementById("maBP").value = "";
+    document.getElementById("maBP").readOnly = false;
+    document.getElementById("maBP").classList.remove("readonly-id");
+    document.getElementById("tenBP").value = "";
+    document.getElementById("khoi").value = "";
+    document.getElementById("chucNhang").value = "";
+    document.getElementById("nhiemVu").value = "";
+    document.getElementById("quyenHan").value = "";
+    document.getElementById("kpiChinh").value = "";
+    document.getElementById("kpiPhu").value = "";
+    
+    document.getElementById("btnAdd").disabled = false;
+    document.getElementById("btnUpdate").disabled = true;
+    
+    document.querySelectorAll("#deptBody tr").forEach(row => row.classList.remove("selected"));
+  }
+
+  function goBack() {
+    toggleLoader(true, "ĐANG QUAY VỀ TRANG CHỦ...");
+    window.location.href = "/dashboard";
+  }
+</script>
+{% endblock %}

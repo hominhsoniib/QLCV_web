@@ -1,0 +1,322 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Cấu hình AI Claude & Gemini{% endblock %}
+
+{% block extra_css %}
+<style>
+  .master-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    max-width: 900px;
+    margin: auto;
+    overflow: hidden;
+  }
+  .header-navy {
+    background: rgba(10, 15, 29, 0.4);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .config-section {
+    padding: 24px;
+    border-bottom: 1px solid var(--card-border);
+    transition: all 0.3s ease;
+  }
+  .config-section:last-of-type {
+    border-bottom: none;
+  }
+  .section-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    display: block;
+    border-left: 4px solid var(--accent-blue);
+    padding-left: 10px;
+  }
+  .section-title.gemini-title {
+    color: var(--accent-cyan);
+    border-left-color: var(--accent-cyan);
+  }
+  .section-title.claude-title {
+    color: var(--accent-orange);
+    border-left-color: var(--accent-orange);
+  }
+  .button-bar {
+    background: rgba(10, 15, 29, 0.2);
+    padding: 16px 24px;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+  }
+  .btn-custom {
+    min-width: 140px;
+    font-size: 11px;
+  }
+  .input-group-text-lux {
+    background-color: rgba(10, 15, 29, 0.8) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--text-muted) !important;
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .input-group-text-lux:hover {
+    color: var(--text-main) !important;
+    background-color: rgba(59, 130, 246, 0.15) !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="master-card mt-3">
+  <div class="header-navy d-flex justify-content-between align-items-center">
+    <h4 class="mb-0 text-uppercase" style="font-size: 17px; font-weight: 800; color: var(--text-main);">
+      <i class="fas fa-sliders-h mr-2 text-warning"></i> CẤU HÌNH AI CLAUDE & GEMINI
+    </h4>
+    <small class="font-weight-bold text-muted">AMS PRO v5.0 - AI CONFIGURATION</small>
+  </div>
+
+  <!-- Section 1: Active Provider Selection -->
+  <div class="config-section">
+    <span class="section-title">Lựa chọn Mô hình AI Hoạt động</span>
+    <div class="row">
+      <div class="col-md-6 form-group">
+        <label class="field-label">NHÀ CUNG CẤP AI ĐANG HOẠT ĐỘNG</label>
+        <select id="provider" class="form-control form-control-lux" onchange="toggleProviderFields()">
+          <option value="gemini" {% if config.provider == 'gemini' %}selected{% endif %}>Google Gemini AI (Khuyên dùng)</option>
+          <option value="claude" {% if config.provider == 'claude' %}selected{% endif %}>Anthropic Claude AI</option>
+          <option value="none" {% if config.provider == 'none' %}selected{% endif %}>Tắt AI (Chế độ Fallback offline)</option>
+        </select>
+        <small class="form-text text-muted mt-2">
+          Chọn nhà cung cấp AI chính để xử lý câu hỏi của người dùng trong mục <strong>Trợ lý AI</strong>.
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Gemini Settings -->
+  <div class="config-section" id="geminiSection">
+    <span class="section-title gemini-title">Cấu hình Google Gemini AI</span>
+    <div class="row">
+      <div class="col-md-6 form-group">
+        <label class="field-label">GEMINI API KEY</label>
+        <div class="input-group">
+          <input type="password" id="geminiApiKey" class="form-control form-control-lux" placeholder="AIzaSy..." value="{{ config.gemini_api_key or '' }}">
+          <div class="input-group-append">
+            <span class="input-group-text input-group-text-lux" onclick="togglePasswordVisibility('geminiApiKey')">
+              <i class="fas fa-eye" id="geminiApiKey_eye"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 form-group">
+        <label class="field-label">MÔ HÌNH GEMINI (MODEL NAME)</label>
+        <select id="geminiModel" class="form-control form-control-lux mb-2" onchange="toggleCustomModel('gemini')">
+          <option value="gemini-2.5-flash" {% if config.gemini_model == 'gemini-2.5-flash' %}selected{% endif %}>gemini-2.5-flash (Khuyên dùng - Nhanh & Tối ưu)</option>
+          <option value="gemini-2.5-pro" {% if config.gemini_model == 'gemini-2.5-pro' %}selected{% endif %}>gemini-2.5-pro (Thông minh & Logic cực cao)</option>
+          <option value="gemini-2.0-flash" {% if config.gemini_model == 'gemini-2.0-flash' %}selected{% endif %}>gemini-2.0-flash (Thế hệ mới 2.0)</option>
+          <option value="gemini-2.0-pro-exp" {% if config.gemini_model == 'gemini-2.0-pro-exp' %}selected{% endif %}>gemini-2.0-pro-exp (Thử nghiệm 2.0 Pro)</option>
+          <option value="gemini-1.5-flash" {% if config.gemini_model == 'gemini-1.5-flash' %}selected{% endif %}>gemini-1.5-flash (Phiên bản cũ)</option>
+          <option value="gemini-1.5-pro" {% if config.gemini_model == 'gemini-1.5-pro' %}selected{% endif %}>gemini-1.5-pro (Phiên bản cũ Pro)</option>
+          <option value="custom" {% if config.gemini_model not in ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-pro-exp', 'gemini-1.5-flash', 'gemini-1.5-pro'] %}selected{% endif %}>Khác (Nhập thủ công)...</option>
+        </select>
+        <input type="text" id="geminiModelCustom" class="form-control form-control-lux" placeholder="Nhập tên mô hình khác (VD: gemini-2.0-flash-exp)..." value="{{ config.gemini_model or '' }}">
+      </div>
+    </div>
+    <div class="text-right mt-2">
+      <button class="btn btn-sm btn-outline-info text-uppercase font-weight-bold px-3 py-2" onclick="testConnection('gemini')" style="font-size: 10px; border-radius: 6px;">
+        <i class="fas fa-plug mr-1"></i> Kiểm thử kết nối Gemini
+      </button>
+    </div>
+  </div>
+
+  <!-- Section 3: Claude Settings -->
+  <div class="config-section" id="claudeSection">
+    <span class="section-title claude-title">Cấu hình Anthropic Claude AI</span>
+    <div class="row">
+      <div class="col-md-6 form-group">
+        <label class="field-label">CLAUDE API KEY</label>
+        <div class="input-group">
+          <input type="password" id="claudeApiKey" class="form-control form-control-lux" placeholder="sk-ant-..." value="{{ config.claude_api_key or '' }}">
+          <div class="input-group-append">
+            <span class="input-group-text input-group-text-lux" onclick="togglePasswordVisibility('claudeApiKey')">
+              <i class="fas fa-eye" id="claudeApiKey_eye"></i>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 form-group">
+        <label class="field-label">MÔ HÌNH CLAUDE (MODEL NAME)</label>
+        <select id="claudeModel" class="form-control form-control-lux mb-2" onchange="toggleCustomModel('claude')">
+          <option value="claude-sonnet-5" {% if config.claude_model == 'claude-sonnet-5' %}selected{% endif %}>claude-sonnet-5 (Sonnet 5 - Khuyên dùng)</option>
+          <option value="claude-fable-5" {% if config.claude_model == 'claude-fable-5' %}selected{% endif %}>claude-fable-5 (Fable 5 - Cực kỳ thông minh)</option>
+          <option value="claude-opus-4-8" {% if config.claude_model == 'claude-opus-4-8' %}selected{% endif %}>claude-opus-4-8 (Opus 4.8 - Phức tạp & Logic)</option>
+          <option value="claude-haiku-4-5" {% if config.claude_model == 'claude-haiku-4-5' %}selected{% endif %}>claude-haiku-4-5 (Haiku 4.5 - Tốc độ cao)</option>
+          <option value="claude-3-7-sonnet-20250219" {% if config.claude_model == 'claude-3-7-sonnet-20250219' %}selected{% endif %}>claude-3-7-sonnet-20250219 (Thế hệ cũ 3.7)</option>
+          <option value="claude-3-5-sonnet-20241022" {% if config.claude_model == 'claude-3-5-sonnet-20241022' %}selected{% endif %}>claude-3-5-sonnet-20241022 (Thế hệ cũ 3.5)</option>
+          <option value="custom" {% if config.claude_model not in ['claude-sonnet-5', 'claude-fable-5', 'claude-opus-4-8', 'claude-haiku-4-5', 'claude-3-7-sonnet-20250219', 'claude-3-5-sonnet-20241022'] %}selected{% endif %}>Khác (Nhập thủ công)...</option>
+        </select>
+        <input type="text" id="claudeModelCustom" class="form-control form-control-lux" placeholder="Nhập tên mô hình khác (VD: claude-3-opus-latest)..." value="{{ config.claude_model or '' }}">
+      </div>
+    </div>
+    <div class="text-right mt-2">
+      <button class="btn btn-sm btn-outline-warning text-uppercase font-weight-bold px-3 py-2" onclick="testConnection('claude')" style="font-size: 10px; border-radius: 6px;">
+        <i class="fas fa-plug mr-1"></i> Kiểm thử kết nối Claude
+      </button>
+    </div>
+  </div>
+
+  <div class="button-bar">
+    <button class="btn-lux-primary btn-custom" onclick="saveConfig()">
+      <i class="fas fa-save mr-2"></i> LƯU CẤU HÌNH
+    </button>
+    <button class="btn-lux-secondary btn-custom" onclick="goBack()">
+      <i class="fas fa-chevron-left mr-2"></i> QUAY VỀ
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.addEventListener("load", function() {
+    toggleProviderFields();
+    initCustomModelFields('gemini');
+    initCustomModelFields('claude');
+  });
+
+  function initCustomModelFields(provider) {
+    const select = document.getElementById(provider + "Model");
+    const customInput = document.getElementById(provider + "ModelCustom");
+    if (select.value === "custom") {
+      customInput.style.display = "block";
+    } else {
+      customInput.style.display = "none";
+    }
+  }
+
+  function toggleCustomModel(provider) {
+    const select = document.getElementById(provider + "Model");
+    const customInput = document.getElementById(provider + "ModelCustom");
+    if (select.value === "custom") {
+      customInput.style.display = "block";
+      customInput.focus();
+    } else {
+      customInput.style.display = "none";
+      customInput.value = select.value;
+    }
+  }
+
+  function toggleProviderFields() {
+    const provider = document.getElementById("provider").value;
+    const geminiSec = document.getElementById("geminiSection");
+    const claudeSec = document.getElementById("claudeSection");
+
+    if (provider === "gemini") {
+      geminiSec.style.opacity = "1";
+      geminiSec.style.pointerEvents = "auto";
+      claudeSec.style.opacity = "0.4";
+    } else if (provider === "claude") {
+      claudeSec.style.opacity = "1";
+      claudeSec.style.pointerEvents = "auto";
+      geminiSec.style.opacity = "0.4";
+    } else {
+      geminiSec.style.opacity = "0.4";
+      claudeSec.style.opacity = "0.4";
+    }
+  }
+
+  function togglePasswordVisibility(id) {
+    const input = document.getElementById(id);
+    const eye = document.getElementById(id + "_eye");
+    if (input.type === "password") {
+      input.type = "text";
+      eye.classList.remove("fa-eye");
+      eye.classList.add("fa-eye-slash");
+    } else {
+      input.type = "password";
+      eye.classList.remove("fa-eye-slash");
+      eye.classList.add("fa-eye");
+    }
+  }
+
+  function saveConfig() {
+    const data = {
+      provider: document.getElementById("provider").value,
+      gemini_api_key: document.getElementById("geminiApiKey").value,
+      gemini_model: document.getElementById("geminiModelCustom").value.trim(),
+      claude_api_key: document.getElementById("claudeApiKey").value,
+      claude_model: document.getElementById("claudeModelCustom").value.trim()
+    };
+
+    toggleLoader(true, "ĐANG LƯU CẤU HÌNH...");
+    fetch("/api/ai-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        showToast("success", res.message);
+      } else {
+        showNotify("error", "Lỗi lưu cấu hình", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi kết nối", err.message);
+    });
+  }
+
+  function testConnection(provider) {
+    let api_key = "";
+    let model = "";
+
+    if (provider === "gemini") {
+      api_key = document.getElementById("geminiApiKey").value.trim();
+      model = document.getElementById("geminiModelCustom").value.trim();
+    } else {
+      api_key = document.getElementById("claudeApiKey").value.trim();
+      model = document.getElementById("claudeModelCustom").value.trim();
+    }
+
+    if (!api_key) {
+      showNotify("warning", "Thiếu thông tin", "Vui lòng điền API Key trước khi chạy kiểm thử!");
+      return;
+    }
+
+    toggleLoader(true, `ĐANG KIỂM TRA KẾT NỐI ${provider.toUpperCase()}...`);
+    fetch("/api/ai-config/test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider, api_key, model })
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        showNotify("success", "Thành công", res.message);
+      } else {
+        showNotify("error", "Lỗi kết nối", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi kết nối mạng", err.message);
+    });
+  }
+
+  function goBack() {
+    toggleLoader(true, "ĐANG QUAY VỀ...");
+    window.location.href = "/dashboard";
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,482 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Quản trị Danh mục Tài liệu{% endblock %}
+
+{% block extra_css %}
+<style>
+  .master-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    max-width: 950px;
+    margin: auto;
+    overflow: hidden;
+  }
+  .header-navy {
+    background: rgba(10, 15, 29, 0.4);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .input-section {
+    padding: 24px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    display: block;
+    border-left: 4px solid var(--accent-cyan);
+    padding-left: 10px;
+  }
+  .readonly-id {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    font-weight: 700;
+    color: var(--accent-red) !important;
+    cursor: not-allowed;
+    text-align: center;
+  }
+  .button-bar {
+    background: rgba(10, 15, 29, 0.2);
+    padding: 16px 24px;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-custom {
+    min-width: 120px;
+    font-size: 11px;
+  }
+  .table-area {
+    padding: 24px;
+  }
+  
+  .link-group-wrapper {
+    display: flex;
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(10, 15, 29, 0.6);
+  }
+  .link-group-wrapper input {
+    border: none !important;
+    flex-grow: 1;
+    padding: 0 12px;
+    font-size: 12px;
+    background: transparent !important;
+    color: var(--text-main) !important;
+    outline: none !important;
+  }
+  .btn-drive {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+    border: none;
+    border-left: 1px solid var(--card-border);
+    padding: 0 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  .btn-drive:hover {
+    background: var(--accent-blue);
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<input type="file" id="localFileInp" style="display:none" onchange="handleLocalUpload(event)">
+
+<div class="master-card mt-3">
+  <div class="header-navy d-flex justify-content-between align-items-center">
+    <h4 class="mb-0 text-uppercase" style="font-size: 18px; font-weight: 800; color: var(--text-main);">
+      <i class="fas fa-folder-open mr-2 text-warning"></i> QUẢN TRỊ KHO DANH MỤC TÀI LIỆU
+    </h4>
+    <small class="font-weight-bold text-muted">AMS PRO v5.0 - DATABASE ADMIN</small>
+  </div>
+
+  <div class="input-section">
+    <span class="section-title">Thông tin định danh tài liệu</span>
+    <div class="row">
+      <div class="col-md-2 form-group">
+        <label class="field-label">MÃ TÀI LIỆU</label>
+        <input type="text" id="maTL" class="form-control form-control-lux text-center" placeholder="VD: BM01" autocomplete="off">
+      </div>
+      
+      <div class="col-md-4 form-group">
+        <label class="field-label">TÊN TÀI LIỆU / QUY TRÌNH CHÍNH THỨC</label>
+        <input type="text" id="tenTL" class="form-control form-control-lux" placeholder="Nhập tên chính thức...">
+      </div>
+      
+      <div class="col-md-3 form-group">
+        <label class="field-label">LOẠI TÀI LIỆU</label>
+        <select id="loai" class="form-control form-control-lux" onchange="generateMaTL()">
+          <option value="">-- Chọn loại --</option>
+          <option value="Biểu mẫu">Biểu mẫu</option>
+          <option value="Quy trình">Quy trình</option>
+          <option value="Hợp đồng">Hợp đồng</option>
+          <option value="Hướng dẫn">Hướng dẫn</option>
+          <option value="Mô tả công việc">Mô tả công việc</option>
+          <option value="Quy chế">Quy chế</option>
+          <option value="Quyết định">Quyết định</option>
+        </select>
+      </div>
+      
+      <div class="col-md-3 form-group">
+        <label class="field-label">PHÒNG BAN LIÊN QUAN</label>
+        <select id="phongBan" class="form-control form-control-lux">
+          <option value="Tất cả">Tất cả phòng ban</option>
+          {% for dept in departments %}
+          <option value="{{ dept.ten_bp }}">{{ dept.ten_bp }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="col-12 mt-1 form-group">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label class="field-label mb-0" style="color: var(--accent-cyan);">LIÊN KẾT TÀI LIỆU / ĐÍNH KÈM FILE</label>
+          <div class="btn-group" style="border: 1px solid var(--card-border); border-radius: 6px; overflow: hidden;">
+            <button type="button" class="btn btn-sm btn-outline-info px-3 py-1 font-weight-bold active" id="btnModeUpload" onclick="setAttachmentMode('upload')" style="font-size: 11px; cursor: pointer; border: none; border-radius: 0;">
+              Tải tệp lên
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-info px-3 py-1 font-weight-bold" id="btnModeLink" onclick="setAttachmentMode('link')" style="font-size: 11px; cursor: pointer; border: none; border-radius: 0; border-left: 1px solid var(--card-border);">
+              Đường dẫn Drive/Web
+            </button>
+          </div>
+        </div>
+        <div class="link-group-wrapper" id="uploadWrapper">
+          <input type="text" id="fileNameDisplay" placeholder="Đính kèm tệp tin biểu mẫu..." readonly>
+          <input type="hidden" id="linkFile">
+          <div class="btn-drive" onclick="triggerLocalUpload()" title="Chọn tệp tin">
+            <i class="fas fa-upload"></i>
+          </div>
+        </div>
+        <div class="link-group-wrapper d-none" id="linkWrapper">
+          <input type="text" id="webLinkInput" placeholder="Dán liên kết Google Drive, Google Sheets, Google Docs..." oninput="updateWebLink(this.value)" autocomplete="off">
+          <div class="btn-drive" style="background: rgba(16, 185, 129, 0.2); color: var(--accent-green);" title="Liên kết trực tuyến">
+            <i class="fab fa-google-drive"></i>
+          </div>
+        </div>
+      </div>
+    </div> 
+  </div> 
+
+  <div class="button-bar">
+    <button class="btn-lux-primary btn-custom" onclick="resetForm()"><i class="fas fa-plus-circle mr-2"></i> THÊM MỚI</button>
+    <button class="btn-lux-primary btn-custom" style="background: linear-gradient(135deg, var(--accent-green), #059669); box-shadow: none;" id="btnSave" onclick="doSave()"><i class="fas fa-save mr-2"></i> LƯU (SAVE)</button>
+    <button class="btn-lux-danger btn-custom" onclick="doDelete()"><i class="fas fa-trash-alt mr-2"></i> XÓA BỎ</button>
+    <button class="btn-lux-secondary btn-custom" onclick="goBack()"><i class="fas fa-chevron-left mr-2"></i> QUAY VỀ</button>
+  </div>
+
+  <div class="table-area">
+    <div class="premium-table-container">
+      <table class="premium-table" id="docTable">
+        <thead>
+          <tr>
+            <th style="width: 10%;">MÃ TL</th>
+            <th style="width: 35%; text-align: left;">TÊN TÀI LIỆU CHÍNH THỨC</th>
+            <th style="width: 15%;">LOẠI</th>
+            <th style="width: 20%;">PHÒNG BAN</th>
+            <th style="width: 10%;">CẬP NHẬT</th>
+            <th style="width: 10%;">XEM FILE</th>
+          </tr>
+        </thead>
+        <tbody id="docBody">
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">Đang tải tài liệu...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div> 
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let docList = [];
+
+  window.addEventListener("load", function() {
+    fetchDocs();
+  });
+
+  function fetchDocs() {
+    toggleLoader(true, "ĐANG TRUY XUẤT KHO TÀI LIỆU...");
+    fetch("/api/documents")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          docList = res.data;
+          renderTable(res.data);
+        } else {
+          showNotify("error", "Thất bại", "Không thể lấy dữ liệu");
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi kết nối", err.message);
+      });
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("docBody");
+    if (!tbody) return;
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">Chưa có tài liệu nào trong kho</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(d => `
+      <tr onclick="fillInputs('${d.maTL}')">
+        <td class="text-center font-weight-bold" style="color: var(--accent-red);">${d.maTL}</td>
+        <td class="text-left font-weight-bold">${d.tenTL}</td>
+        <td class="text-center">${d.loai}</td>
+        <td class="text-center text-info small">${d.phongBan || 'Tất cả'}</td>
+        <td class="text-center text-muted small">${d.ngayCapNhat || '---'}</td>
+        <td class="text-center">
+          ${d.linkFile ? `
+            <a href="${d.linkFile}" target="_blank" class="btn btn-sm btn-outline-primary font-weight-bold" style="font-size:10px;" onclick="event.stopPropagation();">
+              <i class="fas fa-external-link-alt"></i> MỞ LINK
+            </a>
+          ` : '---'}
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function fillInputs(ma) {
+    const d = docList.find(x => x.maTL === ma);
+    if (d) {
+      document.getElementById("maTL").value = d.maTL;
+      document.getElementById("maTL").readOnly = true;
+      document.getElementById("maTL").classList.add("readonly-id");
+      document.getElementById("tenTL").value = d.tenTL;
+      document.getElementById("loai").value = d.loai;
+      
+      document.getElementById("phongBan").value = d.phongBan || "Tất cả";
+      
+      document.getElementById("linkFile").value = d.linkFile || "";
+      const displayInp = document.getElementById("fileNameDisplay");
+      const webLinkInp = document.getElementById("webLinkInput");
+      
+      if (d.linkFile) {
+        if (d.linkFile.startsWith("http://") || d.linkFile.startsWith("https://")) {
+          setAttachmentMode('link');
+          webLinkInp.value = d.linkFile;
+          displayInp.value = "🔗 Liên kết tài liệu trực tuyến";
+        } else {
+          setAttachmentMode('upload');
+          displayInp.value = d.linkFile.split("/").pop();
+          webLinkInp.value = "";
+        }
+      } else {
+        setAttachmentMode('upload');
+        displayInp.value = "";
+        webLinkInp.value = "";
+      }
+      
+      // Highlight row
+      document.querySelectorAll("#docBody tr").forEach(row => {
+        if (row.cells[0].innerText === ma) {
+          row.classList.add("selected");
+        } else {
+          row.classList.remove("selected");
+        }
+      });
+    }
+  }
+
+  function generateMaTL() {
+    const loai = document.getElementById("loai").value;
+    const maInp = document.getElementById("maTL");
+    if (maInp.classList.contains("readonly-id") || !loai) return;
+
+    maInp.value = "Đang tạo...";
+    maInp.readOnly = true; 
+    
+    fetch(`/api/documents/next-code?loai=${loai}`)
+      .then(res => res.text())
+      .then(code => {
+        maInp.value = code.replace(/"/g, ''); // strip potential quotes
+      })
+      .catch(err => {
+        maInp.value = "";
+        maInp.readOnly = false;
+      });
+  }
+
+  function setAttachmentMode(mode) {
+    const uploadWrapper = document.getElementById("uploadWrapper");
+    const linkWrapper = document.getElementById("linkWrapper");
+    const btnUpload = document.getElementById("btnModeUpload");
+    const btnLink = document.getElementById("btnModeLink");
+    const linkFileInp = document.getElementById("linkFile");
+
+    if (mode === 'upload') {
+      uploadWrapper.classList.remove("d-none");
+      linkWrapper.classList.add("d-none");
+      btnUpload.classList.add("active");
+      btnLink.classList.remove("active");
+      
+      // Clear URL value from hidden field if switching back
+      const webVal = document.getElementById("webLinkInput").value.trim();
+      if (!webVal.startsWith("/") && webVal) {
+        linkFileInp.value = "";
+      }
+    } else {
+      uploadWrapper.classList.add("d-none");
+      linkWrapper.classList.remove("d-none");
+      btnUpload.classList.remove("active");
+      btnLink.classList.add("active");
+      
+      // Set to current web input value
+      linkFileInp.value = document.getElementById("webLinkInput").value.trim();
+    }
+  }
+
+  function updateWebLink(val) {
+    document.getElementById("linkFile").value = val.trim();
+  }
+
+  function triggerLocalUpload() {
+    document.getElementById("localFileInp").click();
+  }
+
+  function handleLocalUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    toggleLoader(true, "ĐANG ĐỒNG BỘ DỰ PHÒNG TÀI LIỆU...");
+    fetch("/api/drive/upload-local", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        document.getElementById("linkFile").value = res.url;
+        document.getElementById("fileNameDisplay").value = res.name;
+        showToast("success", "✅ Tải tài liệu lên thành công!");
+      } else {
+        showNotify("error", "Lỗi", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi", "Lỗi kết nối");
+    });
+  }
+
+  function doSave() {
+    const maInp = document.getElementById("maTL");
+    const maTL = maInp.value.trim();
+    const tenTL = document.getElementById("tenTL").value.trim();
+    
+    if (!maTL || !tenTL) {
+      showNotify("warning", "Thiếu thông tin", "Cần nhập Mã và Tên tài liệu trước!");
+      return;
+    }
+
+    const isEditMode = maInp.classList.contains("readonly-id");
+    const url = isEditMode ? "/api/documents/update" : "/api/documents";
+    const actionName = isEditMode ? "Cập nhật" : "Thêm mới";
+
+    showNotify("question", `Xác nhận ${actionName}`, `Bạn muốn ghi nhận tài liệu [${maTL}]?`, function() {
+      toggleLoader(true, "ĐANG GHI NHẬN TÀI LIỆU...");
+      const payload = {
+        maTL: maTL,
+        tenTL: tenTL,
+        loai: document.getElementById("loai").value,
+        linkFile: document.getElementById("linkFile").value.trim(),
+        phongBan: document.getElementById("phongBan").value
+      };
+
+      fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showToast("success", res.message);
+          resetForm();
+          fetchDocs();
+        } else {
+          showNotify("error", "Thất bại", res.message);
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", err.toString());
+      });
+    });
+  }
+
+  function doDelete() {
+    const ma = document.getElementById("maTL").value.trim();
+    if (!ma) {
+      showNotify("warning", "Thiếu thông tin", "Hãy chọn tài liệu cần xóa!");
+      return;
+    }
+    
+    showNotify("warning", "CẢNH BÁO XÓA TÀI LIỆU", `Bạn có chắc chắn muốn xóa tài liệu [${ma}]?`, function() {
+      toggleLoader(true, "ĐANG TIÊU HỦY TÀI LIỆU...");
+      fetch(`/api/documents/${ma}`, {
+        method: "DELETE"
+      })
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showToast("success", res.message);
+          resetForm();
+          fetchDocs();
+        } else {
+          showNotify("error", "Thất bại", res.message);
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", err.toString());
+      });
+    });
+  }
+
+  function resetForm() {
+    document.getElementById("maTL").value = "";
+    document.getElementById("maTL").readOnly = false;
+    document.getElementById("maTL").classList.remove("readonly-id");
+    document.getElementById("tenTL").value = "";
+    document.getElementById("linkFile").value = "";
+    document.getElementById("fileNameDisplay").value = "";
+    document.getElementById("webLinkInput").value = "";
+    setAttachmentMode('upload');
+    document.getElementById("loai").value = "";
+    document.getElementById("phongBan").value = "Tất cả";
+    
+    document.querySelectorAll("#docBody tr").forEach(row => row.classList.remove("selected"));
+  }
+
+  function goBack() {
+    toggleLoader(true, "ĐANG QUAY VỀ TRANG CHỦ...");
+    window.location.href = "/dashboard";
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,364 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Đăng nhập hệ thống{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+  }
+  .login-wrapper {
+    width: 100%;
+    max-width: 440px;
+    padding: 15px;
+  }
+  .login-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 35px 32px;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(12px);
+    position: relative;
+    overflow: hidden;
+  }
+  .login-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 4px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  }
+  .logo {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--text-main);
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .logo i {
+    color: var(--accent-blue);
+    margin-right: 8px;
+  }
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .input-group-lux {
+    display: flex;
+    align-items: center;
+    background: rgba(10, 15, 29, 0.6);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+  .input-group-lux:focus-within {
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  }
+  .input-group-icon {
+    padding: 10px 14px;
+    color: var(--accent-blue);
+    font-size: 15px;
+  }
+  .input-group-lux input {
+    border: none !important;
+    background: transparent !important;
+    color: var(--text-main) !important;
+    height: 42px !important;
+    width: 100%;
+    padding: 8px 12px 8px 0 !important;
+    outline: none !important;
+    font-size: 14px;
+  }
+  .input-group-lux input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .company-badge {
+    margin-top: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+  }
+  .company-badge.success {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #10b981;
+  }
+  .company-badge.error {
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+  }
+  .company-badge.loading {
+    background: rgba(59, 130, 246, 0.15);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    color: #3b82f6;
+  }
+
+  .toggle-password {
+    padding: 10px 14px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s;
+  }
+  .toggle-password:hover {
+    color: var(--text-main);
+  }
+  .btn-login {
+    width: 100%;
+    height: 46px;
+    margin-top: 8px;
+    font-size: 14px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="logo">
+      <i class="fas fa-shield-halved"></i> AMS PRO 5.0
+    </div>
+    
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <!-- Trường nhập Mã Số Thuế -->
+      <div class="form-group">
+        <label class="field-label">Mã Số Thuế / Công Ty</label>
+        <div class="input-group-lux">
+          <span class="input-group-icon"><i class="fas fa-building"></i></span>
+          <input id="taxCode" type="text" placeholder="VD: 0312345678" autocomplete="off" oninput="handleTaxCodeInput()">
+        </div>
+        <div id="companyBadge" class="company-badge" style="display: none;"></div>
+      </div>
+
+      <!-- Trường nhập Email / Tài khoản -->
+      <div class="form-group">
+        <label class="field-label">Email / Tài khoản</label>
+        <div class="input-group-lux">
+          <span class="input-group-icon"><i class="fas fa-envelope"></i></span>
+          <input id="user" type="text" placeholder="VD: ceo@company.com" required autocomplete="off" onblur="handleUserBlur()">
+        </div>
+      </div>
+      
+      <!-- Trường nhập Mật khẩu -->
+      <div class="form-group">
+        <label class="field-label">Mật khẩu</label>
+        <div class="input-group-lux">
+          <span class="input-group-icon"><i class="fas fa-lock"></i></span>
+          <input id="pass" type="password" placeholder="Nhập mật khẩu (VD: 123456)" required autocomplete="current-password">
+          <span class="toggle-password" onclick="togglePassword()"><i id="eyeIcon" class="fas fa-eye"></i></span>
+        </div>
+      </div>
+      
+      <button type="submit" id="btnLogin" class="btn-lux-primary btn-login">
+        ĐĂNG NHẬP <i class="fas fa-sign-in-alt ml-2"></i>
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let lookupTimer = null;
+  let manualMstTyped = false;
+
+  // Hide initial loader immediately on login page load
+  document.getElementById("globalLoader").style.display = "none";
+
+  // Pre-fill MST from localStorage or default on load
+  window.addEventListener("DOMContentLoaded", () => {
+    const savedMst = localStorage.getItem("ams_last_mst") || "0312345678";
+    const taxInp = document.getElementById("taxCode");
+    if (taxInp) {
+      taxInp.value = savedMst;
+      lookupCompany(savedMst);
+    }
+  });
+
+  function togglePassword() {
+    const passInput = document.getElementById("pass");
+    const eyeIcon = document.getElementById("eyeIcon");
+    if (passInput && eyeIcon) {
+      if (passInput.type === "password") {
+        passInput.type = "text";
+        eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
+      } else {
+        passInput.type = "password";
+        eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
+      }
+    }
+  }
+
+  function handleTaxCodeInput() {
+    manualMstTyped = true;
+    clearTimeout(lookupTimer);
+    const taxInp = document.getElementById("taxCode");
+    const mst = taxInp ? taxInp.value.trim() : "";
+
+    if (!mst) {
+      hideCompanyBadge();
+      return;
+    }
+
+    showCompanyBadge("loading", '<i class="fas fa-spinner fa-spin"></i> Đang tra cứu công ty...');
+
+    lookupTimer = setTimeout(() => {
+      lookupCompany(mst);
+    }, 350);
+  }
+
+  function lookupCompany(mst) {
+    if (!mst) {
+      hideCompanyBadge();
+      return;
+    }
+
+    fetch(`/api/auth/company-lookup?tax_code=${encodeURIComponent(mst)}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          showCompanyBadge("success", `<i class="fas fa-check-circle"></i> 🏢 ${data.name}`);
+        } else {
+          showCompanyBadge("error", `<i class="fas fa-exclamation-triangle"></i> ${data.message || 'Mã số thuế chưa đăng ký hệ thống'}`);
+        }
+      })
+      .catch(() => {
+        showCompanyBadge("error", '<i class="fas fa-wifi"></i> Không thể tra cứu thông tin công ty');
+      });
+  }
+
+  function handleUserBlur() {
+    const userInp = document.getElementById("user");
+    const taxInp = document.getElementById("taxCode");
+    if (!userInp || !taxInp) return;
+
+    const username = userInp.value.trim();
+    // Only auto-discover if MST field is currently EMPTY AND username is an email address
+    if (username && username.includes("@") && !taxInp.value.trim()) {
+      fetch(`/api/auth/lookup-user-tenant?username=${encodeURIComponent(username)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.tax_code) {
+            taxInp.value = data.tax_code;
+            lookupCompany(data.tax_code);
+          }
+        })
+        .catch(err => console.log("User tenant lookup error:", err));
+    }
+  }
+
+  function showCompanyBadge(type, htmlContent) {
+    const badge = document.getElementById("companyBadge");
+    if (!badge) return;
+    badge.className = `company-badge ${type}`;
+    badge.innerHTML = htmlContent;
+    badge.style.display = "flex";
+  }
+
+  function hideCompanyBadge() {
+    const badge = document.getElementById("companyBadge");
+    if (badge) {
+      badge.style.display = "none";
+    }
+  }
+
+  function handleLogin(event) {
+    event.preventDefault();
+    
+    const taxInp = document.getElementById("taxCode");
+    const userInp = document.getElementById("user");
+    const passInp = document.getElementById("pass");
+    const btn = document.getElementById("btnLogin");
+    
+    if (!userInp || !passInp) return;
+    
+    const taxCode = taxInp ? taxInp.value.trim() : "";
+    const username = userInp.value.trim();
+    let password = passInp.value.trim();
+    if (password.includes("•") || password.includes("*")) {
+      password = "admin";
+    }
+    
+    if (!username || !password) {
+      showToast("error", "⚠️ Vui lòng nhập đủ tài khoản & mật khẩu!");
+      return;
+    }
+    
+    // Toggle loader
+    toggleLoader(true, "ĐANG XÁC THỰC HỆ THỐNG...");
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> ĐANG XÁC THỰC...';
+    
+    // Call API using FormData to match fastapi Form injection
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("password", password);
+    if (taxCode) {
+      formData.append("tax_code", taxCode);
+    }
+    
+    fetch("/api/auth/login?_t=" + Date.now(), {
+      method: "POST",
+      body: formData
+    })
+    .then(async response => {
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (e) {
+        throw new Error(`Máy chủ phản hồi mã ${response.status}`);
+      }
+      return data;
+    })
+    .then(data => {
+      if (data && data.success) {
+        showToast("success", `✅ Xin chào ${data.userName}!`);
+        btn.style.background = "linear-gradient(135deg, var(--accent-green), #059669)";
+        btn.innerHTML = '✅ THÀNH CÔNG! ĐANG VÀO...';
+        btn.disabled = false;
+        
+        // Save successfully verified tax code to localStorage
+        if (taxCode) {
+          localStorage.setItem("ams_last_mst", taxCode);
+        }
+
+        setTimeout(() => {
+          window.location.href = "/dashboard";
+        }, 800);
+      } else {
+        toggleLoader(false);
+        showNotify("error", "Xác thực thất bại", (data && data.message) || "Email hoặc mật khẩu không chính xác.");
+        resetButton();
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi đăng nhập", err.message || "Không thể kết nối đến máy chủ.");
+      resetButton();
+    });
+  }
+
+  function resetButton() {
+    const btn = document.getElementById("btnLogin");
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = 'ĐĂNG NHẬP <i class="fas fa-sign-in-alt ml-2"></i>';
+      btn.style.background = "";
+    }
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,251 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Trung Tâm Báo Cáo{% endblock %}
+
+{% block extra_css %}
+<style>
+  .report-header {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%);
+    border: 1px solid var(--card-border);
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .metric-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+  }
+  .metric-num {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text-main);
+    margin-bottom: 4px;
+  }
+  .metric-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .chart-bar-container {
+    background: rgba(10, 15, 29, 0.4);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border: 1px solid var(--card-border);
+  }
+  .chart-bar-title {
+    font-weight: 700;
+    font-size: 11px;
+    color: var(--text-main);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .chart-bar-wrapper {
+    height: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .chart-bar-fill {
+    height: 100%;
+    border-radius: 6px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-header">
+  <div>
+    <h2 class="m-0 text-uppercase" style="font-size: 20px; font-weight: 800;">
+      <i class="fas fa-chart-pie mr-2 text-primary"></i> TRUNG TÂM BÁO CÁO TIẾN ĐỘ
+    </h2>
+    <p class="m-0 mt-1 small text-muted">Hệ thống phân tích tự động, tổng hợp rủi ro & hiệu suất phòng ban</p>
+  </div>
+  <div>
+    <button class="btn-lux-secondary btn-sm" onclick="navTo('/dashboard')"><i class="fas fa-home mr-1"></i> TRANG CHỦ</button>
+    <button class="btn-lux-primary btn-sm" style="box-shadow: none;" onclick="navTo('/tasks')"><i class="fas fa-tasks mr-1"></i> BẢNG CHUNG</button>
+  </div>
+</div>
+
+<!-- Main Statistics Row -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="metric-card" style="border-top: 4px solid var(--accent-blue);">
+      <div class="metric-num text-primary" id="numTotal">0</div>
+      <div class="metric-label">Tổng số nhiệm vụ</div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="metric-card" style="border-top: 4px solid var(--accent-green);">
+      <div class="metric-num text-success" id="numCompleted">0</div>
+      <div class="metric-label">Đã hoàn thành</div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="metric-card" style="border-top: 4px solid var(--accent-orange);">
+      <div class="metric-num text-warning" id="numPending">0</div>
+      <div class="metric-label">Đang thực hiện</div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="metric-card" style="border-top: 4px solid var(--accent-red);">
+      <div class="metric-num text-danger" id="numOverdue">0</div>
+      <div class="metric-label">Quá hạn cảnh báo</div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Left panel: Performance percentages -->
+  <div class="col-md-6 mb-4">
+    <div class="premium-card h-100">
+      <h6 class="section-title"><i class="fas fa-award mr-2"></i> Hiệu suất hoàn thành mục tiêu</h6>
+      
+      <div class="text-center py-4">
+        <h1 style="font-size: 56px; font-weight: 900; color: var(--accent-cyan);" id="avgProgress">0%</h1>
+        <p class="text-muted small uppercase font-weight-bold">Tỷ lệ tiến độ trung bình toàn hệ thống</p>
+      </div>
+      
+      <div class="mt-4">
+        <div class="chart-bar-container">
+          <div class="chart-bar-title"><span>Tỷ lệ hoàn thành (100% Tiến độ)</span><span id="rateCompleted">0%</span></div>
+          <div class="chart-bar-wrapper"><div class="chart-bar-fill bg-success" id="barCompleted" style="width: 0%;"></div></div>
+        </div>
+        <div class="chart-bar-container">
+          <div class="chart-bar-title"><span>Tỷ lệ trễ hạn (Đốc thúc đỏ)</span><span id="rateOverdue">0%</span></div>
+          <div class="chart-bar-wrapper"><div class="chart-bar-fill bg-danger" id="barOverdue" style="width: 0%;"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Right panel: Leaderboard or top performers -->
+  <div class="col-md-6 mb-4">
+    <div class="premium-card h-100">
+      <h6 class="section-title"><i class="fas fa-list-check mr-2"></i> Trạng thái chi tiết nhiệm vụ</h6>
+      
+      <div class="premium-table-container">
+        <table class="premium-table">
+          <thead>
+            <tr>
+              <th style="text-align: left;">Trạng thái</th>
+              <th>Số lượng</th>
+              <th>Tỷ lệ %</th>
+            </tr>
+          </thead>
+          <tbody id="statusTableBody">
+            <tr>
+              <td colspan="3" class="text-center py-4 text-muted">Đang tải dữ liệu báo cáo...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.addEventListener("load", function() {
+    loadStatistics();
+  });
+
+  function loadStatistics() {
+    toggleLoader(true, "ĐANG KẾT XUẤT PHÂN TÍCH TIẾN ĐỘ...");
+    fetch("/api/tasks")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          calculateMetrics(res.data);
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", "Không tải được thống kê báo cáo.");
+      });
+  }
+
+  function calculateMetrics(tasks) {
+    const total = tasks.length;
+    if (total === 0) return;
+    
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    let completed = 0;
+    let pending = 0;
+    let overdue = 0;
+    let notStarted = 0;
+    let suspended = 0;
+    let sumProgress = 0;
+
+    tasks.forEach(t => {
+      sumProgress += t.tienDo || 0;
+      if (t.status === "Hoàn thành") completed++;
+      else if (t.status === "Đang thực hiện") pending++;
+      else if (t.status === "Chưa bắt đầu") notStarted++;
+      else if (t.status === "Tạm dừng") suspended++;
+      
+      if (t.tienDo < 100 && t.ngayKT && t.ngayKT < todayStr) overdue++;
+    });
+
+    const avgProgress = Math.round(sumProgress / total);
+    const completeRate = Math.round((completed / total) * 100);
+    const overdueRate = Math.round((overdue / total) * 100);
+
+    // Update numbers
+    document.getElementById("numTotal").innerText = total;
+    document.getElementById("numCompleted").innerText = completed;
+    document.getElementById("numPending").innerText = pending;
+    document.getElementById("numOverdue").innerText = overdue;
+    
+    // Progress
+    document.getElementById("avgProgress").innerText = avgProgress + "%";
+    
+    // Rates & Bars
+    document.getElementById("rateCompleted").innerText = completeRate + "%";
+    document.getElementById("barCompleted").style.width = completeRate + "%";
+    document.getElementById("rateOverdue").innerText = overdueRate + "%";
+    document.getElementById("barOverdue").style.width = overdueRate + "%";
+
+    // Table Details
+    const tbody = document.getElementById("statusTableBody");
+    const statuses = [
+      { name: "Hoàn thành ✅", count: completed, color: "var(--accent-green)" },
+      { name: "Đang thực hiện ⚙️", count: pending, color: "var(--accent-blue)" },
+      { name: "Chưa bắt đầu 🛑", count: notStarted, color: "var(--text-muted)" },
+      { name: "Tạm dừng ⚠️", count: suspended, color: "var(--accent-orange)" },
+      { name: "Trễ hạn rủi ro 🚨", count: overdue, color: "var(--accent-red)" }
+    ];
+
+    tbody.innerHTML = statuses.map(s => {
+      const rate = Math.round((s.count / total) * 100);
+      return `
+        <tr>
+          <td class="text-left font-weight-bold" style="color: ${s.color};">${s.name}</td>
+          <td class="text-center font-weight-bold">${s.count}</td>
+          <td class="text-center font-weight-bold">${rate}%</td>
+        </tr>`;
+    }).join("");
+  }
+
+  function navTo(url) {
+    toggleLoader(true, "ĐANG CHUYỂN TRANG...");
+    window.location.href = url;
+  }
+</script>
+{% endblock %}

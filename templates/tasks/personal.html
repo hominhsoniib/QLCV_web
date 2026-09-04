@@ -1,0 +1,2744 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Quản Lý Cá Nhân{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ===================== PERSONAL HUB VARIABLES ===================== */
+  :root {
+    --green-grad: linear-gradient(135deg, #10b981, #059669);
+    --purple-grad: linear-gradient(135deg, #a855f7, #7c3aed);
+    --orange-grad: linear-gradient(135deg, #f59e0b, #d97706);
+    --blue-grad: linear-gradient(135deg, #3b82f6, #06b6d4);
+    --red-grad: linear-gradient(135deg, #ef4444, #dc2626);
+    --pink-grad: linear-gradient(135deg, #ec4899, #db2777);
+  }
+
+  /* ===== PAGE HEADER ===== */
+  .personal-hero {
+    background: linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(6,182,212,0.06) 50%, rgba(168,85,247,0.04) 100%);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 24px 32px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .personal-hero::before {
+    content: '';
+    position: absolute;
+    right: -40px; top: -40px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%);
+  }
+  .personal-hero h1 {
+    font-size: 22px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #10b981, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4px;
+  }
+  .personal-hero p { color: var(--text-muted); font-size: 13px; margin: 0; }
+  .hero-btns { display: flex; gap: 10px; }
+
+  /* ===== TAB NAV ===== */
+  .personal-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 6px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .ptab-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .ptab-btn:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
+  .ptab-btn.active {
+    background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(6,182,212,0.1));
+    color: #10b981;
+    border: 1px solid rgba(16,185,129,0.3);
+  }
+  .ptab-btn i { font-size: 13px; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ===== STAT CARDS ===== */
+  .pstat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  @media(max-width:992px) { .pstat-grid { grid-template-columns: repeat(2,1fr); } }
+  .pstat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .pstat-card::after {
+    content: '';
+    position: absolute;
+    right: -10px; bottom: -10px;
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    opacity: 0.06;
+  }
+  .pstat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .pstat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .pstat-icon.green { background: rgba(16,185,129,0.15); color: #10b981; }
+  .pstat-icon.red { background: rgba(239,68,68,0.15); color: #ef4444; }
+  .pstat-icon.blue { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .pstat-icon.purple { background: rgba(168,85,247,0.15); color: #a855f7; }
+  .pstat-val { font-size: 28px; font-weight: 900; color: var(--text-main); line-height: 1; }
+  .pstat-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+  /* ===== CARDS & SECTIONS ===== */
+  .psection {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .psection-title {
+    font-size: 12px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .psection-title i { font-size: 14px; }
+  .psection-title .badge-count {
+    background: rgba(59,130,246,0.15);
+    color: var(--accent-blue);
+    border-radius: 20px;
+    padding: 2px 8px;
+    font-size: 10px;
+  }
+
+  /* ===== TASK ITEMS ===== */
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.02);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .task-item:hover { background: rgba(59,130,246,0.06); border-color: rgba(59,130,246,0.2); }
+  .task-item.done { opacity: 0.5; }
+  .task-item.done .task-item-title { text-decoration: line-through; }
+  .task-checkbox {
+    width: 18px; height: 18px; border-radius: 5px;
+    border: 2px solid var(--card-border);
+    flex-shrink: 0; cursor: pointer; margin-top: 2px;
+    appearance: none; position: relative; transition: all 0.2s;
+  }
+  .task-checkbox:checked {
+    background: var(--accent-green);
+    border-color: var(--accent-green);
+  }
+  .task-checkbox:checked::after {
+    content: '✓';
+    position: absolute; color: white;
+    font-size: 11px; font-weight: 900;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .task-item-content { flex: 1; min-width: 0; }
+  .task-item-title { font-weight: 700; font-size: 13px; color: var(--text-main); margin-bottom: 4px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+  .task-item-meta { font-size: 11px; color: var(--text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
+  .task-item-meta i { width: 12px; }
+
+  /* ===== PRIORITY BADGES ===== */
+  .badge-priority {
+    font-size: 9px; font-weight: 800;
+    padding: 2px 8px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .badge-priority.cao { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+  .badge-priority.tb { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2); }
+  .badge-priority.thap { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.2); }
+
+  /* Status badges */
+  .badge-st {
+    font-size: 9px; font-weight: 800;
+    padding: 2px 8px; border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .badge-st.chua { background: rgba(148,163,184,0.1); color: #94a3b8; }
+  .badge-st.dang { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .badge-st.hoan { background: rgba(16,185,129,0.15); color: #10b981; }
+  .badge-st.hoan-2 { background: rgba(245,158,11,0.15); color: #f59e0b; }
+
+  /* Type color pills */
+  .badge-type { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 20px; }
+  .badge-type.canhan { background: rgba(59,130,246,0.15); color: #3b82f6; }
+  .badge-type.giadinh { background: rgba(236,72,153,0.15); color: #ec4899; }
+  .badge-type.congtac { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .badge-type.dulich { background: rgba(16,185,129,0.15); color: #10b981; }
+  .badge-type.hoctap { background: rgba(168,85,247,0.15); color: #a855f7; }
+
+  /* ===== FORM MODAL ===== */
+  .pmodal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(7,11,25,0.75);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .pmodal-overlay.show { display: flex; }
+  .pmodal {
+    background: rgba(18, 26, 50, 0.98);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    width: 100%; max-width: 640px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+  }
+  .pmodal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--card-border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .pmodal-title { font-size: 15px; font-weight: 800; color: var(--text-main); }
+  .pmodal-body { padding: 20px 24px; }
+  .pmodal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--card-border);
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+  .btn-close-modal {
+    background: transparent; border: none;
+    color: var(--text-muted); cursor: pointer;
+    width: 32px; height: 32px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .btn-close-modal:hover { background: rgba(255,255,255,0.08); color: var(--text-main); }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center; margin-bottom: 16px;
+  }
+  .filter-chip {
+    padding: 6px 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    font-size: 11px; font-weight: 700;
+    color: var(--text-muted);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-chip:hover, .filter-chip.active {
+    border-color: var(--accent-green);
+    color: var(--accent-green);
+    background: rgba(16,185,129,0.08);
+  }
+
+  /* ===== WEEKLY PLANNER GRID ===== */
+  .week-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  @media(max-width:768px) { .week-grid { grid-template-columns: repeat(3,1fr); } }
+  .week-day-col {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 10px;
+    min-height: 200px;
+  }
+  .week-day-header {
+    text-align: center;
+    font-size: 10px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .week-day-header.today { color: var(--accent-green); }
+  .week-task-chip {
+    font-size: 10px; font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: rgba(59,130,246,0.12);
+    color: #93c5fd;
+    border-left: 2px solid var(--accent-blue);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: block;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .week-task-chip:hover { background: rgba(59,130,246,0.2); }
+  .week-task-chip.high { border-left-color: var(--accent-red); background: rgba(239,68,68,0.1); color: #fca5a5; }
+  .week-task-chip.done { opacity: 0.4; text-decoration: line-through; }
+
+  /* ===== TIMELINE ===== */
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute;
+    left: 8px; top: 0; bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--accent-green), rgba(16,185,129,0.1));
+    border-radius: 2px;
+  }
+  .timeline-item {
+    position: relative;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--card-border);
+    background: rgba(255,255,255,0.02);
+    transition: all 0.2s;
+  }
+  .timeline-item:hover { background: rgba(16,185,129,0.04); }
+  .timeline-dot {
+    position: absolute;
+    left: -22px; top: 16px;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent-green);
+    border: 2px solid rgba(10,15,29,0.8);
+  }
+  .timeline-date { font-size: 10px; font-weight: 800; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+  .timeline-title { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+  .timeline-meta { font-size: 11px; color: var(--text-muted); }
+
+  /* ===== CHECKLIST ===== */
+  .checklist-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    margin-bottom: 8px;
+    transition: all 0.2s;
+  }
+  .checklist-item.done { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2); }
+  .checklist-item.done .cl-text { text-decoration: line-through; color: var(--text-muted); }
+  .cl-check {
+    width: 20px; height: 20px; border-radius: 6px;
+    border: 2px solid var(--card-border);
+    appearance: none; cursor: pointer; flex-shrink: 0;
+    position: relative; transition: all 0.2s;
+  }
+  .cl-check:checked { background: var(--accent-green); border-color: var(--accent-green); }
+  .cl-check:checked::after {
+    content: '✓'; position: absolute;
+    color: white; font-size: 12px; font-weight: 900;
+    left: 50%; top: 50%; transform: translate(-50%, -50%);
+  }
+  .cl-text { flex: 1; font-size: 13px; font-weight: 600; color: var(--text-main); }
+
+  /* Trip progress */
+  .trip-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+  .trip-card:hover { border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.03); }
+  .trip-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .trip-name { font-size: 15px; font-weight: 800; color: var(--text-main); }
+  .trip-dest { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .trip-progress-wrap { margin-top: 12px; }
+  .trip-progress-label { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; color: var(--text-muted); }
+  .trip-progress-bar { height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+  .trip-progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, var(--accent-green), var(--accent-cyan)); transition: width 0.5s ease; }
+
+  /* ===== GOAL CARD ===== */
+  .goal-card {
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 14px;
+    background: rgba(255,255,255,0.02);
+    transition: all 0.2s;
+  }
+  .goal-card:hover { border-color: rgba(168,85,247,0.25); background: rgba(168,85,247,0.04); }
+  .goal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .goal-name { font-size: 14px; font-weight: 800; color: var(--text-main); }
+  .goal-type-badge { font-size: 9px; font-weight: 800; padding: 3px 10px; border-radius: 20px; border: 1px solid rgba(168,85,247,0.3); background: rgba(168,85,247,0.12); color: #a855f7; }
+  .goal-meta { font-size: 11px; color: var(--text-muted); margin-bottom: 12px; }
+  .goal-kpi { font-size: 11px; color: var(--accent-cyan); margin-bottom: 10px; font-weight: 600; }
+  .goal-progress { display: flex; align-items: center; gap: 12px; }
+  .goal-bar { flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; }
+  .goal-bar-fill { height: 100%; border-radius: 4px; background: var(--purple-grad); transition: width 0.5s ease; }
+  .goal-pct { font-size: 13px; font-weight: 800; color: #a855f7; min-width: 36px; text-align: right; }
+
+  /* ===== REMINDER ITEM ===== */
+  .reminder-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.02);
+  }
+  .reminder-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .reminder-info { flex: 1; }
+  .reminder-title { font-size: 13px; font-weight: 700; color: var(--text-main); margin-bottom: 2px; }
+  .reminder-time { font-size: 11px; color: var(--text-muted); }
+
+  /* ===== BUTTONS ===== */
+  .btn-personal-primary {
+    background: var(--green-grad);
+    color: white; font-weight: 700; border: none;
+    border-radius: 8px; padding: 9px 18px;
+    font-size: 12px; cursor: pointer;
+    transition: all 0.3s; display: inline-flex;
+    align-items: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(16,185,129,0.25);
+    letter-spacing: 0.3px;
+  }
+  .btn-personal-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); filter: brightness(1.1); color: white; }
+  .btn-personal-secondary {
+    background: rgba(255,255,255,0.04);
+    color: var(--text-muted); font-weight: 700; border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 9px 18px;
+    font-size: 12px; cursor: pointer;
+    transition: all 0.2s; display: inline-flex;
+    align-items: center; gap: 8px;
+  }
+  .btn-personal-secondary:hover { background: rgba(255,255,255,0.08); color: var(--text-main); }
+  .btn-danger-sm {
+    background: transparent; border: none; color: var(--accent-red);
+    cursor: pointer; padding: 4px 8px; border-radius: 6px;
+    font-size: 12px; transition: all 0.2s;
+  }
+  .btn-danger-sm:hover { background: rgba(239,68,68,0.1); }
+
+  /* ===== EMPTY STATE ===== */
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state i { font-size: 40px; opacity: 0.3; margin-bottom: 12px; display: block; }
+  .empty-state p { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
+  .empty-state small { font-size: 11px; }
+
+  /* ===== NOTIFICATION BADGE ===== */
+  .overdue-notice {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.2);
+    border-radius: 10px; padding: 10px 16px;
+    margin-bottom: 16px; font-size: 12px; font-weight: 700; color: #fca5a5;
+  }
+
+  /* progress bar in task items */
+  .mini-bar-wrap { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .mini-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 2px; background: var(--green-grad); }
+  .mini-pct { font-size: 10px; font-weight: 800; color: var(--accent-green); min-width: 28px; }
+
+  .input-lux {
+    background: rgba(10,15,29,0.6) !important;
+    border: 1px solid var(--card-border) !important;
+    color: var(--text-main) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    font-family: var(--font-body) !important;
+    width: 100%;
+    transition: all 0.3s;
+  }
+  .input-lux:focus {
+    border-color: var(--accent-green) !important;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.2) !important;
+    outline: none;
+  }
+  .input-lux option { background: #0e1624; color: var(--text-main); }
+  .label-lux { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px; display: block; }
+  .form-group-lux { margin-bottom: 14px; }
+  .form-row-lux { display: grid; gap: 12px; }
+  .form-row-lux.cols-2 { grid-template-columns: 1fr 1fr; }
+  .form-row-lux.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  @media(max-width:600px) { .form-row-lux.cols-2, .form-row-lux.cols-3 { grid-template-columns: 1fr; } }
+
+  /* Dashboard summary rows */
+  .dsb-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media(max-width:768px) { .dsb-row { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="personal-hero">
+  <div>
+    <h1><i class="fas fa-user-astronaut mr-2" style="-webkit-text-fill-color: initial; color: #10b981;"></i> Trung Tâm Cá Nhân</h1>
+    <p>Kế hoạch · Lịch cá nhân · Du lịch · Công tác · Mục tiêu</p>
+  </div>
+  <div class="hero-btns">
+    <button class="btn-personal-primary" onclick="openTaskModal()"><i class="fas fa-plus"></i> Thêm công việc</button>
+  </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="personal-tabs">
+  <button class="ptab-btn active" onclick="switchTab('dashboard', this)"><i class="fas fa-chart-line"></i> Tổng quan</button>
+  <button class="ptab-btn" onclick="switchTab('tasks', this)"><i class="fas fa-list-check"></i> Công việc</button>
+  <button class="ptab-btn" onclick="switchTab('weekly', this)"><i class="fas fa-calendar-week"></i> Kế hoạch Tuần</button>
+  <button class="ptab-btn" onclick="switchTab('calendar', this)"><i class="fas fa-calendar-days"></i> Lịch cá nhân</button>
+  <button class="ptab-btn" onclick="switchTab('business', this)"><i class="fas fa-briefcase"></i> Công tác</button>
+  <button class="ptab-btn" onclick="switchTab('travel', this)"><i class="fas fa-plane-departure"></i> Du lịch</button>
+  <button class="ptab-btn" onclick="switchTab('goals', this)"><i class="fas fa-bullseye"></i> Mục tiêu</button>
+  <button class="ptab-btn" onclick="switchTab('reminders', this)"><i class="fas fa-bell"></i> Nhắc nhở</button>
+  <button class="ptab-btn" onclick="switchTab('diary', this)"><i class="fas fa-book-open"></i> Nhật ký</button>
+  <button class="ptab-btn" onclick="switchTab('finance_health', this)"><i class="fas fa-heart-pulse"></i> Tài chính & Sức khỏe</button>
+  <button class="ptab-btn" onclick="switchTab('analytics', this)"><i class="fas fa-chart-pie"></i> Đánh giá hiệu quả</button>
+</div>
+
+<!-- ========== TAB 1: DASHBOARD ========== -->
+<div id="tab-dashboard" class="tab-pane active">
+  <!-- AI Assistant Daily Briefing -->
+  <div class="psection" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.08) 100%); border-color: rgba(16, 185, 129, 0.2); margin-bottom: 20px;">
+    <div class="psection-title" style="color: #10b981; margin-bottom: 8px;"><i class="fas fa-robot"></i> Trợ Lý AI: Bản tin tóm tắt & Đề xuất</div>
+    <div id="ai-briefing-text" style="font-size: 12.5px; line-height: 1.6; color: var(--text-main);">
+      Đang chuẩn bị bản tin của bạn...
+    </div>
+  </div>
+  <!-- Stat cards -->
+  <div class="pstat-grid">
+    <div class="pstat-card">
+      <div class="pstat-icon blue"><i class="fas fa-calendar-check"></i></div>
+      <div>
+        <div class="pstat-val" id="stat-today">0</div>
+        <div class="pstat-label">Hôm nay</div>
+      </div>
+    </div>
+    <div class="pstat-card">
+      <div class="pstat-icon red"><i class="fas fa-triangle-exclamation"></i></div>
+      <div>
+        <div class="pstat-val" id="stat-overdue" style="color: #ef4444;">0</div>
+        <div class="pstat-label">Quá hạn</div>
+      </div>
+    </div>
+    <div class="pstat-card">
+      <div class="pstat-icon green"><i class="fas fa-tasks"></i></div>
+      <div>
+        <div class="pstat-val" id="stat-total">0</div>
+        <div class="pstat-label">Tổng công việc</div>
+      </div>
+    </div>
+    <div class="pstat-card">
+      <div class="pstat-icon purple"><i class="fas fa-chart-pie"></i></div>
+      <div>
+        <div class="pstat-val" id="stat-rate" style="color: #a855f7;">0%</div>
+        <div class="pstat-label">Hoàn thành</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard detail rows -->
+  <div class="dsb-row">
+    <div>
+      <!-- Today tasks -->
+      <div class="psection">
+        <div class="psection-title" style="color: #3b82f6;"><i class="fas fa-sun"></i> Việc Hôm Nay <span class="badge-count" id="cnt-today">0</span></div>
+        <div id="list-today-tasks">
+          <div class="empty-state"><i class="fas fa-check-circle"></i><p>Không có việc hôm nay</p><small>Thêm công việc mới để bắt đầu ngày của bạn!</small></div>
+        </div>
+      </div>
+      <!-- Upcoming events -->
+      <div class="psection">
+        <div class="psection-title" style="color: #ec4899;"><i class="fas fa-calendar-star"></i> Lịch Sắp Tới</div>
+        <div class="timeline" id="list-upcoming-events">
+          <div class="empty-state"><i class="fas fa-calendar"></i><p>Không có sự kiện sắp tới</p></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <!-- Active goals -->
+      <div class="psection">
+        <div class="psection-title" style="color: #a855f7;"><i class="fas fa-bullseye"></i> Mục Tiêu Đang Theo</div>
+        <div id="list-active-goals">
+          <div class="empty-state"><i class="fas fa-crosshairs"></i><p>Chưa có mục tiêu</p><small>Thiết lập mục tiêu để định hướng cuộc sống!</small></div>
+        </div>
+      </div>
+      <!-- Upcoming trips -->
+      <div class="psection">
+        <div class="psection-title" style="color: #10b981;"><i class="fas fa-plane"></i> Chuyến Đi Sắp Tới</div>
+        <div id="list-upcoming-trips">
+          <div class="empty-state"><i class="fas fa-suitcase"></i><p>Không có chuyến đi sắp tới</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TAB 2: TASKS ========== -->
+<div id="tab-tasks" class="tab-pane">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="filter-bar" style="margin:0;" id="task-filters">
+      <button class="filter-chip active" data-filter="all" onclick="filterTasks(this, 'all')">Tất cả</button>
+      <button class="filter-chip" data-filter="Cá nhân" onclick="filterTasks(this, 'Cá nhân')"><i class="fas fa-user mr-1"></i>Cá nhân</button>
+      <button class="filter-chip" data-filter="Gia đình" onclick="filterTasks(this, 'Gia đình')"><i class="fas fa-house mr-1"></i>Gia đình</button>
+      <button class="filter-chip" data-filter="Công tác" onclick="filterTasks(this, 'Công tác')"><i class="fas fa-briefcase mr-1"></i>Công tác</button>
+      <button class="filter-chip" data-filter="Du lịch" onclick="filterTasks(this, 'Du lịch')"><i class="fas fa-plane mr-1"></i>Du lịch</button>
+      <button class="filter-chip" data-filter="Học tập" onclick="filterTasks(this, 'Học tập')"><i class="fas fa-graduation-cap mr-1"></i>Học tập</button>
+    </div>
+    <button class="btn-personal-primary" onclick="openTaskModal()"><i class="fas fa-plus"></i> Thêm mới</button>
+  </div>
+  <div id="list-tasks">
+    <div class="empty-state"><i class="fas fa-list-check"></i><p>Chưa có công việc nào</p><small>Nhấn "Thêm mới" để bắt đầu lập kế hoạch!</small></div>
+  </div>
+</div>
+
+<!-- ========== TAB 3: WEEKLY PLANNER ========== -->
+<div id="tab-weekly" class="tab-pane">
+  <div class="psection" style="margin-bottom:16px;">
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <label class="label-lux" style="margin:0;">Chọn tuần:</label>
+      <input type="week" id="weekPicker" class="input-lux" style="width:200px;" onchange="loadWeeklyPlan()">
+      <button class="btn-personal-secondary" onclick="saveWeekPlan()"><i class="fas fa-save mr-1"></i> Lưu mục tiêu</button>
+    </div>
+    <div class="form-group-lux" style="margin-top:12px;">
+      <label class="label-lux">Mục tiêu tuần này</label>
+      <textarea id="weekGoalText" class="input-lux" rows="2" placeholder="Mục tiêu trọng tâm cần đạt được trong tuần này..."></textarea>
+    </div>
+    <div class="form-row-lux cols-2" style="margin-top:8px;">
+      <div><label class="label-lux">Giờ dự kiến</label><input type="number" id="weekHoursPlan" class="input-lux" placeholder="40" min="0"></div>
+      <div><label class="label-lux">Giờ thực tế</label><input type="number" id="weekHoursDone" class="input-lux" placeholder="0" min="0"></div>
+    </div>
+  </div>
+  <div class="week-grid" id="weekGrid">
+    <!-- Generated by JS -->
+  </div>
+  <div style="text-align:center; margin-top:10px;">
+    <small style="color:var(--text-muted)">Nhấn <b>Thêm công việc</b> và chọn ngày trong tuần để gán vào lịch tuần.</small>
+  </div>
+</div>
+
+<!-- ========== TAB 4: CALENDAR ========== -->
+<div id="tab-calendar" class="tab-pane">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+    <div class="filter-bar" style="margin:0;" id="cal-filters">
+      <button class="filter-chip active" data-filter="all" onclick="filterCalendar(this,'all')">Tất cả</button>
+      <button class="filter-chip" data-filter="Công việc" onclick="filterCalendar(this,'Công việc')">💼 Công việc</button>
+      <button class="filter-chip" data-filter="Công tác" onclick="filterCalendar(this,'Công tác')">🏢 Công tác</button>
+      <button class="filter-chip" data-filter="Du lịch" onclick="filterCalendar(this,'Du lịch')">✈️ Du lịch</button>
+      <button class="filter-chip" data-filter="Sự kiện" onclick="filterCalendar(this,'Sự kiện')">🎉 Sự kiện</button>
+      <button class="filter-chip" data-filter="Khám bệnh" onclick="filterCalendar(this,'Khám bệnh')">🏥 Khám bệnh</button>
+      <button class="filter-chip" data-filter="Việc gia đình" onclick="filterCalendar(this,'Việc gia đình')">👨‍👩‍👧 Gia đình</button>
+      <button class="filter-chip" data-filter="Học tập" onclick="filterCalendar(this,'Học tập')">🎓 Học tập</button>
+      <button class="filter-chip" data-filter="Thanh toán hóa đơn" onclick="filterCalendar(this,'Thanh toán hóa đơn')">💰 Hóa đơn</button>
+      <button class="filter-chip" data-filter="Nghỉ phép" onclick="filterCalendar(this,'Nghỉ phép')">🏖️ Nghỉ phép</button>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <button class="btn-personal-secondary" id="btn-cal-timeline" onclick="setCalView('timeline')"><i class="fas fa-list mr-1"></i>Dòng thời gian</button>
+      <button class="btn-personal-secondary active" id="btn-cal-grid" onclick="setCalView('grid')"><i class="fas fa-calendar-grid mr-1"></i>Lịch tháng</button>
+      <button class="btn-personal-primary" onclick="openCalendarModal()"><i class="fas fa-plus"></i> Thêm sự kiện</button>
+    </div>
+  </div>
+
+  <!-- Grid Calendar View -->
+  <div id="cal-grid-view" class="psection" style="padding: 16px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <button class="btn-personal-secondary" onclick="prevMonth()"><i class="fas fa-chevron-left"></i></button>
+      <h3 id="cal-month-title" style="margin:0; font-size:16px; font-weight:800; color:var(--text-main);">Tháng ..., 2026</h3>
+      <button class="btn-personal-secondary" onclick="nextMonth()"><i class="fas fa-chevron-right"></i></button>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(7, 1fr); gap:4px; text-align:center; font-weight:800; font-size:11px; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">
+      <div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div><div>CN</div>
+    </div>
+    <div id="cal-cells-grid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:6px; min-height:350px;">
+      <!-- Generated by JS -->
+    </div>
+  </div>
+
+  <div class="timeline" id="list-calendar" style="display:none;">
+    <div class="empty-state"><i class="fas fa-calendar"></i><p>Không có sự kiện nào</p><small>Thêm lịch để theo dõi các hoạt động cá nhân!</small></div>
+  </div>
+</div>
+
+<!-- ========== TAB 5: BUSINESS TRIPS ========== -->
+<div id="tab-business" class="tab-pane">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="psection-title" style="margin:0;"><i class="fas fa-briefcase" style="color:#f59e0b;"></i> Danh Sách Lịch Công Tác</div>
+    <button class="btn-personal-primary" style="background:var(--orange-grad); box-shadow:0 4px 14px rgba(245,158,11,0.25);" onclick="openBusinessModal()"><i class="fas fa-plus"></i> Thêm công tác</button>
+  </div>
+  <div id="list-business-trips">
+    <div class="empty-state"><i class="fas fa-plane-departure"></i><p>Chưa có lịch công tác</p><small>Thêm lịch công tác để theo dõi chi phí và lịch trình!</small></div>
+  </div>
+</div>
+
+<!-- ========== TAB 6: TRAVEL ========== -->
+<div id="tab-travel" class="tab-pane">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="psection-title" style="margin:0;"><i class="fas fa-umbrella-beach" style="color:#10b981;"></i> Kế Hoạch Du Lịch</div>
+    <button class="btn-personal-primary" onclick="openTravelModal()"><i class="fas fa-plus"></i> Thêm chuyến đi</button>
+  </div>
+  <div id="list-travel-trips">
+    <div class="empty-state"><i class="fas fa-suitcase-rolling"></i><p>Chưa có chuyến du lịch</p><small>Lên kế hoạch chuyến đi để không bỏ lỡ bất kỳ điều gì!</small></div>
+  </div>
+</div>
+
+<!-- ========== TAB 7: GOALS ========== -->
+<div id="tab-goals" class="tab-pane">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="filter-bar" style="margin:0;" id="goal-filters">
+      <button class="filter-chip active" data-filter="all" onclick="filterGoals(this,'all')">Tất cả</button>
+      <button class="filter-chip" data-filter="Năm" onclick="filterGoals(this,'Năm')">🎯 Năm</button>
+      <button class="filter-chip" data-filter="Quý" onclick="filterGoals(this,'Quý')">📊 Quý</button>
+      <button class="filter-chip" data-filter="Tháng" onclick="filterGoals(this,'Tháng')">📅 Tháng</button>
+      <button class="filter-chip" data-filter="Tuần" onclick="filterGoals(this,'Tuần')">📋 Tuần</button>
+    </div>
+    <button class="btn-personal-primary" style="background:var(--purple-grad); box-shadow:0 4px 14px rgba(168,85,247,0.25);" onclick="openGoalModal()"><i class="fas fa-plus"></i> Thêm mục tiêu</button>
+  </div>
+  <div id="list-goals">
+    <div class="empty-state"><i class="fas fa-bullseye"></i><p>Chưa có mục tiêu</p><small>Thiết lập mục tiêu để định hướng cuộc sống!</small></div>
+  </div>
+</div>
+
+<!-- ========== TAB 8: REMINDERS ========== -->
+<div id="tab-reminders" class="tab-pane">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="psection-title" style="margin:0;"><i class="fas fa-bell" style="color:#f59e0b;"></i> Danh Sách Nhắc Nhở</div>
+    <button class="btn-personal-primary" style="background:var(--orange-grad);" onclick="openReminderModal()"><i class="fas fa-plus"></i> Thêm nhắc nhở</button>
+  </div>
+  <div id="list-reminders">
+    <div class="empty-state"><i class="fas fa-bell"></i><p>Chưa có nhắc nhở</p><small>Thiết lập nhắc nhở để không bỏ lỡ các mốc quan trọng!</small></div>
+  </div>
+</div>
+
+<!-- ========== TAB 9: DIARY ========== -->
+<div id="tab-diary" class="tab-pane">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+    <div class="psection-title" style="margin:0;"><i class="fas fa-book-open" style="color:#10b981;"></i> Nhật ký hàng ngày</div>
+    <button class="btn-personal-primary" onclick="openDiaryModal()"><i class="fas fa-pen"></i> Viết nhật ký</button>
+  </div>
+  <div id="list-diaries" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap:16px;">
+    <div class="empty-state"><i class="fas fa-book"></i><p>Chưa có ghi chép nhật ký nào</p><small>Nhấp "Viết nhật ký" để lưu giữ câu chuyện ngày hôm nay!</small></div>
+  </div>
+</div>
+
+<!-- ========== TAB 10: FINANCE & HEALTH ========== -->
+<div id="tab-finance_health" class="tab-pane">
+  <div class="dsb-row">
+    <!-- Expense Column -->
+    <div>
+      <div class="psection">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div class="psection-title" style="color: #f59e0b; margin:0;"><i class="fas fa-wallet"></i> Chi tiêu Cá nhân</div>
+          <button class="btn-personal-primary" style="background:var(--orange-grad); padding:6px 12px; font-size:11px;" onclick="openExpenseModal()"><i class="fas fa-plus"></i> Thêm chi tiêu</button>
+        </div>
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--card-border); border-radius:10px; padding:12px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-size:10px; font-weight:800; color:var(--text-muted); text-transform:uppercase;">Tổng chi tiêu tháng này</div>
+            <div style="font-size:20px; font-weight:900; color:#f59e0b;" id="total-monthly-expense">0 đ</div>
+          </div>
+          <i class="fas fa-coins" style="font-size:24px; color:#f59e0b; opacity:0.3;"></i>
+        </div>
+        <div id="list-expenses" style="max-height: 400px; overflow-y: auto; padding-right:4px;">
+          <div class="empty-state"><i class="fas fa-receipt"></i><p>Chưa có khoản chi tiêu nào</p></div>
+        </div>
+      </div>
+    </div>
+    <!-- Health Column -->
+    <div>
+      <div class="psection">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div class="psection-title" style="color: #ef4444; margin:0;"><i class="fas fa-heart-pulse"></i> Theo dõi Sức khỏe</div>
+          <button class="btn-personal-primary" style="background:var(--red-grad); padding:6px 12px; font-size:11px;" onclick="openHealthModal()"><i class="fas fa-plus"></i> Thêm chỉ số</button>
+        </div>
+        <div id="list-health" style="max-height: 480px; overflow-y: auto; padding-right:4px;">
+          <div class="empty-state"><i class="fas fa-weight-scale"></i><p>Chưa có dữ liệu sức khỏe</p><small>Nhập huyết áp và cân nặng của bạn thường xuyên nhé!</small></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== TAB 11: ANALYTICS ========== -->
+<div id="tab-analytics" class="tab-pane">
+  <div class="dsb-row" style="margin-bottom:16px;">
+    <!-- Chart 1: Status -->
+    <div class="psection">
+      <div class="psection-title" style="color: #3b82f6;"><i class="fas fa-chart-pie"></i> Tỷ lệ hoàn thành công việc</div>
+      <div style="display:flex; justify-content:center; align-items:center; height:200px; position:relative;">
+        <canvas id="chart-task-status" style="max-width:100%; max-height:180px;"></canvas>
+      </div>
+    </div>
+    <!-- Chart 2: Priority -->
+    <div class="psection">
+      <div class="psection-title" style="color: #ef4444;"><i class="fas fa-chart-bar"></i> Phân bổ theo mức độ ưu tiên</div>
+      <div style="display:flex; justify-content:center; align-items:center; height:200px; position:relative;">
+        <canvas id="chart-task-priority" style="max-width:100%; max-height:180px;"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="dsb-row">
+    <!-- Chart 3: Category -->
+    <div class="psection">
+      <div class="psection-title" style="color: #10b981;"><i class="fas fa-circle-nodes"></i> Phân loại theo danh mục</div>
+      <div style="display:flex; justify-content:center; align-items:center; height:200px; position:relative;">
+        <canvas id="chart-task-category" style="max-width:100%; max-height:180px;"></canvas>
+      </div>
+    </div>
+    <!-- AI Advisor -->
+    <div>
+      <div class="psection" style="background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(236, 72, 153, 0.05) 100%); border-color: rgba(168, 85, 247, 0.2); min-height: 248px;">
+        <div class="psection-title" style="color: #c084fc;"><i class="fas fa-award"></i> Đánh giá hiệu suất từ Trợ lý AI</div>
+        <div id="ai-performance-text" style="font-size: 13px; line-height: 1.6; color: var(--text-main); margin-bottom: 12px;">
+          Đang tính toán các chỉ số và chuẩn bị phản hồi phân tích...
+        </div>
+        <hr style="border-top: 1px solid var(--card-border); margin: 12px 0;">
+        <div style="font-size:11px; color:var(--text-muted); font-weight:bold; text-transform:uppercase; margin-bottom:8px;">Tiến độ đạt mục tiêu của bạn:</div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;"><span>Mục tiêu ngắn hạn (Tuần/Tháng):</span><span id="txt-short-goals-pct" style="font-weight:bold; color:var(--accent-cyan);">0%</span></div>
+        <div class="mini-bar" style="height:6px; margin-bottom:12px;"><div class="mini-bar-fill" id="bar-short-goals" style="width:0%; background:var(--blue-grad);"></div></div>
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;"><span>Mục tiêu dài hạn (Quý/Năm):</span><span id="txt-long-goals-pct" style="font-weight:bold; color:var(--accent-green);">0%</span></div>
+        <div class="mini-bar" style="height:6px;"><div class="mini-bar-fill" id="bar-long-goals" style="width:0%; background:var(--green-grad);"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Task Modal -->
+<div class="pmodal-overlay" id="taskModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-plus-circle mr-2" style="color:#10b981;"></i> <span id="taskModalTitle">Thêm Công Việc Mới</span></span>
+      <button class="btn-close-modal" onclick="closeModal('taskModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="taskEditId">
+      <div class="form-group-lux">
+        <label class="label-lux">Tên công việc *</label>
+        <input type="text" id="taskName" class="input-lux" placeholder="Nội dung công việc cần làm...">
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Loại công việc</label>
+          <select id="taskType" class="input-lux">
+            <option>Cá nhân</option><option>Gia đình</option><option>Công tác</option><option>Du lịch</option><option>Học tập</option>
+          </select>
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Mức độ ưu tiên</label>
+          <select id="taskPriority" class="input-lux">
+            <option>Cao</option><option selected>Trung bình</option><option>Thấp</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày bắt đầu</label>
+          <input type="datetime-local" id="taskStartDate" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày kết thúc</label>
+          <input type="datetime-local" id="taskEndDate" class="input-lux">
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Trạng thái</label>
+          <select id="taskStatus" class="input-lux">
+            <option>Chưa thực hiện</option><option>Đang thực hiện</option><option>Hoàn thành</option><option>Hoãn</option>
+          </select>
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Tiến độ (%)</label>
+          <input type="number" id="taskProgress" class="input-lux" min="0" max="100" value="0">
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Gán vào tuần (YYYY-Wxx)</label>
+          <input type="week" id="taskWeek" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày trong tuần</label>
+          <select id="taskWeekDay" class="input-lux">
+            <option value="">-- Không gán --</option>
+            <option>Thứ 2</option><option>Thứ 3</option><option>Thứ 4</option><option>Thứ 5</option><option>Thứ 6</option><option>Thứ 7</option><option>Chủ nhật</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Người liên quan</label>
+        <input type="text" id="taskRelated" class="input-lux" placeholder="Tên người liên quan (nếu có)...">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Mô tả / Ghi chú</label>
+        <textarea id="taskNote" class="input-lux" rows="3" placeholder="Ghi chú thêm..."></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('taskModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" onclick="saveTask()"><i class="fas fa-save mr-1"></i> Lưu công việc</button>
+    </div>
+  </div>
+</div>
+
+<!-- Calendar Modal -->
+<div class="pmodal-overlay" id="calendarModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-calendar-plus mr-2" style="color:#ec4899;"></i> <span id="calModalTitle">Thêm Sự Kiện</span></span>
+      <button class="btn-close-modal" onclick="closeModal('calendarModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="calEditId">
+      <div class="form-group-lux">
+        <label class="label-lux">Tiêu đề sự kiện *</label>
+        <input type="text" id="calTitle" class="input-lux" placeholder="Nội dung sự kiện...">
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Loại lịch</label>
+          <select id="calType" class="input-lux">
+            <option>Công việc</option><option>Công tác</option><option>Du lịch</option><option>Sự kiện</option><option>Khám bệnh</option><option>Việc gia đình</option><option>Học tập</option><option>Thanh toán hóa đơn</option>
+          </select>
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Nhắc nhở</label>
+          <select id="calRemind" class="input-lux">
+            <option value="Không">Không nhắc</option>
+            <option value="Trước 15 phút">Trước 15 phút</option>
+            <option value="Trước 1 giờ">Trước 1 giờ</option>
+            <option value="Trước 1 ngày">Trước 1 ngày</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày giờ bắt đầu</label>
+          <input type="datetime-local" id="calStart" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày giờ kết thúc</label>
+          <input type="datetime-local" id="calEnd" class="input-lux">
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Địa điểm</label>
+        <input type="text" id="calLocation" class="input-lux" placeholder="Địa điểm (nếu có)...">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Người tham gia</label>
+        <input type="text" id="calAttendees" class="input-lux" placeholder="Tên người tham gia...">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Ghi chú</label>
+        <textarea id="calNote" class="input-lux" rows="2" placeholder="Thêm ghi chú..."></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('calendarModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" style="background:var(--pink-grad);" onclick="saveCalendar()"><i class="fas fa-save mr-1"></i> Lưu sự kiện</button>
+    </div>
+  </div>
+</div>
+
+<!-- Business Trip Modal -->
+<div class="pmodal-overlay" id="businessModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-briefcase mr-2" style="color:#f59e0b;"></i> <span id="bizModalTitle">Thêm Lịch Công Tác</span></span>
+      <button class="btn-close-modal" onclick="closeModal('businessModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="bizEditId">
+      <div class="form-group-lux">
+        <label class="label-lux">Mục đích chuyến công tác *</label>
+        <input type="text" id="bizName" class="input-lux" placeholder="Mục đích công tác...">
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Địa điểm</label>
+          <input type="text" id="bizLocation" class="input-lux" placeholder="Tỉnh/Thành phố, địa điểm...">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Trạng thái</label>
+          <select id="bizStatus" class="input-lux">
+            <option>Lên kế hoạch</option><option>Đang đi</option><option>Hoàn thành</option><option>Hủy</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày bắt đầu</label>
+          <input type="date" id="bizStart" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày kết thúc</label>
+          <input type="date" id="bizEnd" class="input-lux">
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Phương tiện di chuyển</label>
+          <input type="text" id="bizTransport" class="input-lux" placeholder="Máy bay, ô tô, tàu hỏa...">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Khách sạn lưu trú</label>
+          <input type="text" id="bizHotel" class="input-lux" placeholder="Tên khách sạn...">
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Chi phí dự kiến (VNĐ)</label>
+          <input type="number" id="bizBudget" class="input-lux" placeholder="0" min="0">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Chi phí thực tế (VNĐ)</label>
+          <input type="number" id="bizActualCost" class="input-lux" placeholder="0" min="0">
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux" style="color: var(--accent-cyan);">Công việc cần thực hiện (mỗi dòng một mục)</label>
+        <textarea id="bizTasks" class="input-lux" rows="3" placeholder="Họp với đối tác A&#10;Ký hợp đồng B&#10;Khảo sát thị trường..."></textarea>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux" style="color: var(--accent-blue);">Lịch trình chi tiết (mỗi dòng một mục)</label>
+        <textarea id="bizItinerary" class="input-lux" rows="3" placeholder="09:00 T1 - Bay từ TP.HCM đi Hà Nội&#10;14:00 T1 - Di chuyển về khách sạn..."></textarea>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux" style="color: var(--accent-orange);">Chi phí chi tiết (mỗi dòng: Tên - Số tiền)</label>
+        <textarea id="bizExpenses" class="input-lux" rows="2" placeholder="Vé máy bay - 2500000&#10;Khách sạn - 1800000"></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('businessModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" style="background:var(--orange-grad);" onclick="saveBusinessTrip()"><i class="fas fa-save mr-1"></i> Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Travel Modal -->
+<div class="pmodal-overlay" id="travelModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-plane mr-2" style="color:#10b981;"></i> <span id="travelModalTitle">Thêm Chuyến Du Lịch</span></span>
+      <button class="btn-close-modal" onclick="closeModal('travelModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="travelEditId">
+      <div class="form-group-lux">
+        <label class="label-lux">Tên chuyến đi *</label>
+        <input type="text" id="travelName" class="input-lux" placeholder="VD: Du lịch Đà Lạt hè 2026...">
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Điểm đến</label>
+          <input type="text" id="travelDest" class="input-lux" placeholder="Đà Lạt, Hà Nội, Bali...">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Người đi cùng</label>
+          <input type="text" id="travelWith" class="input-lux" placeholder="Gia đình, bạn bè...">
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày khởi hành</label>
+          <input type="date" id="travelStart" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày kết thúc</label>
+          <input type="date" id="travelEnd" class="input-lux">
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Ngân sách (VNĐ)</label>
+        <input type="number" id="travelBudget" class="input-lux" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('travelModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" onclick="saveTravel()"><i class="fas fa-save mr-1"></i> Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Goal Modal -->
+<div class="pmodal-overlay" id="goalModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-bullseye mr-2" style="color:#a855f7;"></i> <span id="goalModalTitle">Thêm Mục Tiêu</span></span>
+      <button class="btn-close-modal" onclick="closeModal('goalModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="goalEditId">
+      <div class="form-group-lux">
+        <label class="label-lux">Tên mục tiêu *</label>
+        <input type="text" id="goalName" class="input-lux" placeholder="Mục tiêu bạn muốn đạt được...">
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Loại mục tiêu</label>
+          <select id="goalType" class="input-lux">
+            <option>Năm</option><option>Quý</option><option>Tháng</option><option>Tuần</option>
+          </select>
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Trạng thái</label>
+          <select id="goalStatus" class="input-lux">
+            <option>Đang thực hiện</option><option>Hoàn thành</option><option>Tạm dừng</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày bắt đầu</label>
+          <input type="date" id="goalStart" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày kết thúc</label>
+          <input type="date" id="goalEnd" class="input-lux">
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">KPI / Chỉ số đo lường</label>
+        <input type="text" id="goalKPI" class="input-lux" placeholder="VD: Đọc 12 cuốn sách, Tăng doanh thu 20%...">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Tiến độ hiện tại (%)</label>
+        <input type="number" id="goalProgress" class="input-lux" min="0" max="100" value="0">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Mô tả chi tiết</label>
+        <textarea id="goalDesc" class="input-lux" rows="3" placeholder="Mô tả chi tiết mục tiêu..."></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('goalModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" style="background:var(--purple-grad);" onclick="saveGoal()"><i class="fas fa-save mr-1"></i> Lưu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reminder Modal -->
+<div class="pmodal-overlay" id="reminderModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-bell mr-2" style="color:#f59e0b;"></i> Thêm Nhắc Nhở</span>
+      <button class="btn-close-modal" onclick="closeModal('reminderModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Hình thức nhắc</label>
+          <select id="remType" class="input-lux">
+            <option>App</option><option>Email</option><option>SMS</option><option>Zalo</option><option>Telegram</option>
+          </select>
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Lặp lại</label>
+          <select id="remRepeat" class="input-lux">
+            <option>Không</option><option>Hàng ngày</option><option>Hàng tuần</option><option>Hàng tháng</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Thời gian nhắc</label>
+          <input type="datetime-local" id="remTime" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Liên kết đến</label>
+          <select id="remRefType" class="input-lux" onchange="updateReminderRefList()">
+            <option value="none">Không liên kết</option>
+            <option value="task">Công việc</option>
+            <option value="calendar">Sự kiện lịch</option>
+            <option value="trip">Chuyến đi / Công tác</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group-lux" id="remRefIdGroup" style="display:none;">
+        <label class="label-lux">Đối tượng liên kết</label>
+        <select id="remRefId" class="input-lux"></select>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Nội dung nhắc nhở</label>
+        <textarea id="remContent" class="input-lux" rows="3" placeholder="Nội dung cần nhắc nhở..."></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('reminderModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" style="background:var(--orange-grad);" onclick="saveReminder()"><i class="fas fa-save mr-1"></i> Lưu nhắc nhở</button>
+    </div>
+  </div>
+</div>
+
+<!-- Diary Modal -->
+<div class="pmodal-overlay" id="diaryModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-book-open mr-2" style="color:#10b981;"></i> <span id="diaryModalTitle">Viết Nhật Ký Ngày Hôm Nay</span></span>
+      <button class="btn-close-modal" onclick="closeModal('diaryModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="diaryEditId">
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày chép nhật ký *</label>
+          <input type="date" id="diaryDate" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Tâm trạng</label>
+          <select id="diaryMood" class="input-lux">
+            <option>Hào hứng 🤩</option>
+            <option selected>Bình thường 🙂</option>
+            <option>Vui vẻ 😊</option>
+            <option>Mệt mỏi 😴</option>
+            <option>Căng thẳng 😫</option>
+            <option>Buồn bã 😢</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Tiêu đề ghi chép *</label>
+        <input type="text" id="diaryTitle" class="input-lux" placeholder="Tiêu đề nhật ký hôm nay...">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Nội dung nhật ký</label>
+        <textarea id="diaryContent" class="input-lux" rows="6" placeholder="Bắt đầu viết suy nghĩ của bạn ở đây..."></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('diaryModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" onclick="saveDiary()"><i class="fas fa-save mr-1"></i> Lưu ghi chép</button>
+    </div>
+  </div>
+</div>
+
+<!-- Expense Modal -->
+<div class="pmodal-overlay" id="expenseModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-wallet mr-2" style="color:#f59e0b;"></i> <span id="expenseModalTitle">Thêm Khoản Chi Tiêu</span></span>
+      <button class="btn-close-modal" onclick="closeModal('expenseModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="expenseEditId">
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày chi tiêu *</label>
+          <input type="date" id="expenseDate" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Danh mục</label>
+          <select id="expenseCategory" class="input-lux">
+            <option>Ăn uống</option>
+            <option>Di chuyển</option>
+            <option>Mua sắm</option>
+            <option>Giải trí</option>
+            <option>Học tập</option>
+            <option>Sinh hoạt</option>
+            <option selected>Khác</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Khoản chi tiêu *</label>
+        <input type="text" id="expenseItem" class="input-lux" placeholder="Tên món hàng hoặc chi phí...">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Số tiền (VNĐ) *</label>
+        <input type="number" id="expenseAmount" class="input-lux" placeholder="0" min="0">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Ghi chú thêm</label>
+        <textarea id="expenseNote" class="input-lux" rows="2" placeholder="Ghi chú chi tiết chi tiêu..."></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('expenseModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" style="background:var(--orange-grad);" onclick="saveExpense()"><i class="fas fa-save mr-1"></i> Lưu chi tiêu</button>
+    </div>
+  </div>
+</div>
+
+<!-- Health Modal -->
+<div class="pmodal-overlay" id="healthModal">
+  <div class="pmodal">
+    <div class="pmodal-header">
+      <span class="pmodal-title"><i class="fas fa-heart-pulse mr-2" style="color:#ef4444;"></i> <span id="healthModalTitle">Thêm Chỉ Số Sức Khỏe</span></span>
+      <button class="btn-close-modal" onclick="closeModal('healthModal')"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="pmodal-body">
+      <input type="hidden" id="healthEditId">
+      <div class="form-row-lux cols-2">
+        <div class="form-group-lux">
+          <label class="label-lux">Ngày đo chỉ số *</label>
+          <input type="date" id="healthDate" class="input-lux">
+        </div>
+        <div class="form-group-lux">
+          <label class="label-lux">Huyết áp (mmHg)</label>
+          <input type="text" id="healthBP" class="input-lux" placeholder="Ví dụ: 120/80">
+        </div>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Cân nặng (kg)</label>
+        <input type="number" id="healthWeight" class="input-lux" step="0.1" placeholder="Ví dụ: 65.5">
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Tình trạng sức khỏe chung</label>
+        <textarea id="healthCondition" class="input-lux" rows="2" placeholder="Bình thường, Đau đầu, Khỏe mạnh..."></textarea>
+      </div>
+      <div class="form-group-lux">
+        <label class="label-lux">Ghi chú đo lường / Đơn thuốc</label>
+        <textarea id="healthNote" class="input-lux" rows="2" placeholder="Ghi chú thêm..."></textarea>
+      </div>
+    </div>
+    <div class="pmodal-footer">
+      <button class="btn-personal-secondary" onclick="closeModal('healthModal')"><i class="fas fa-times mr-1"></i> Hủy</button>
+      <button class="btn-personal-primary" style="background:var(--red-grad);" onclick="saveHealth()"><i class="fas fa-save mr-1"></i> Lưu chỉ số</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// ==================== GLOBAL STATE ====================
+let allTasks = [], allEvents = [], allBTrips = [], allTTrips = [], allGoals = [], allReminders = [];
+let allDiaries = [], allExpenses = [], allHealth = [];
+let activeTaskFilter = 'all', activeCalFilter = 'all', activeGoalFilter = 'all';
+let currentCalMonth = new Date().getMonth(), currentCalYear = new Date().getFullYear();
+let currentCalView = 'grid';
+let statusChartObj = null, priorityChartObj = null, categoryChartObj = null;
+const DAYS = ['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','Chủ nhật'];
+
+// ==================== TAB CONTROL ====================
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ptab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+  if(name === 'tasks') loadTasks();
+  if(name === 'weekly') initWeeklyPlanner();
+  if(name === 'calendar') loadCalendar();
+  if(name === 'business') loadBusinessTrips();
+  if(name === 'travel') loadTravelTrips();
+  if(name === 'goals') loadGoals();
+  if(name === 'reminders') loadReminders();
+  if(name === 'diary') loadDiary();
+  if(name === 'finance_health') loadFinanceHealth();
+  if(name === 'analytics') loadAnalytics();
+}
+
+// ==================== DASHBOARD & AI BRIEFING ====================
+function loadDashboard() {
+  Promise.all([
+    fetch('/api/personal/tasks').then(r => r.json()),
+    fetch('/api/personal/goals').then(r => r.json()),
+    fetch('/api/personal/trips/business').then(r => r.json()),
+    fetch('/api/personal/trips/travel').then(r => r.json()),
+    fetch('/api/personal/calendar').then(r => r.json())
+  ]).then(([tasksRes, goalsRes, bTripsRes, tTripsRes, calRes]) => {
+    if (tasksRes.success) allTasks = tasksRes.tasks || [];
+    if (goalsRes.success) allGoals = goalsRes.goals || [];
+    if (bTripsRes.success) allBTrips = bTripsRes.trips || [];
+    if (tTripsRes.success) allTTrips = tTripsRes.trips || [];
+    if (calRes.success) allEvents = calRes.events || [];
+    
+    generateAIBriefing();
+    updateDashboardStats();
+  }).catch(() => {});
+}
+
+function updateDashboardStats() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayTasks = allTasks.filter(t => t.ngay_kt && t.ngay_kt.startsWith(todayStr));
+  const doneTasks = allTasks.filter(t => t.tinh_trang === 'Hoàn thành');
+  const overdueTasks = allTasks.filter(t => t.ngay_kt && t.ngay_kt < todayStr && !['Hoàn thành', 'Hoãn'].includes(t.tinh_trang));
+  
+  animVal('stat-today', todayTasks.length);
+  animVal('stat-overdue', overdueTasks.length);
+  animVal('stat-total', allTasks.length);
+  
+  const completionRate = allTasks.length ? Math.round(doneTasks.length / allTasks.length * 100) : 0;
+  document.getElementById('stat-rate').textContent = completionRate + '%';
+  document.getElementById('cnt-today').textContent = todayTasks.filter(t => t.tinh_trang !== 'Hoàn thành').length;
+  
+  renderTodayTasks(todayTasks.filter(t => t.tinh_trang !== 'Hoàn thành'));
+  
+  // Events in next 7 days
+  const now = new Date();
+  const next7Days = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const upcomingEvents = allEvents.filter(e => e.ngay_gio_bd && e.ngay_gio_bd >= todayStr && e.ngay_gio_bd <= next7Days);
+  renderUpcomingEvents(upcomingEvents.slice(0, 5));
+  
+  renderActiveGoals(allGoals.filter(g => g.trang_thai === 'Đang thực hiện').slice(0, 5));
+  renderUpcomingTrips(allBTrips.filter(t => t.trang_thai !== 'Hủy'), allTTrips);
+  
+  // Overdue Banner
+  const bannerId = 'overdue-alert-banner';
+  const existingBanner = document.getElementById(bannerId);
+  if (existingBanner) existingBanner.remove();
+  
+  if(overdueTasks.length > 0) {
+    const notice = `<div id="${bannerId}" class="overdue-notice"><i class="fas fa-triangle-exclamation mr-2"></i> Bạn đang có <b>${overdueTasks.length}</b> công việc đã quá hạn cần hoàn thành gấp!</div>`;
+    document.getElementById('tab-dashboard').insertAdjacentHTML('afterbegin', notice);
+  }
+}
+
+function generateAIBriefing() {
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayTasks = allTasks.filter(t => t.ngay_kt && t.ngay_kt.startsWith(todayStr) && t.tinh_trang !== 'Hoàn thành');
+  const overdueTasks = allTasks.filter(t => t.ngay_kt && t.ngay_kt < todayStr && !['Hoàn thành', 'Hoãn'].includes(t.tinh_trang));
+  const activeGoals = allGoals.filter(g => g.trang_thai === 'Đang thực hiện');
+  const upcomingTrips = [...allBTrips.filter(t => t.trang_thai !== 'Hủy'), ...allTTrips];
+  
+  let briefing = `👋 <b>Chào sếp!</b> `;
+  if (overdueTasks.length > 0) {
+    briefing += `Hệ thống ghi nhận sếp đang trễ hạn <span class="text-danger font-weight-bold">${overdueTasks.length} công việc cá nhân</span>. `;
+  } else {
+    briefing += `Thật xuất sắc! Sếp đã giải quyết tất cả công việc đúng hạn. `;
+  }
+  
+  briefing += `Lịch trình ngày hôm nay có <b>${todayTasks.length} công việc cần hoàn tất</b>. `;
+  
+  if (activeGoals.length > 0) {
+    briefing += `Mục tiêu tiêu điểm hiện tại là: "<b>${activeGoals[0].ten_muc_tieu}</b>" (${activeGoals[0].tien_do}%). `;
+  }
+  
+  if (upcomingTrips.length > 0) {
+    const nextTrip = upcomingTrips[0];
+    briefing += `Chuyến đi kế tiếp sắp diễn ra: "<b>${nextTrip.ten_chuyen_di}</b>" (${nextTrip.ngay_di || nextTrip.ngay_bd || ''}). `;
+  }
+  
+  // Recommend a high-priority task
+  const highPriority = todayTasks.filter(t => t.muc_do_uu_tien === 'Cao');
+  if (highPriority.length > 0) {
+    briefing += `<br>🤖 <b>Trợ lý đề xuất:</b> Hãy tập trung xử lý công việc quan trọng "<b>${highPriority[0].ten_cv}</b>" để đạt hiệu suất tốt nhất ngày hôm nay!`;
+  } else if (todayTasks.length > 0) {
+    briefing += `<br>🤖 <b>Trợ lý đề xuất:</b> Nên xử lý việc "<b>${todayTasks[0].ten_cv}</b>" trước tiên để hoàn tất dần kế hoạch ngày.`;
+  } else {
+    briefing += `<br>✨ <b>Gợi ý hôm nay:</b> Lịch trình ngày hôm nay khá thoáng, sếp có thể cập nhật nhật ký hoặc xem xét các chỉ số sức khỏe của mình.`;
+  }
+  
+  document.getElementById('ai-briefing-text').innerHTML = briefing;
+}
+
+function animVal(id, val) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  let start = 0, end = parseInt(val) || 0;
+  const dur = 800, t0 = performance.now();
+  const step = (now) => {
+    const p = Math.min((now-t0)/dur,1);
+    el.textContent = Math.floor(p*end*(1-(1-p)*(1-p)*(1-p)));
+    if(p<1) requestAnimationFrame(step);
+    else el.textContent = end;
+  };
+  requestAnimationFrame(step);
+}
+
+function renderTodayTasks(tasks) {
+  const el = document.getElementById('list-today-tasks');
+  if(!tasks || !tasks.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-check-circle"></i><p>Không có việc hôm nay</p></div>'; return; }
+  el.innerHTML = tasks.map(t => `
+    <div class="task-item" onclick="editTask(${t.id})">
+      <div class="task-item-content">
+        <div class="task-item-title">${t.ten_cv}</div>
+        <div class="task-item-meta">
+          <span><i class="fas fa-tag"></i> ${t.loai_cv || 'Cá nhân'}</span>
+          ${t.ngay_kt ? `<span><i class="fas fa-clock"></i> HT: ${t.ngay_kt.split('T')[0]||t.ngay_kt}</span>` : ''}
+          <span>${priorityBadge(t.muc_do_uu_tien)}</span>
+        </div>
+        <div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:${t.tien_do||0}%"></div></div><span class="mini-pct">${t.tien_do||0}%</span></div>
+      </div>
+    </div>`).join('');
+}
+
+function renderUpcomingEvents(events) {
+  const el = document.getElementById('list-upcoming-events');
+  if(!events || !events.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-calendar"></i><p>Không có sự kiện</p></div>'; return; }
+  el.innerHTML = events.map(e => `
+    <div class="timeline-item">
+      <div class="timeline-dot" style="background:${calTypeColor(e.loai_lich)};"></div>
+      <div class="timeline-date">${e.ngay_gio_bd||''} · ${e.loai_lich||''}</div>
+      <div class="timeline-title">${e.tieu_de}</div>
+      ${e.dia_diem ? `<div class="timeline-meta"><i class="fas fa-location-dot mr-1"></i>${e.dia_diem}</div>` : ''}
+    </div>`).join('');
+}
+
+function renderActiveGoals(goals) {
+  const el = document.getElementById('list-active-goals');
+  if(!goals || !goals.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-crosshairs"></i><p>Chưa có mục tiêu</p></div>'; return; }
+  el.innerHTML = goals.map(g => `
+    <div class="goal-card" onclick="editGoal(${g.id})">
+      <div class="goal-header"><span class="goal-name">${g.ten_muc_tieu}</span><span class="goal-type-badge">${g.loai_muc_tieu}</span></div>
+      ${g.ngay_kt ? `<div class="goal-meta"><i class="fas fa-calendar-xmark mr-1"></i>Đến: ${g.ngay_kt}</div>` : ''}
+      <div class="goal-progress"><div class="goal-bar"><div class="goal-bar-fill" style="width:${g.tien_do||0}%"></div></div><span class="goal-pct">${g.tien_do||0}%</span></div>
+    </div>`).join('');
+}
+
+function renderUpcomingTrips(bTrips, tTrips) {
+  const el = document.getElementById('list-upcoming-trips');
+  const all = [...(bTrips||[]).map(t=>({...t, _kind:'biz'})), ...(tTrips||[]).map(t=>({...t, _kind:'travel'}))];
+  if(!all.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-suitcase"></i><p>Không có chuyến đi sắp tới</p></div>'; return; }
+  el.innerHTML = all.map(t => `
+    <div class="trip-card">
+      <div class="trip-card-header">
+        <div>
+          <div class="trip-name">${t.ten_chuyen_di} ${t._kind==='travel'?'✈️':'🏢'}</div>
+          <div class="trip-dest">${t.diem_den||t.dia_diem||t.trang_thai||''}</div>
+        </div>
+        <span style="font-size:11px; color:var(--text-muted);">${t.ngay_di||t.ngay_bd||''}</span>
+      </div>
+    </div>`).join('');
+}
+
+// ==================== TASKS & COPY TASK ====================
+function loadTasks() {
+  fetch('/api/personal/tasks').then(r=>r.json()).then(res=>{
+    if(!res.success) return;
+    allTasks = res.tasks || [];
+    renderTasks();
+  }).catch(()=>{});
+}
+
+function filterTasks(btn, filter) {
+  activeTaskFilter = filter;
+  document.querySelectorAll('#task-filters .filter-chip').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+function renderTasks() {
+  const el = document.getElementById('list-tasks');
+  const filtered = activeTaskFilter === 'all' ? allTasks : allTasks.filter(t => t.loai_cv === activeTaskFilter);
+  if(!filtered.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-list-check"></i><p>Không có công việc</p></div>'; return; }
+  el.innerHTML = filtered.map(t => `
+    <div class="task-item ${t.tinh_trang==='Hoàn thành'?'done':''}">
+      <input type="checkbox" class="task-checkbox" ${t.tinh_trang==='Hoàn thành'?'checked':''} onchange="toggleTaskDone(${t.id}, this.checked)" title="Đánh dấu hoàn thành">
+      <div class="task-item-content" onclick="editTask(${t.id})" style="cursor:pointer;">
+        <div class="task-item-title"><span style="color:var(--accent-cyan); font-weight:800; margin-right:6px;">CV-${String(t.id).padStart(4,'0')}</span>${t.ten_cv}</div>
+        <div class="task-item-meta">
+          <span>${typeBadge(t.loai_cv)}</span>
+          <span>${priorityBadge(t.muc_do_uu_tien)}</span>
+          <span>${statusBadge(t.tinh_trang)}</span>
+          ${t.ngay_kt ? `<span><i class="fas fa-calendar-xmark"></i> ${(t.ngay_kt||'').split('T')[0]}</span>` : ''}
+          ${t.ngay_gan_tuan ? `<span><i class="fas fa-calendar-week"></i> ${t.ngay_gan_tuan}</span>` : ''}
+        </div>
+        <div class="mini-bar-wrap"><div class="mini-bar"><div class="mini-bar-fill" style="width:${t.tien_do||0}%"></div></div><span class="mini-pct">${t.tien_do||0}%</span></div>
+        ${t.ghi_chu ? `<div style="font-size:11px; color:var(--text-muted); margin-top:6px; font-style:italic;">${t.ghi_chu}</div>` : ''}
+      </div>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <button class="btn-danger-sm" style="color:var(--accent-cyan);" onclick="copyTask(${t.id})" title="Sao chép"><i class="fas fa-copy"></i></button>
+        <button class="btn-danger-sm" onclick="deleteTask(${t.id})" title="Xóa"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function toggleTaskDone(id, done) {
+  const payload = { tinh_trang: done ? 'Hoàn thành' : 'Đang thực hiện', tien_do: done ? 100 : 0 };
+  fetch(`/api/personal/tasks/${id}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(r=>r.json()).then(()=> { loadTasks(); loadDashboard(); }).catch(()=>{});
+}
+
+function copyTask(id) {
+  fetch(`/api/personal/tasks/${id}/copy`, { method:'POST' })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { loadTasks(); loadDashboard(); showToast('success','📋 Đã sao chép công việc!'); }
+      else showToast('error', res.message || 'Lỗi sao chép công việc!');
+    }).catch(()=>showToast('error','Lỗi kết nối!'));
+}
+
+function openTaskModal(id=null) {
+  clearTaskForm();
+  document.getElementById('taskModalTitle').textContent = id ? 'Sửa Công Việc' : 'Thêm Công Việc Mới';
+  if(id) {
+    const t = allTasks.find(x=>x.id===id);
+    if(t) {
+      document.getElementById('taskEditId').value = t.id;
+      document.getElementById('taskName').value = t.ten_cv || '';
+      document.getElementById('taskType').value = t.loai_cv || 'Cá nhân';
+      document.getElementById('taskPriority').value = t.muc_do_uu_tien || 'Trung bình';
+      document.getElementById('taskStartDate').value = (t.ngay_bd || '').replace(' ','T');
+      document.getElementById('taskEndDate').value = (t.ngay_kt || '').replace(' ','T');
+      document.getElementById('taskStatus').value = t.tinh_trang || 'Chưa thực hiện';
+      document.getElementById('taskProgress').value = t.tien_do || 0;
+      document.getElementById('taskRelated').value = t.nguoi_lien_quan || '';
+      document.getElementById('taskNote').value = t.ghi_chu || '';
+      document.getElementById('taskWeekDay').value = t.ngay_gan_tuan || '';
+      document.getElementById('taskWeek').value = t.tuan_ke_hoach || '';
+    }
+  }
+  document.getElementById('taskModal').classList.add('show');
+}
+
+function editTask(id) { openTaskModal(id); }
+
+function clearTaskForm() {
+  ['taskEditId','taskName','taskRelated','taskNote','taskWeek'].forEach(f => document.getElementById(f).value = '');
+  document.getElementById('taskType').value = 'Cá nhân';
+  document.getElementById('taskPriority').value = 'Trung bình';
+  document.getElementById('taskStatus').value = 'Chưa thực hiện';
+  document.getElementById('taskProgress').value = 0;
+  document.getElementById('taskWeekDay').value = '';
+  const now = new Date(); now.setMinutes(0,0,0);
+  document.getElementById('taskStartDate').value = formatLocalDT(now);
+  document.getElementById('taskEndDate').value = '';
+}
+
+function saveTask() {
+  const name = document.getElementById('taskName').value.trim();
+  if(!name) { showToast('warning','Vui lòng nhập tên công việc!'); return; }
+  const id = document.getElementById('taskEditId').value;
+  const payload = {
+    ten_cv: name,
+    loai_cv: document.getElementById('taskType').value,
+    muc_do_uu_tien: document.getElementById('taskPriority').value,
+    ngay_bd: document.getElementById('taskStartDate').value,
+    ngay_kt: document.getElementById('taskEndDate').value,
+    tinh_trang: document.getElementById('taskStatus').value,
+    tien_do: parseInt(document.getElementById('taskProgress').value)||0,
+    nguoi_lien_quan: document.getElementById('taskRelated').value,
+    ghi_chu: document.getElementById('taskNote').value,
+    ngay_gan_tuan: document.getElementById('taskWeekDay').value,
+    tuan_ke_hoach: document.getElementById('taskWeek').value,
+  };
+  const url = id ? `/api/personal/tasks/${id}` : '/api/personal/tasks';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url,{ method, headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('taskModal'); loadTasks(); loadDashboard(); showToast('success', id ? '✅ Đã cập nhật công việc!' : '✅ Đã thêm công việc mới!'); }
+      else showToast('error', res.message || 'Lỗi lưu công việc!');
+    }).catch(()=>showToast('error','Lỗi kết nối!'));
+}
+
+function deleteTask(id) {
+  showNotify('warning','Xác nhận xóa','Bạn có chắc muốn xóa công việc này?', ()=>{
+    fetch(`/api/personal/tasks/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadTasks(); loadDashboard(); showToast('success','Đã xóa công việc!'); }).catch(()=>{});
+  });
+}
+
+// ==================== WEEKLY PLANNER & DRAG-DROP ====================
+function initWeeklyPlanner() {
+  const picker = document.getElementById('weekPicker');
+  if(!picker.value) {
+    const now = new Date();
+    picker.value = getWeekStr(now);
+  }
+  loadWeeklyPlan();
+}
+
+function getWeekStr(date) {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  const weekNo = Math.ceil((((d-yearStart)/86400000)+1)/7);
+  return d.getUTCFullYear() + '-W' + String(weekNo).padStart(2,'0');
+}
+
+function loadWeeklyPlan() {
+  const week = document.getElementById('weekPicker').value;
+  if(!week) return;
+  fetch(`/api/personal/weekly?week=${encodeURIComponent(week)}`).then(r=>r.json()).then(res=>{
+    if(res.success) {
+      const p = res.plan;
+      document.getElementById('weekGoalText').value = p.muc_tieu_tuan || '';
+      document.getElementById('weekHoursPlan').value = p.tong_gio_du_kien || 0;
+      document.getElementById('weekHoursDone').value = p.tong_gio_thuc_te || 0;
+      renderWeekGrid(week, res.tasks || []);
+    }
+  }).catch(()=>{});
+}
+
+function renderWeekGrid(week, tasks=[]) {
+  const grid = document.getElementById('weekGrid');
+  const today = DAYS[(new Date().getDay()+6)%7];
+  grid.innerHTML = DAYS.map(day => {
+    const dayTasks = tasks.filter(t => t.ngay_gan_tuan === day);
+    const chips = dayTasks.map(t => `<span class="week-task-chip ${t.muc_do_uu_tien==='Cao'?'high':''} ${t.tinh_trang==='Hoàn thành'?'done':''}" title="${t.ten_cv}" onclick="editTask(${t.id})" draggable="true" ondragstart="dragTask(event, ${t.id})"><span style="color:rgba(255,255,255,0.4); margin-right:4px;">CV-${t.id}</span>${t.ten_cv}</span>`).join('');
+    return `<div class="week-day-col" ondragover="allowDrop(event)" ondrop="dropTask(event, '${day}')">
+      <div class="week-day-header ${day===today?'today':''}">${day}</div>
+      ${chips || '<span style="font-size:10px;color:rgba(255,255,255,0.05);padding:4px;display:block;text-align:center;">Kéo thả vào đây</span>'}
+    </div>`;
+  }).join('');
+}
+
+function saveWeekPlan() {
+  const week = document.getElementById('weekPicker').value;
+  if(!week) { showToast('warning','Vui lòng chọn tuần!'); return; }
+  const payload = {
+    muc_tieu_tuan: document.getElementById('weekGoalText').value,
+    tong_gio_du_kien: parseFloat(document.getElementById('weekHoursPlan').value) || 0,
+    tong_gio_thuc_te: parseFloat(document.getElementById('weekHoursDone').value) || 0,
+  };
+  fetch(`/api/personal/weekly?week=${encodeURIComponent(week)}`,{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{ if(res.success) showToast('success','✅ Đã lưu kế hoạch tuần!'); }).catch(()=>{});
+}
+
+// Drag & Drop
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+function dragTask(ev, id) {
+  ev.dataTransfer.setData("text", id);
+}
+function dropTask(ev, day) {
+  ev.preventDefault();
+  const taskId = ev.dataTransfer.getData("text");
+  const week = document.getElementById('weekPicker').value;
+  const payload = { ngay_gan_tuan: day, tuan_ke_hoach: week };
+  fetch(`/api/personal/tasks/${taskId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(r=>r.json()).then(()=> { loadWeeklyPlan(); showToast('success',`📌 Đã gán việc vào ${day}!`); }).catch(()=>{});
+}
+
+function dropTaskOnDate(ev, dateStr) {
+  ev.preventDefault();
+  const taskId = ev.dataTransfer.getData("text");
+  const payload = { ngay_kt: dateStr + 'T17:00' };
+  fetch(`/api/personal/tasks/${taskId}`, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) })
+    .then(r=>r.json()).then(()=> { loadTasks(); loadCalendar(); showToast('success','📅 Đã đổi ngày hạn hoàn thành công việc!'); }).catch(()=>{});
+}
+
+// ==================== CALENDAR & MONTH GRID ====================
+function loadCalendar() {
+  fetch('/api/personal/calendar').then(r=>r.json()).then(res=>{
+    if(!res.success) return;
+    allEvents = res.events || [];
+    renderCalendar();
+    if(currentCalView === 'grid') renderGridCalendar();
+  }).catch(()=>{});
+}
+
+function setCalView(view) {
+  currentCalView = view;
+  document.getElementById('btn-cal-timeline').classList.toggle('active', view === 'timeline');
+  document.getElementById('btn-cal-grid').classList.toggle('active', view === 'grid');
+  document.getElementById('cal-grid-view').style.display = view === 'grid' ? 'block' : 'none';
+  document.getElementById('list-calendar').style.display = view === 'timeline' ? 'block' : 'none';
+  if(view === 'grid') renderGridCalendar();
+}
+
+function renderGridCalendar() {
+  const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+  document.getElementById('cal-month-title').textContent = `${monthNames[currentCalMonth]}, ${currentCalYear}`;
+  
+  const firstDay = new Date(currentCalYear, currentCalMonth, 1);
+  let startDayOfWeek = firstDay.getDay(); // Sun is 0
+  if (startDayOfWeek === 0) startDayOfWeek = 7;
+  const totalDays = new Date(currentCalYear, currentCalMonth + 1, 0).getDate();
+  const prevMonthDays = new Date(currentCalYear, currentCalMonth, 0).getDate();
+  
+  const cells = [];
+  // Pad previous month days
+  for (let i = startDayOfWeek - 1; i > 0; i--) {
+    cells.push({ day: prevMonthDays - i + 1, current: false, dateStr: null });
+  }
+  // Current month days
+  for (let i = 1; i <= totalDays; i++) {
+    const p = (n) => String(n).padStart(2, '0');
+    const dateStr = `${currentCalYear}-${p(currentCalMonth + 1)}-${p(i)}`;
+    cells.push({ day: i, current: true, dateStr: dateStr });
+  }
+  // Pad next month days to pad to multiples of 7
+  const totalCells = cells.length;
+  const remaining = (7 - (totalCells % 7)) % 7;
+  for (let i = 1; i <= remaining + (totalCells < 35 ? 7 : 0); i++) {
+    cells.push({ day: i, current: false, dateStr: null });
+  }
+  
+  const cellsHTML = cells.map(cell => {
+    if (!cell.current) {
+      return `<div class="week-day-col" style="min-height:75px; background:rgba(255,255,255,0.01); opacity:0.25; pointer-events:none;"><div class="week-day-header">${cell.day}</div></div>`;
+    }
+    
+    // Events on this date
+    const dayEvents = allEvents.filter(e => e.ngay_gio_bd && e.ngay_gio_bd.startsWith(cell.dateStr));
+    const dayTasks = allTasks.filter(t => t.ngay_kt && t.ngay_kt.startsWith(cell.dateStr));
+    
+    const eventTags = dayEvents.map(e => `
+      <span class="week-task-chip" style="border-left-color:${calTypeColor(e.loai_lich)}; background:rgba(255,255,255,0.02); color:var(--text-main); font-size:9px; padding:2px 4px; margin-bottom:2px;" onclick="event.stopPropagation();editCalendar(${e.id})">
+        ${calTypeIcon(e.loai_lich)} ${e.tieu_de}
+      </span>`).join('');
+      
+    const taskTags = dayTasks.map(t => `
+      <span class="week-task-chip ${t.muc_do_uu_tien==='Cao'?'high':''} ${t.tinh_trang==='Hoàn thành'?'done':''}" style="font-size:9px; padding:2px 4px; margin-bottom:2px;" onclick="event.stopPropagation();editTask(${t.id})">
+        📋 ${t.ten_cv}
+      </span>`).join('');
+      
+    const isToday = new Date().toISOString().split('T')[0] === cell.dateStr;
+    
+    return `<div class="week-day-col" style="min-height:75px; cursor:pointer;" onclick="quickAddEvent('${cell.dateStr}')" ondragover="allowDrop(event)" ondrop="dropTaskOnDate(event, '${cell.dateStr}')">
+      <div class="week-day-header ${isToday?'today':''}" style="font-weight:900; font-size:10px;">${cell.day}</div>
+      <div style="display:flex; flex-direction:column; overflow:hidden;">
+        ${eventTags}
+        ${taskTags}
+      </div>
+    </div>`;
+  }).join('');
+  
+  document.getElementById('cal-cells-grid').innerHTML = cellsHTML;
+}
+
+function prevMonth() {
+  currentCalMonth--;
+  if (currentCalMonth < 0) { currentCalMonth = 11; currentCalYear--; }
+  renderGridCalendar();
+}
+
+// Next month, add quick events, etc.
+function nextMonth() {
+  currentCalMonth++;
+  if (currentCalMonth > 11) { currentCalMonth = 0; currentCalYear++; }
+  renderGridCalendar();
+}
+
+function quickAddEvent(dateStr) {
+  openCalendarModal();
+  document.getElementById('calStart').value = dateStr + 'T09:00';
+}
+
+function filterCalendar(btn, f) {
+  activeCalFilter = f;
+  document.querySelectorAll('#cal-filters .filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const el = document.getElementById('list-calendar');
+  const filtered = activeCalFilter === 'all' ? allEvents : allEvents.filter(e => e.loai_lich === activeCalFilter);
+  if(!filtered.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-calendar"></i><p>Không có sự kiện</p></div>'; return; }
+  const sorted = [...filtered].sort((a,b) => (a.ngay_gio_bd||'').localeCompare(b.ngay_gio_bd||''));
+  el.innerHTML = sorted.map(e => `
+    <div class="timeline-item" onclick="editCalendar(${e.id})" style="cursor:pointer;">
+      <div class="timeline-dot" style="background:${calTypeColor(e.loai_lich)};"></div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div style="flex:1;">
+          <div class="timeline-date">${e.ngay_gio_bd||''} ${e.ngay_gio_kt ? '→ '+e.ngay_gio_kt : ''}</div>
+          <div class="timeline-title">${calTypeIcon(e.loai_lich)} ${e.tieu_de}</div>
+          ${e.dia_diem ? `<div class="timeline-meta"><i class="fas fa-location-dot mr-1"></i>${e.dia_diem}</div>` : ''}
+          ${e.nguoi_tham_gia ? `<div class="timeline-meta"><i class="fas fa-users mr-1"></i>${e.nguoi_tham_gia}</div>` : ''}
+          ${e.nhac_nho && e.nhac_nho !== 'Không' ? `<div class="timeline-meta" style="color:#f59e0b;"><i class="fas fa-bell mr-1"></i>${e.nhac_nho}</div>` : ''}
+        </div>
+        <button class="btn-danger-sm" onclick="event.stopPropagation();deleteCalendar(${e.id})" title="Xóa"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function openCalendarModal(id=null) {
+  document.getElementById('calEditId').value = '';
+  document.getElementById('calTitle').value = '';
+  document.getElementById('calType').value = 'Công việc';
+  document.getElementById('calStart').value = '';
+  document.getElementById('calEnd').value = '';
+  document.getElementById('calLocation').value = '';
+  document.getElementById('calAttendees').value = '';
+  document.getElementById('calNote').value = '';
+  document.getElementById('calRemind').value = 'Không';
+  document.getElementById('calModalTitle').textContent = id ? 'Sửa Sự Kiện' : 'Thêm Sự Kiện';
+  if(id) {
+    const e = allEvents.find(x=>x.id===id);
+    if(e) {
+      document.getElementById('calEditId').value = e.id;
+      document.getElementById('calTitle').value = e.tieu_de;
+      document.getElementById('calType').value = e.loai_lich;
+      document.getElementById('calStart').value = (e.ngay_gio_bd||'').replace(' ','T');
+      document.getElementById('calEnd').value = (e.ngay_gio_kt||'').replace(' ','T');
+      document.getElementById('calLocation').value = e.dia_diem||'';
+      document.getElementById('calAttendees').value = e.nguoi_tham_gia||'';
+      document.getElementById('calNote').value = e.ghi_chu||'';
+      document.getElementById('calRemind').value = e.nhac_nho||'Không';
+    }
+  }
+  document.getElementById('calendarModal').classList.add('show');
+}
+
+function editCalendar(id) { openCalendarModal(id); }
+
+function saveCalendar() {
+  const title = document.getElementById('calTitle').value.trim();
+  if(!title) { showToast('warning','Vui lòng nhập tiêu đề!'); return; }
+  const id = document.getElementById('calEditId').value;
+  const payload = {
+    tieu_de: title,
+    loai_lich: document.getElementById('calType').value,
+    ngay_gio_bd: document.getElementById('calStart').value,
+    ngay_gio_kt: document.getElementById('calEnd').value,
+    dia_diem: document.getElementById('calLocation').value,
+    nguoi_tham_gia: document.getElementById('calAttendees').value,
+    ghi_chu: document.getElementById('calNote').value,
+    nhac_nho: document.getElementById('calRemind').value,
+  };
+  const url = id ? `/api/personal/calendar/${id}` : '/api/personal/calendar';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url,{ method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('calendarModal'); loadCalendar(); loadDashboard(); showToast('success','✅ Đã lưu sự kiện!'); }
+    }).catch(()=>{});
+}
+
+function deleteCalendar(id) {
+  showNotify('warning','Xóa sự kiện','Bạn có chắc muốn xóa sự kiện này?',()=>{
+    fetch(`/api/personal/calendar/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadCalendar(); loadDashboard(); showToast('success','Đã xóa!'); }).catch(()=>{});
+  });
+}
+
+// ==================== BUSINESS TRIPS & EDIT ====================
+function loadBusinessTrips() {
+  fetch('/api/personal/trips/business').then(r=>r.json()).then(res=>{
+    if(!res.success) return;
+    allBTrips = res.trips || [];
+    renderBusinessTrips();
+  }).catch(()=>{});
+}
+
+function renderBusinessTrips() {
+  const el = document.getElementById('list-business-trips');
+  if(!allBTrips.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-briefcase"></i><p>Chưa có lịch công tác</p></div>'; return; }
+  el.innerHTML = allBTrips.map(t => {
+    const chi_phi = tryParseJSON(t.chi_phi_json);
+    const totalCost = chi_phi.reduce((sum,c)=>sum+parseFloat(c.amount||c[1]||0), 0);
+    return `<div class="trip-card" onclick="editBusinessTrip(${t.id})" style="cursor:pointer;">
+      <div class="trip-card-header">
+        <div>
+          <div class="trip-name">🏢 ${t.ten_chuyen_di}</div>
+          <div class="trip-dest"><i class="fas fa-location-dot mr-1"></i>${t.dia_diem||'Chưa ghi nhận'} · ${t.ngay_bd||''} → ${t.ngay_kt||''}</div>
+          ${t.phuong_tien ? `<div class="trip-dest" style="margin-top:2px;"><i class="fas fa-car mr-1"></i>Phương tiện: ${t.phuong_tien}</div>` : ''}
+          ${t.khach_san ? `<div class="trip-dest" style="margin-top:2px;"><i class="fas fa-hotel mr-1"></i>Khách sạn: ${t.khach_san}</div>` : ''}
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="badge-st ${t.trang_thai==='Hoàn thành'?'hoan':'dang'}">${t.trang_thai}</span>
+          <button class="btn-danger-sm" onclick="event.stopPropagation();deleteBusinessTrip(${t.id})" title="Xóa"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+      ${t.chi_phi_du_kien || totalCost > 0 ? `<div style="font-size:11px; color:var(--accent-orange); font-weight:700; margin-top:4px;"><i class="fas fa-wallet mr-1"></i>Chi phí: ${(t.chi_phi_thuc_te||totalCost).toLocaleString('vi-VN')} / ${(t.chi_phi_du_kien||0).toLocaleString('vi-VN')} đ</div>` : ''}
+      ${chi_phi.length ? `<div style="margin-top:10px; font-size:11px; color:var(--text-muted);">${chi_phi.map(c=>`<span style="margin-right:10px;"><i class="fas fa-circle-dot mr-1" style="font-size:6px;"></i>${c.item||c[0]||''}: ${(c.amount||c[1]||0).toLocaleString('vi-VN')}đ</span>`).join('')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function openBusinessModal() {
+  ['bizEditId','bizName','bizLocation','bizStart','bizEnd','bizTransport','bizHotel','bizBudget','bizActualCost','bizTasks','bizItinerary','bizExpenses'].forEach(f => document.getElementById(f).value='');
+  document.getElementById('bizStatus').value = 'Lên kế hoạch';
+  document.getElementById('bizModalTitle').textContent = 'Thêm Lịch Công Tác';
+  document.getElementById('businessModal').classList.add('show');
+}
+
+function editBusinessTrip(id) {
+  openBusinessModal();
+  const t = allBTrips.find(x => x.id === id);
+  if (t) {
+    document.getElementById('bizEditId').value = t.id;
+    document.getElementById('bizName').value = t.ten_chuyen_di;
+    document.getElementById('bizLocation').value = t.dia_diem || '';
+    document.getElementById('bizStart').value = t.ngay_bd || '';
+    document.getElementById('bizEnd').value = t.ngay_kt || '';
+    document.getElementById('bizStatus').value = t.trang_thai || 'Lên kế hoạch';
+    document.getElementById('bizTransport').value = t.phuong_tien || '';
+    document.getElementById('bizHotel').value = t.khach_san || '';
+    document.getElementById('bizBudget').value = t.chi_phi_du_kien || 0;
+    document.getElementById('bizActualCost').value = t.chi_phi_thuc_te || 0;
+    
+    const tasks = tryParseJSON(t.cong_viec_json);
+    document.getElementById('bizTasks').value = tasks.map(x => x.item || x).join('\n');
+    
+    const itinerary = tryParseJSON(t.lich_trinh_json);
+    document.getElementById('bizItinerary').value = itinerary.map(x => x.item || x).join('\n');
+    
+    const expenses = tryParseJSON(t.chi_phi_json);
+    document.getElementById('bizExpenses').value = expenses.map(x => `${x.item || x[0]} - ${x.amount || x[1]}`).join('\n');
+    
+    document.getElementById('bizModalTitle').textContent = 'Sửa Lịch Công Tác';
+  }
+}
+
+function saveBusinessTrip() {
+  const name = document.getElementById('bizName').value.trim();
+  if(!name) { showToast('warning','Vui lòng nhập mục đích chuyến công tác!'); return; }
+  const id = document.getElementById('bizEditId').value;
+  const tasks = document.getElementById('bizTasks').value.split('\n').filter(l=>l.trim()).map(l=>({item:l}));
+  const itinerary = document.getElementById('bizItinerary').value.split('\n').filter(l=>l.trim()).map(l=>({item:l}));
+  const expenses = document.getElementById('bizExpenses').value.split('\n').filter(l=>l.includes('-')).map(l=>{
+    const parts = l.split('-');
+    return { item: parts[0].trim(), amount: parseFloat(parts[1])||0 };
+  });
+  
+  const payload = {
+    ten_chuyen_di: name,
+    dia_diem: document.getElementById('bizLocation').value,
+    ngay_bd: document.getElementById('bizStart').value,
+    ngay_kt: document.getElementById('bizEnd').value,
+    trang_thai: document.getElementById('bizStatus').value,
+    phuong_tien: document.getElementById('bizTransport').value,
+    khach_san: document.getElementById('bizHotel').value,
+    chi_phi_du_kien: parseFloat(document.getElementById('bizBudget').value)||0,
+    chi_phi_thuc_te: parseFloat(document.getElementById('bizActualCost').value)||0,
+    cong_viec: tasks,
+    lich_trinh: itinerary,
+    chi_phi: expenses
+  };
+  
+  const url = id ? `/api/personal/trips/business/${id}` : '/api/personal/trips/business';
+  const method = id ? 'PUT' : 'POST';
+  
+  fetch(url,{ method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('businessModal'); loadBusinessTrips(); loadDashboard(); showToast('success', id ? '✅ Đã cập nhật công tác!' : '✅ Đã thêm công tác!'); }
+    }).catch(()=>{});
+}
+
+function deleteBusinessTrip(id) {
+  showNotify('warning','Xóa lịch công tác','',()=>{
+    fetch(`/api/personal/trips/business/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadBusinessTrips(); showToast('success','Đã xóa!'); }).catch(()=>{});
+  });
+}
+
+// ==================== TRAVEL & EDIT ====================
+function loadTravelTrips() {
+  fetch('/api/personal/trips/travel').then(r=>r.json()).then(res=>{
+    if(!res.success) return;
+    allTTrips = res.trips || [];
+    renderTravelTrips();
+  }).catch(()=>{});
+}
+
+function renderTravelTrips() {
+  const el = document.getElementById('list-travel-trips');
+  if(!allTTrips.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-suitcase-rolling"></i><p>Chưa có chuyến du lịch</p></div>'; return; }
+  el.innerHTML = allTTrips.map(t => {
+    const checklist = tryParseJSON(t.checklist_json);
+    const done = checklist.filter(c=>c.done).length;
+    const pct = checklist.length ? Math.round(done/checklist.length*100) : 0;
+    const checkItems = checklist.map((c,i)=>`
+      <div class="checklist-item ${c.done?'done':''}">
+        <input type="checkbox" class="cl-check" ${c.done?'checked':''} onchange="toggleChecklist(${t.id}, ${i}, this.checked)">
+        <span class="cl-text">${c.item}</span>
+      </div>`).join('');
+    return `<div class="trip-card" onclick="editTravelTrip(${t.id})" style="cursor:pointer;">
+      <div class="trip-card-header">
+        <div>
+          <div class="trip-name">✈️ ${t.ten_chuyen_di}</div>
+          <div class="trip-dest"><i class="fas fa-location-dot mr-1"></i>${t.diem_den||''}${t.nguoi_di_cung?` · <i class="fas fa-users mr-1"></i>${t.nguoi_di_cung}`:''}</div>
+          <div class="trip-dest" style="margin-top:2px;"><i class="fas fa-calendar mr-1"></i>${t.ngay_di||''} → ${t.ngay_ve||''}</div>
+          ${t.ngan_sach ? `<div class="trip-dest" style="color:var(--accent-green);"><i class="fas fa-wallet mr-1"></i>Ngân sách: ${parseFloat(t.ngan_sach).toLocaleString('vi-VN')} đ</div>` : ''}
+        </div>
+        <button class="btn-danger-sm" onclick="event.stopPropagation();deleteTravelTrip(${t.id})" title="Xóa"><i class="fas fa-trash"></i></button>
+      </div>
+      <div class="trip-progress-wrap">
+        <div class="trip-progress-label"><span>Checklist chuẩn bị: ${done}/${checklist.length}</span><span>${pct}%</span></div>
+        <div class="trip-progress-bar"><div class="trip-progress-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div style="margin-top:12px;">${checkItems}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleChecklist(tripId, idx, done) {
+  const trip = allTTrips.find(t=>t.id===tripId);
+  if(!trip) return;
+  const checklist = tryParseJSON(trip.checklist_json);
+  checklist[idx].done = done;
+  fetch(`/api/personal/trips/travel/${tripId}`,{ method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({checklist}) })
+    .then(r=>r.json()).then(()=>loadTravelTrips()).catch(()=>{});
+}
+
+function openTravelModal() {
+  ['travelEditId','travelName','travelDest','travelWith','travelStart','travelEnd','travelBudget'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('travelModalTitle').textContent='Thêm Chuyến Du Lịch';
+  document.getElementById('travelModal').classList.add('show');
+}
+
+function editTravelTrip(id) {
+  openTravelModal();
+  const t = allTTrips.find(x => x.id === id);
+  if (t) {
+    document.getElementById('travelEditId').value = t.id;
+    document.getElementById('travelName').value = t.ten_chuyen_di;
+    document.getElementById('travelDest').value = t.diem_den || '';
+    document.getElementById('travelWith').value = t.nguoi_di_cung || '';
+    document.getElementById('travelStart').value = t.ngay_di || '';
+    document.getElementById('travelEnd').value = t.ngay_ve || '';
+    document.getElementById('travelBudget').value = t.ngan_sach || 0;
+    document.getElementById('travelModalTitle').textContent = 'Sửa Chuyến Du Lịch';
+  }
+}
+
+function saveTravel() {
+  const name = document.getElementById('travelName').value.trim();
+  if(!name) { showToast('warning','Vui lòng nhập tên chuyến đi!'); return; }
+  const id = document.getElementById('travelEditId').value;
+  
+  let checklist = null;
+  if (id) {
+    const t = allTTrips.find(x => x.id == id);
+    if (t) checklist = tryParseJSON(t.checklist_json);
+  }
+  
+  const payload = {
+    ten_chuyen_di: name,
+    diem_den: document.getElementById('travelDest').value,
+    nguoi_di_cung: document.getElementById('travelWith').value,
+    ngay_di: document.getElementById('travelStart').value,
+    ngay_ve: document.getElementById('travelEnd').value,
+    ngan_sach: parseFloat(document.getElementById('travelBudget').value) || 0,
+  };
+  if (checklist) {
+    payload.checklist = checklist;
+  }
+  
+  const url = id ? `/api/personal/trips/travel/${id}` : '/api/personal/trips/travel';
+  const method = id ? 'PUT' : 'POST';
+  
+  fetch(url,{ method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('travelModal'); loadTravelTrips(); loadDashboard(); showToast('success', id ? '✅ Đã cập nhật chuyến đi!' : '✅ Đã thêm chuyến du lịch!'); }
+    }).catch(()=>{});
+}
+
+function deleteTravelTrip(id) {
+  showNotify('warning','Xóa chuyến du lịch','',()=>{
+    fetch(`/api/personal/trips/travel/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadTravelTrips(); showToast('success','Đã xóa!'); }).catch(()=>{});
+  });
+}
+
+// ==================== GOALS ====================
+function loadGoals() {
+  fetch('/api/personal/goals').then(r=>r.json()).then(res=>{
+    if(!res.success) return;
+    allGoals = res.goals || [];
+    renderGoals();
+  }).catch(()=>{});
+}
+
+function filterGoals(btn, f) {
+  activeGoalFilter = f;
+  document.querySelectorAll('#goal-filters .filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderGoals();
+}
+
+function renderGoals() {
+  const el = document.getElementById('list-goals');
+  const filtered = activeGoalFilter === 'all' ? allGoals : allGoals.filter(g => g.loai_muc_tieu === activeGoalFilter);
+  if(!filtered.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-bullseye"></i><p>Chưa có mục tiêu</p></div>'; return; }
+  el.innerHTML = filtered.map(g => `
+    <div class="goal-card" onclick="editGoal(${g.id})" style="cursor:pointer;">
+      <div style="display:flex; justify-content:space-between;">
+        <div style="flex:1;">
+          <div class="goal-header"><span class="goal-name">${g.ten_muc_tieu}</span><span class="goal-type-badge">${g.loai_muc_tieu}</span></div>
+          ${g.ngay_bd||g.ngay_kt ? `<div class="goal-meta">${g.ngay_bd||''} ${g.ngay_kt?'→ '+g.ngay_kt:''}</div>` : ''}
+          ${g.kpi ? `<div class="goal-kpi"><i class="fas fa-chart-column mr-1"></i>KPI: ${g.kpi}</div>` : ''}
+          ${g.mo_ta ? `<div class="goal-meta">${g.mo_ta}</div>` : ''}
+          <div class="goal-progress">
+            <div class="goal-bar"><div class="goal-bar-fill" style="width:${g.tien_do||0}%"></div></div>
+            <span class="goal-pct">${g.tien_do||0}%</span>
+          </div>
+        </div>
+        <button class="btn-danger-sm" style="margin-left:10px; align-self:flex-start;" onclick="event.stopPropagation();deleteGoal(${g.id})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function openGoalModal(id=null) {
+  ['goalEditId','goalName','goalStart','goalEnd','goalKPI','goalDesc'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('goalType').value='Tháng';
+  document.getElementById('goalStatus').value='Đang thực hiện';
+  document.getElementById('goalProgress').value=0;
+  document.getElementById('goalModalTitle').textContent=id?'Sửa Mục Tiêu':'Thêm Mục Tiêu';
+  if(id) {
+    const g = allGoals.find(x=>x.id===id);
+    if(g) {
+      document.getElementById('goalEditId').value=g.id;
+      document.getElementById('goalName').value=g.ten_muc_tieu;
+      document.getElementById('goalType').value=g.loai_muc_tieu;
+      document.getElementById('goalStatus').value=g.trang_thai;
+      document.getElementById('goalStart').value=g.ngay_bd||'';
+      document.getElementById('goalEnd').value=g.ngay_kt||'';
+      document.getElementById('goalKPI').value=g.kpi||'';
+      document.getElementById('goalProgress').value=g.tien_do||0;
+      document.getElementById('goalDesc').value=g.mo_ta||'';
+    }
+  }
+  document.getElementById('goalModal').classList.add('show');
+}
+
+function editGoal(id) { openGoalModal(id); }
+
+function saveGoal() {
+  const name = document.getElementById('goalName').value.trim();
+  if(!name) { showToast('warning','Vui lòng nhập tên mục tiêu!'); return; }
+  const id = document.getElementById('goalEditId').value;
+  const payload = {
+    ten_muc_tieu: name,
+    loai_muc_tieu: document.getElementById('goalType').value,
+    trang_thai: document.getElementById('goalStatus').value,
+    ngay_bd: document.getElementById('goalStart').value,
+    ngay_kt: document.getElementById('goalEnd').value,
+    kpi: document.getElementById('goalKPI').value,
+    tien_do: parseInt(document.getElementById('goalProgress').value)||0,
+    mo_ta: document.getElementById('goalDesc').value,
+  };
+  const url = id ? `/api/personal/goals/${id}` : '/api/personal/goals';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url,{ method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('goalModal'); loadGoals(); loadDashboard(); showToast('success','✅ Đã lưu mục tiêu!'); }
+    }).catch(()=>{});
+}
+
+function deleteGoal(id) {
+  showNotify('warning','Xóa mục tiêu','',()=>{
+    fetch(`/api/personal/goals/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadGoals(); loadDashboard(); showToast('success','Đã xóa!'); }).catch(()=>{});
+  });
+}
+
+// ==================== REMINDERS & LINKING ====================
+function loadReminders() {
+  fetch('/api/personal/reminders').then(r=>r.json()).then(res=>{
+    if(!res.success) return;
+    allReminders = res.reminders || [];
+    renderReminders();
+  }).catch(()=>{});
+}
+
+function renderReminders() {
+  const el = document.getElementById('list-reminders');
+  if(!allReminders.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-bell"></i><p>Chưa có nhắc nhở</p></div>'; return; }
+  const iconMap = { App:'fa-mobile-screen-button', Email:'fa-envelope', SMS:'fa-comment-sms', Zalo:'fa-message', Telegram:'fa-paper-plane' };
+  const colorMap = { App:'rgba(59,130,246,0.15)', Email:'rgba(16,185,129,0.15)', SMS:'rgba(245,158,11,0.15)', Zalo:'rgba(168,85,247,0.15)', Telegram:'rgba(6,182,212,0.15)' };
+  el.innerHTML = allReminders.map(r => {
+    let linkedText = '';
+    if (r.ref_type && r.ref_id) {
+      linkedText = `<span style="font-size:9px; color:var(--accent-cyan); display:block; margin-top:2px;"><i class="fas fa-link mr-1"></i>Liên kết: ${r.ref_type} #${r.ref_id}</span>`;
+    }
+    return `
+    <div class="reminder-item">
+      <div class="reminder-icon" style="background:${colorMap[r.loai_nhac]||colorMap['App']}; color:var(--accent-blue);">
+        <i class="fas ${iconMap[r.loai_nhac]||'fa-bell'}"></i>
+      </div>
+      <div class="reminder-info">
+        <div class="reminder-title">${r.noi_dung||'Nhắc nhở'}</div>
+        <div class="reminder-time"><i class="fas fa-clock mr-1"></i>${r.thoi_gian_nhac||''} · ${r.loai_nhac} · ${r.lap_lai}</div>
+        ${linkedText}
+      </div>
+      <button class="btn-danger-sm" onclick="deleteReminder(${r.id})"><i class="fas fa-trash"></i></button>
+    </div>`;
+  }).join('');
+}
+
+function openReminderModal() {
+  ['remContent','remTime'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('remType').value='App';
+  document.getElementById('remRepeat').value='Không';
+  document.getElementById('remRefType').value='none';
+  document.getElementById('remRefIdGroup').style.display='none';
+  document.getElementById('reminderModal').classList.add('show');
+}
+
+function updateReminderRefList() {
+  const refType = document.getElementById('remRefType').value;
+  const group = document.getElementById('remRefIdGroup');
+  const select = document.getElementById('remRefId');
+  if (refType === 'none') {
+    group.style.display = 'none';
+    select.innerHTML = '';
+    return;
+  }
+  group.style.display = 'block';
+  if (refType === 'task') {
+    select.innerHTML = allTasks.map(t => `<option value="${t.id}">[CV-${t.id}] ${t.ten_cv}</option>`).join('');
+  } else if (refType === 'calendar') {
+    select.innerHTML = allEvents.map(e => `<option value="${e.id}">[Sự kiện] ${e.tieu_de}</option>`).join('');
+  } else if (refType === 'trip') {
+    const trips = [...allBTrips.map(t=>({id:t.id, name:t.ten_chuyen_di, kind:'biz'})), ...allTTrips.map(t=>({id:t.id, name:t.ten_chuyen_di, kind:'travel'}))];
+    select.innerHTML = trips.map(t => `<option value="${t.id}">${t.kind==='biz'?'🏢':'✈️'} ${t.name}</option>`).join('');
+  }
+}
+
+function saveReminder() {
+  const content = document.getElementById('remContent').value.trim();
+  if(!content) { showToast('warning','Vui lòng nhập nội dung nhắc nhở!'); return; }
+  const refType = document.getElementById('remRefType').value;
+  const payload = {
+    loai_nhac: document.getElementById('remType').value,
+    thoi_gian_nhac: document.getElementById('remTime').value,
+    lap_lai: document.getElementById('remRepeat').value,
+    noi_dung: content,
+    ref_type: refType !== 'none' ? refType : 'task',
+    ref_id: refType !== 'none' ? parseInt(document.getElementById('remRefId').value) : null
+  };
+  fetch('/api/personal/reminders',{ method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('reminderModal'); loadReminders(); showToast('success','✅ Đã thêm nhắc nhở!'); }
+    }).catch(()=>{});
+}
+
+function deleteReminder(id) {
+  fetch(`/api/personal/reminders/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadReminders(); showToast('success','Đã xóa!'); }).catch(()=>{});
+}
+
+// ==================== DAILY DIARY CRUD ====================
+function loadDiary() {
+  fetch('/api/personal/diary').then(r=>r.json()).then(res=>{
+    if(!res.success) return;
+    allDiaries = res.diaries || [];
+    renderDiaries();
+  }).catch(()=>{});
+}
+
+function renderDiaries() {
+  const el = document.getElementById('list-diaries');
+  if(!allDiaries.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-book"></i><p>Chưa có nhật ký nào</p></div>'; return; }
+  el.innerHTML = allDiaries.map(d => `
+    <div class="goal-card" onclick="editDiary(${d.id})" style="cursor:pointer; display:flex; flex-direction:column; justify-content:space-between; min-height:140px;">
+      <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:11px; font-weight:800; color:var(--accent-green);"><i class="fas fa-calendar-day mr-1"></i>${d.ngay}</span>
+          <span style="font-size:12px;">${d.tam_trang || '🙂'}</span>
+        </div>
+        <div style="font-size:14px; font-weight:800; color:var(--text-main); margin-bottom:6px;">${d.tieu_de}</div>
+        <div style="font-size:12px; color:var(--text-muted); line-height:1.4; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;">${d.noi_dung}</div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:12px;">
+        <button class="btn-danger-sm" onclick="event.stopPropagation();deleteDiary(${d.id})"><i class="fas fa-trash"></i> Xóa</button>
+      </div>
+    </div>`).join('');
+}
+
+function openDiaryModal() {
+  ['diaryEditId','diaryTitle','diaryContent'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('diaryDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('diaryMood').value='Bình thường 🙂';
+  document.getElementById('diaryModalTitle').textContent='Viết Nhật Ký Ngày Hôm Nay';
+  document.getElementById('diaryModal').classList.add('show');
+}
+
+function editDiary(id) {
+  openDiaryModal();
+  const d = allDiaries.find(x => x.id === id);
+  if (d) {
+    document.getElementById('diaryEditId').value = d.id;
+    document.getElementById('diaryDate').value = d.ngay;
+    document.getElementById('diaryMood').value = d.tam_trang || 'Bình thường 🙂';
+    document.getElementById('diaryTitle').value = d.tieu_de;
+    document.getElementById('diaryContent').value = d.noi_dung || '';
+    document.getElementById('diaryModalTitle').textContent = 'Sửa Ghi Chép Nhật Ký';
+  }
+}
+
+function saveDiary() {
+  const title = document.getElementById('diaryTitle').value.trim();
+  const date = document.getElementById('diaryDate').value;
+  if(!title || !date) { showToast('warning','Vui lòng điền ngày và tiêu đề nhật ký!'); return; }
+  const id = document.getElementById('diaryEditId').value;
+  const payload = {
+    ngay: date,
+    tieu_de: title,
+    tam_trang: document.getElementById('diaryMood').value,
+    noi_dung: document.getElementById('diaryContent').value
+  };
+  const url = id ? `/api/personal/diary/${id}` : '/api/personal/diary';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('diaryModal'); loadDiary(); showToast('success','✅ Đã lưu ghi chép nhật ký!'); }
+    }).catch(()=>{});
+}
+
+function deleteDiary(id) {
+  showNotify('warning','Xóa nhật ký','Bạn có chắc chắn muốn xóa?',()=>{
+    fetch(`/api/personal/diary/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadDiary(); showToast('success','Đã xóa!'); }).catch(()=>{});
+  });
+}
+
+// ==================== FINANCE & HEALTH CRUD ====================
+function loadFinanceHealth() {
+  Promise.all([
+    fetch('/api/personal/expenses').then(r=>r.json()),
+    fetch('/api/personal/health').then(r=>r.json())
+  ]).then(([expensesRes, healthRes]) => {
+    if (expensesRes.success) {
+      allExpenses = expensesRes.expenses || [];
+      renderExpenses();
+    }
+    if (healthRes.success) {
+      allHealth = healthRes.logs || [];
+      renderHealth();
+    }
+  }).catch(()=>{});
+}
+
+function renderExpenses() {
+  const el = document.getElementById('list-expenses');
+  const today = new Date();
+  const thisMonthStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}`;
+  
+  const thisMonthExpenses = allExpenses.filter(e => e.ngay && e.ngay.startsWith(thisMonthStr));
+  const total = thisMonthExpenses.reduce((sum, e) => sum + (e.so_tien || 0), 0);
+  document.getElementById('total-monthly-expense').textContent = total.toLocaleString('vi-VN') + ' đ';
+  
+  if(!allExpenses.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-receipt"></i><p>Chưa có khoản chi tiêu nào</p></div>'; return; }
+  
+  const catColorMap = { 'Ăn uống':'#f59e0b', 'Di chuyển':'#3b82f6', 'Mua sắm':'#ec4899', 'Giải trí':'#a855f7', 'Học tập':'#06b6d4', 'Sinh hoạt':'#10b981', 'Khác':'#94a3b8' };
+  el.innerHTML = allExpenses.map(e => `
+    <div class="task-item" style="padding:10px; gap:8px;" onclick="editExpense(${e.id})">
+      <div style="width:6px; align-self:stretch; background:${catColorMap[e.danh_muc]||'#94a3b8'}; border-radius:4px; flex-shrink:0;"></div>
+      <div class="task-item-content">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-weight:700; font-size:12.5px; color:var(--text-main);">${e.khoan_chi}</div>
+          <div style="font-weight:900; font-size:13px; color:#f59e0b;">${(e.so_tien||0).toLocaleString('vi-VN')} đ</div>
+        </div>
+        <div class="task-item-meta" style="margin-top:2px;">
+          <span><i class="fas fa-calendar-day mr-1"></i>${e.ngay}</span>
+          <span class="badge-type" style="padding:1px 6px; font-size:8.5px; background:rgba(255,255,255,0.05);">${e.danh_muc}</span>
+        </div>
+      </div>
+      <button class="btn-danger-sm" style="padding:2px 6px;" onclick="event.stopPropagation();deleteExpense(${e.id})"><i class="fas fa-trash" style="font-size:10px;"></i></button>
+    </div>`).join('');
+}
+
+function openExpenseModal() {
+  ['expenseEditId','expenseItem','expenseAmount','expenseNote'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('expenseDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('expenseCategory').value='Khác';
+  document.getElementById('expenseModalTitle').textContent='Thêm Khoản Chi Tiêu';
+  document.getElementById('expenseModal').classList.add('show');
+}
+
+function editExpense(id) {
+  openExpenseModal();
+  const e = allExpenses.find(x => x.id === id);
+  if (e) {
+    document.getElementById('expenseEditId').value = e.id;
+    document.getElementById('expenseDate').value = e.ngay;
+    document.getElementById('expenseCategory').value = e.danh_muc || 'Khác';
+    document.getElementById('expenseItem').value = e.khoan_chi;
+    document.getElementById('expenseAmount').value = e.so_tien || 0;
+    document.getElementById('expenseNote').value = e.ghi_chu || '';
+    document.getElementById('expenseModalTitle').textContent = 'Sửa Khoản Chi Tiêu';
+  }
+}
+
+function saveExpense() {
+  const item = document.getElementById('expenseItem').value.trim();
+  const amount = parseFloat(document.getElementById('expenseAmount').value);
+  const date = document.getElementById('expenseDate').value;
+  if(!item || isNaN(amount) || !date) { showToast('warning','Vui lòng điền đầy đủ ngày, khoản chi và số tiền!'); return; }
+  const id = document.getElementById('expenseEditId').value;
+  const payload = {
+    ngay: date,
+    khoan_chi: item,
+    so_tien: amount,
+    danh_muc: document.getElementById('expenseCategory').value,
+    ghi_chu: document.getElementById('expenseNote').value
+  };
+  const url = id ? `/api/personal/expenses/${id}` : '/api/personal/expenses';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('expenseModal'); loadFinanceHealth(); showToast('success','✅ Đã lưu khoản chi tiêu!'); }
+    }).catch(()=>{});
+}
+
+function deleteExpense(id) {
+  showNotify('warning','Xóa chi tiêu','Bạn có chắc chắn muốn xóa?',()=>{
+    fetch(`/api/personal/expenses/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadFinanceHealth(); showToast('success','Đã xóa!'); }).catch(()=>{});
+  });
+}
+
+// Health Log Functions
+function renderHealth() {
+  const el = document.getElementById('list-health');
+  if(!allHealth.length) { el.innerHTML='<div class="empty-state"><i class="fas fa-weight-scale"></i><p>Chưa có dữ liệu sức khỏe</p></div>'; return; }
+  el.innerHTML = allHealth.map(h => `
+    <div class="timeline-item" onclick="editHealth(${h.id})" style="cursor:pointer; margin-bottom:10px; padding:10px 14px;">
+      <div class="timeline-dot" style="background:#ef4444;"></div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="timeline-date">${h.ngay}</div>
+          <div class="timeline-title" style="font-size:12.5px;">
+            ${h.can_nang ? `⚖️ Cân nặng: <b>${h.can_nang} kg</b>` : ''} 
+            ${h.huyet_ap ? ` · 🩺 Huyết áp: <b>${h.huyet_ap} mmHg</b>` : ''}
+          </div>
+          ${h.tinh_trang_suc_khoe ? `<div class="timeline-meta" style="margin-top:4px; color:var(--text-main); font-style:italic;"><i class="fas fa-notes-medical mr-1"></i>Trạng thái: ${h.tinh_trang_suc_khoe}</div>` : ''}
+          ${h.ghi_chu ? `<div class="timeline-meta" style="margin-top:2px;"><i class="fas fa-comment-medical mr-1"></i>Ghi chú: ${h.ghi_chu}</div>` : ''}
+        </div>
+        <button class="btn-danger-sm" onclick="event.stopPropagation();deleteHealth(${h.id})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+function openHealthModal() {
+  ['healthEditId','healthBP','healthWeight','healthCondition','healthNote'].forEach(f=>document.getElementById(f).value='');
+  document.getElementById('healthDate').value=new Date().toISOString().split('T')[0];
+  document.getElementById('healthModalTitle').textContent='Thêm Chỉ Số Sức Khỏe';
+  document.getElementById('healthModal').classList.add('show');
+}
+
+function editHealth(id) {
+  openHealthModal();
+  const h = allHealth.find(x => x.id === id);
+  if (h) {
+    document.getElementById('healthEditId').value = h.id;
+    document.getElementById('healthDate').value = h.ngay;
+    document.getElementById('healthBP').value = h.huyet_ap || '';
+    document.getElementById('healthWeight').value = h.can_nang || '';
+    document.getElementById('healthCondition').value = h.tinh_trang_suc_khoe || '';
+    document.getElementById('healthNote').value = h.ghi_chu || '';
+    document.getElementById('healthModalTitle').textContent = 'Sửa Chỉ Số Sức Khỏe';
+  }
+}
+
+function saveHealth() {
+  const date = document.getElementById('healthDate').value;
+  if(!date) { showToast('warning','Vui lòng chọn ngày!'); return; }
+  const id = document.getElementById('healthEditId').value;
+  const payload = {
+    ngay: date,
+    huyet_ap: document.getElementById('healthBP').value,
+    can_nang: parseFloat(document.getElementById('healthWeight').value) || 0,
+    tinh_trang_suc_khoe: document.getElementById('healthCondition').value,
+    ghi_chu: document.getElementById('healthNote').value
+  };
+  const url = id ? `/api/personal/health/${id}` : '/api/personal/health';
+  const method = id ? 'PUT' : 'POST';
+  fetch(url, { method, headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) })
+    .then(r=>r.json()).then(res=>{
+      if(res.success) { closeModal('healthModal'); loadFinanceHealth(); showToast('success','✅ Đã lưu chỉ số sức khỏe!'); }
+    }).catch(()=>{});
+}
+
+function deleteHealth(id) {
+  showNotify('warning','Xóa chỉ số sức khỏe','Bạn có chắc chắn muốn xóa?',()=>{
+    fetch(`/api/personal/health/${id}`,{method:'DELETE'}).then(r=>r.json()).then(()=>{ loadFinanceHealth(); showToast('success','Đã xóa!'); }).catch(()=>{});
+  });
+}
+
+// ==================== PRODUCTIVITY ANALYTICS & CHART.JS ====================
+function loadAnalytics() {
+  Promise.all([
+    fetch('/api/personal/tasks').then(r=>r.json()),
+    fetch('/api/personal/goals').then(r=>r.json())
+  ]).then(([tasksRes, goalsRes]) => {
+    if (tasksRes.success) allTasks = tasksRes.tasks || [];
+    if (goalsRes.success) allGoals = goalsRes.goals || [];
+    
+    initAnalyticsCharts();
+    generateAIAnalyticsReview();
+  }).catch(()=>{});
+}
+
+function initAnalyticsCharts() {
+  const themeText = '#f1f5f9';
+  const gridColor = 'rgba(255,255,255,0.06)';
+  
+  // 1. Task Status Chart
+  const statusCounts = { 'Chưa thực hiện': 0, 'Đang thực hiện': 0, 'Hoàn thành': 0, 'Hoãn': 0 };
+  allTasks.forEach(t => {
+    const s = t.tinh_trang || 'Chưa thực hiện';
+    if (statusCounts[s] !== undefined) statusCounts[s]++;
+  });
+  
+  if (statusChartObj) statusChartObj.destroy();
+  const ctx1 = document.getElementById('chart-task-status').getContext('2d');
+  statusChartObj = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(statusCounts),
+      datasets: [{
+        data: Object.values(statusCounts),
+        backgroundColor: ['#94a3b8', '#3b82f6', '#10b981', '#f59e0b'],
+        borderWidth: 1,
+        borderColor: '#161e36'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: themeText, font: { size: 10 } }, position: 'right' }
+      }
+    }
+  });
+
+  // 2. Task Priority Chart
+  const priorityCounts = { 'Cao': 0, 'Trung bình': 0, 'Thấp': 0 };
+  allTasks.forEach(t => {
+    const p = t.muc_do_uu_tien || 'Trung bình';
+    if (priorityCounts[p] !== undefined) priorityCounts[p]++;
+  });
+  
+  if (priorityChartObj) priorityChartObj.destroy();
+  const ctx2 = document.getElementById('chart-task-priority').getContext('2d');
+  priorityChartObj = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: Object.keys(priorityCounts),
+      datasets: [{
+        label: 'Số lượng công việc',
+        data: Object.values(priorityCounts),
+        backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+        borderWidth: 0,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { color: 'transparent' }, ticks: { color: themeText } },
+        y: { grid: { color: gridColor }, ticks: { color: themeText, stepSize: 1 } }
+      },
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+
+  // 3. Task Category Chart
+  const catCounts = {};
+  allTasks.forEach(t => {
+    const cat = t.loai_cv || 'Cá nhân';
+    catCounts[cat] = (catCounts[cat] || 0) + 1;
+  });
+  
+  if (categoryChartObj) categoryChartObj.destroy();
+  const ctx3 = document.getElementById('chart-task-category').getContext('2d');
+  categoryChartObj = new Chart(ctx3, {
+    type: 'pie',
+    data: {
+      labels: Object.keys(catCounts),
+      datasets: [{
+        data: Object.values(catCounts),
+        backgroundColor: ['#3b82f6', '#ec4899', '#f59e0b', '#10b981', '#a855f7'],
+        borderWidth: 1,
+        borderColor: '#161e36'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: themeText, font: { size: 10 } }, position: 'right' }
+      }
+    }
+  });
+}
+
+function generateAIAnalyticsReview() {
+  const doneTasks = allTasks.filter(t => t.tinh_trang === 'Hoàn thành');
+  const rate = allTasks.length ? Math.round(doneTasks.length / allTasks.length * 100) : 0;
+  
+  // Goals logic
+  const shortGoals = allGoals.filter(g => ['Tuần', 'Tháng'].includes(g.loai_muc_tieu));
+  const longGoals = allGoals.filter(g => ['Quý', 'Năm'].includes(g.loai_muc_tieu));
+  
+  const shortAvg = shortGoals.length ? Math.round(shortGoals.reduce((sum, g)=>sum+(g.tien_do||0),0)/shortGoals.length) : 0;
+  const longAvg = longGoals.length ? Math.round(longGoals.reduce((sum, g)=>sum+(g.tien_do||0),0)/longGoals.length) : 0;
+  
+  document.getElementById('txt-short-goals-pct').textContent = shortAvg + '%';
+  document.getElementById('bar-short-goals').style.width = shortAvg + '%';
+  
+  document.getElementById('txt-long-goals-pct').textContent = longAvg + '%';
+  document.getElementById('bar-long-goals').style.width = longAvg + '%';
+  
+  let reviewText = '';
+  if (rate >= 80) {
+    reviewText = `🏆 <b>Hiệu suất xuất sắc (${rate}%)!</b> Sếp đang kiểm soát công việc rất tốt. Tiến độ hoàn thành mục tiêu ngắn hạn đạt ${shortAvg}%, dài hạn đạt ${longAvg}%. Hãy duy trì cường độ làm việc tuyệt vời này!`;
+  } else if (rate >= 50) {
+    reviewText = `📈 <b>Hiệu suất khá tốt (${rate}%)!</b> Sếp có tỷ lệ hoàn thành công việc ở mức trung bình cao. Tiến độ mục tiêu ngắn hạn đạt ${shortAvg}%. Hãy cố gắng xử lý thêm các công việc đọng để đạt mốc 80%!`;
+  } else if (allTasks.length === 0) {
+    reviewText = `✨ <b>Chưa có dữ liệu phân tích!</b> Hãy thêm công việc mới và cập nhật trạng thái hoàn thành để Trợ lý AI có thể đánh giá năng suất của sếp nhé.`;
+  } else {
+    reviewText = `⚠️ <b>Hiệu suất cần cải thiện (${rate}%)!</b> Tỷ lệ hoàn thành công việc của sếp hiện tại khá thấp. Hãy rà soát lại các mục tiêu tuần và chia nhỏ công việc để nâng cao tiến độ đạt mục tiêu ngắn hạn (${shortAvg}%).`;
+  }
+  
+  document.getElementById('ai-performance-text').innerHTML = reviewText;
+}
+
+// ==================== HELPERS ====================
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function tryParseJSON(str) {
+  try { return JSON.parse(str||'[]'); } catch(e) { return []; }
+}
+
+function formatLocalDT(d) {
+  const p = (n) => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function priorityBadge(p) {
+  const map = { 'Cao':'cao', 'Trung bình':'tb', 'Thấp':'thap' };
+  return `<span class="badge-priority ${map[p]||'tb'}">${p||'TB'}</span>`;
+}
+
+function statusBadge(s) {
+  const map = {'Chưa thực hiện':'chua', 'Đang thực hiện':'dang', 'Hoàn thành':'hoan', 'Hoãn':'hoan-2'};
+  return `<span class="badge-st ${map[s]||'chua'}">${s||'Chưa'}</span>`;
+}
+
+function typeBadge(t) {
+  const map = {'Cá nhân':'canhan', 'Gia đình':'giadinh', 'Công tác':'congtac', 'Du lịch':'dulich', 'Học tập':'hoctap'};
+  return `<span class="badge-type ${map[t]||'canhan'}">${t||'Cá nhân'}</span>`;
+}
+
+function calTypeColor(t) {
+  const map = {'Công việc':'#3b82f6','Công tác':'#f59e0b','Du lịch':'#10b981','Sự kiện':'#ec4899','Khám bệnh':'#ef4444','Việc gia đình':'#a855f7','Học tập':'#06b6d4','Thanh toán hóa đơn':'#94a3b8','Nghỉ phép':'#ec4899'};
+  return map[t]||'#3b82f6';
+}
+
+function calTypeIcon(t) {
+  const map = {'Công việc':'💼','Công tác':'🏢','Du lịch':'✈️','Sự kiện':'🎉','Khám bệnh':'🏥','Việc gia đình':'👨‍👩‍👧','Học tập':'🎓','Thanh toán hóa đơn':'💰','Nghỉ phép':'🏖️'};
+  return map[t]||'📅';
+}
+
+// ==================== INIT ====================
+window.addEventListener('load', () => {
+  loadDashboard();
+  // Set default week picker
+  const now = new Date();
+  document.getElementById('weekPicker').value = getWeekStr(now);
+});
+</script>
+{% endblock %}

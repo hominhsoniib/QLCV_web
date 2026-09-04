@@ -1,0 +1,443 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+  .org-chart-wrapper {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    height: calc(100vh - 120px);
+    display: flex;
+    flex-direction: column;
+    margin-top: 15px;
+  }
+  .chart-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 15px;
+  }
+  .chart-canvas {
+    flex-grow: 1;
+    background: white;
+    border-radius: 8px;
+    overflow: auto;
+    padding: 30px;
+    position: relative;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+    display: block;
+    text-align: center;
+  }
+  .chart-canvas svg {
+    display: inline-block;
+  }
+  .chart-zoom-btns {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 10;
+  }
+  .zoom-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(11, 37, 69, 0.9);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    transition: all 0.2s;
+  }
+  .zoom-btn:hover {
+    background: var(--accent-cyan);
+    color: #000;
+    transform: scale(1.05);
+  }
+  .dept-legend {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    font-size: 12px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: white;
+  }
+  .legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+  }
+  /* Style custom checkbox indicators to match original legend colors */
+  #checkBoard ~ .custom-control-label::before {
+    background-color: #1e3a8a !important;
+    border: 1.5px solid #fbbf24 !important;
+  }
+  #checkBoard:checked ~ .custom-control-label::before {
+    background-color: #1e3a8a !important;
+    border-color: #fbbf24 !important;
+  }
+  #checkManagers ~ .custom-control-label::before {
+    background-color: #0f172a !important;
+    border: 1.5px solid #06b6d4 !important;
+  }
+  #checkManagers:checked ~ .custom-control-label::before {
+    background-color: #0f172a !important;
+    border-color: #06b6d4 !important;
+  }
+  #checkStaff ~ .custom-control-label::before {
+    background-color: #1e293b !important;
+    border: 1px solid #94a3b8 !important;
+  }
+  #checkStaff:checked ~ .custom-control-label::before {
+    background-color: #1e293b !important;
+    border-color: #94a3b8 !important;
+  }
+  /* Custom alignment for checkgroup in legend */
+  .dept-legend .custom-control {
+    display: flex;
+    align-items: center;
+    padding-left: 1.8rem;
+  }
+  .dept-legend .custom-control-label::before,
+  .dept-legend .custom-control-label::after {
+    top: 0.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+</style>
+
+<!-- Load Mermaid.js Client-Side -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: 'base',
+    themeVariables: {
+      primaryColor: '#0f172a',
+      primaryTextColor: '#fff',
+      primaryBorderColor: '#38bdf8',
+      lineColor: '#64748b',
+      secondaryColor: '#1e293b',
+      tertiaryColor: '#334155'
+    },
+    securityLevel: 'loose'
+  });
+</script>
+
+<div class="container-fluid">
+  <div class="org-chart-wrapper">
+    <!-- Header Controls -->
+    <div class="chart-controls">
+      <div>
+        <h4 class="text-white font-weight-bold mb-0">
+          <i class="fas fa-network-wired mr-2 text-primary"></i> SƠ ĐỒ TỔ CHỨC CÔNG TY
+        </h4>
+        <small class="font-weight-bold text-muted">AMS PRO v5.0 - DYNAMIC ORGANIZATIONAL HIERARCHY CHART</small>
+      </div>
+
+      <!-- Filters -->
+      <div class="d-flex align-items-center flex-wrap" style="gap: 15px;">
+        <!-- Department Select -->
+        <div class="d-flex align-items-center">
+          <label for="deptFilter" class="mb-0 mr-2 font-weight-bold text-muted" style="font-size: 11px; white-space: nowrap;">PHÒNG BAN:</label>
+          <select id="deptFilter" class="form-control form-control-sm" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 6px; min-width: 175px; font-size: 11px; height: 30px; font-weight: 600; outline: none;">
+            <option value="all">-- Tất cả phòng ban --</option>
+          </select>
+        </div>
+
+        <!-- Layout Direction -->
+        <div class="d-flex align-items-center">
+          <label for="dirFilter" class="mb-0 mr-2 font-weight-bold text-muted" style="font-size: 11px; white-space: nowrap;">HƯỚNG VẼ:</label>
+          <select id="dirFilter" class="form-control form-control-sm" style="background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 6px; width: 120px; font-size: 11px; height: 30px; font-weight: 600; outline: none;">
+            <option value="TD">Từ trên xuống</option>
+            <option value="LR" selected>Trái sang phải</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Interactive Legend Checkgroup -->
+      <div class="dept-legend">
+        <div class="custom-control custom-checkbox mr-2">
+          <input type="checkbox" class="custom-control-input" id="checkBoard" checked>
+          <label class="custom-control-label text-white font-weight-bold" for="checkBoard" style="cursor: pointer; user-select: none; font-size: 11px;">Ban Giám đốc (CEO/Board)</label>
+        </div>
+        <div class="custom-control custom-checkbox mr-2">
+          <input type="checkbox" class="custom-control-input" id="checkManagers" checked>
+          <label class="custom-control-label text-white font-weight-bold" for="checkManagers" style="cursor: pointer; user-select: none; font-size: 11px;">Cấp Quản lý (Manager/Head)</label>
+        </div>
+        <div class="custom-control custom-checkbox">
+          <input type="checkbox" class="custom-control-input" id="checkStaff" checked>
+          <label class="custom-control-label text-white font-weight-bold" for="checkStaff" style="cursor: pointer; user-select: none; font-size: 11px;">Nhân viên (Staff)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart Rendering Canvas -->
+    <div class="chart-canvas" id="canvas">
+      <div class="mermaid" id="orgMermaidDiv">
+        <!-- Rendered dynamically via JS -->
+      </div>
+      
+      <!-- Zoom controls -->
+      <div class="chart-zoom-btns">
+        <button class="zoom-btn" onclick="adjustZoom(0.1)" title="Phóng to"><i class="fas fa-plus"></i></button>
+        <button class="zoom-btn" onclick="adjustZoom(-0.1)" title="Thu nhỏ"><i class="fas fa-minus"></i></button>
+        <button class="zoom-btn" onclick="resetZoom()" title="Đặt lại"><i class="fas fa-compress"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Read employees data passed from backend
+  const employees = {{ employees | tojson }};
+  let currentScale = 1.0;
+
+  document.addEventListener("DOMContentLoaded", function() {
+    // 1. Populate Department Dropdown dynamically
+    const deptSelect = document.getElementById("deptFilter");
+    if (deptSelect) {
+      const uniqueDepts = [...new Set(employees.map(e => e.phong_ban).filter(Boolean))].sort();
+      uniqueDepts.forEach(dept => {
+        const opt = document.createElement("option");
+        opt.value = dept;
+        opt.textContent = dept;
+        deptSelect.appendChild(opt);
+      });
+
+      // 2. Add event listeners to redraw on changes
+      deptSelect.addEventListener("change", buildOrgChart);
+      document.getElementById("dirFilter").addEventListener("change", buildOrgChart);
+      document.getElementById("checkBoard").addEventListener("change", buildOrgChart);
+      document.getElementById("checkManagers").addEventListener("change", buildOrgChart);
+      document.getElementById("checkStaff").addEventListener("change", buildOrgChart);
+    }
+
+    buildOrgChart();
+  });
+
+  function buildOrgChart() {
+    if (employees.length === 0) {
+      document.getElementById("canvas").innerHTML = `<div class="text-muted">Chưa có dữ liệu nhân sự để vẽ sơ đồ</div>`;
+      return;
+    }
+
+    // 1. Identify managers to assign styles (across ALL employees)
+    const managers = new Set();
+    employees.forEach(emp => {
+      if (emp.nguoi_ql) {
+        managers.add(emp.nguoi_ql.trim().toUpperCase());
+      }
+    });
+
+    // Get filter elements & values
+    const deptSelect = document.getElementById("deptFilter");
+    const selectedDept = deptSelect ? deptSelect.value : "all";
+    const layoutDir = document.getElementById("dirFilter") ? document.getElementById("dirFilter").value : "LR";
+    
+    const showBoard = document.getElementById("checkBoard") ? document.getElementById("checkBoard").checked : true;
+    const showManagers = document.getElementById("checkManagers") ? document.getElementById("checkManagers").checked : true;
+    const showStaff = document.getElementById("checkStaff") ? document.getElementById("checkStaff").checked : true;
+
+    // Filter employees by department first
+    let filtered = [];
+    if (selectedDept === "all") {
+      filtered = [...employees];
+    } else {
+      // 1. Initial match: employees who belong to the selected department
+      const deptMatches = employees.filter(emp => emp.phong_ban === selectedDept);
+      
+      // 2. Collect all managers in this initial match
+      const deptManagerIds = new Set();
+      deptMatches.forEach(emp => {
+        const maNvUpper = emp.ma_nv.trim().toUpperCase();
+        if (managers.has(maNvUpper)) {
+          deptManagerIds.add(maNvUpper);
+        }
+      });
+      
+      // 3. Find all subordinates who report to these managers,
+      // regardless of their own department name (sub-departments)
+      const subordinates = employees.filter(emp => {
+        if (!emp.nguoi_ql) return false;
+        return deptManagerIds.has(emp.nguoi_ql.trim().toUpperCase());
+      });
+      
+      // 4. Combine initial matches and their subordinates, removing duplicates
+      const combinedIds = new Set();
+      const combined = [];
+      
+      [...deptMatches, ...subordinates].forEach(emp => {
+        const maNvUpper = emp.ma_nv.trim().toUpperCase();
+        if (!combinedIds.has(maNvUpper)) {
+          combinedIds.add(maNvUpper);
+          combined.push(emp);
+        }
+      });
+      
+      filtered = combined;
+    }
+
+    // Filter employees by selected levels
+    filtered = filtered.filter(emp => {
+      const maNvUpper = emp.ma_nv.trim().toUpperCase();
+      const isBoard = !emp.nguoi_ql || maNvUpper === emp.nguoi_ql.trim().toUpperCase();
+      const isManager = !isBoard && managers.has(maNvUpper);
+      const isStaff = !isBoard && !isManager;
+
+      if (isBoard) return showBoard;
+      if (isManager) return showManagers;
+      if (isStaff) return showStaff;
+      return true;
+    });
+
+    // Include managers of filtered employees so the relationships don't break,
+    // but only if the manager's level is allowed by our filters.
+    if (filtered.length > 0) {
+      const parentIds = new Set();
+      filtered.forEach(emp => {
+        if (emp.nguoi_ql) {
+          parentIds.add(emp.nguoi_ql.trim().toUpperCase());
+        }
+      });
+
+      const missingParents = employees.filter(emp => {
+        const maNvUpper = emp.ma_nv.trim().toUpperCase();
+        if (!parentIds.has(maNvUpper) || filtered.some(x => x.ma_nv.trim().toUpperCase() === maNvUpper)) {
+          return false;
+        }
+
+        // Check if this parent level is allowed
+        const isBoard = !emp.nguoi_ql || maNvUpper === emp.nguoi_ql.trim().toUpperCase();
+        const isManager = !isBoard && managers.has(maNvUpper);
+        
+        if (isBoard) return showBoard;
+        if (isManager) return showManagers;
+        return showStaff;
+      });
+
+      filtered = filtered.concat(missingParents);
+    }
+
+    if (filtered.length === 0) {
+      document.getElementById("orgMermaidDiv").innerHTML = `<div class="text-muted py-5">Không tìm thấy nhân sự phù hợp với bộ lọc</div>`;
+      return;
+    }
+
+    // 2. Build Mermaid Text
+    let mText = `graph ${layoutDir}\n`;
+    
+    // Node definitions
+    filtered.forEach(emp => {
+      const id = emp.ma_nv.replace(/[^A-Za-z0-9]/g, "_"); // Clean ID for Mermaid
+      const title = emp.chuc_danh || "Nhân sự";
+      const label = `"${emp.ten_nv}\\n(${title})"`;
+      
+      mText += `  ${id}[${label}]\n`;
+    });
+
+    // Link relationships
+    filtered.forEach(emp => {
+      if (emp.nguoi_ql) {
+        const childId = emp.ma_nv.replace(/[^A-Za-z0-9]/g, "_");
+        const parentId = emp.nguoi_ql.replace(/[^A-Za-z0-9]/g, "_");
+        
+        // Ensure both parent and child exist in our filtered list
+        const parentExists = filtered.some(x => x.ma_nv.replace(/[^A-Za-z0-9]/g, "_") === parentId);
+        const childExists = filtered.some(x => x.ma_nv.replace(/[^A-Za-z0-9]/g, "_") === childId);
+        
+        // Avoid self-loops
+        if (parentExists && childExists && parentId !== childId) {
+          mText += `  ${parentId} --> ${childId}\n`;
+        }
+      }
+    });
+
+    // Style classes
+    mText += "  classDef board fill:#1e3a8a,stroke:#fbbf24,stroke-width:2px,color:#fff;\n";
+    mText += "  classDef manager fill:#0f172a,stroke:#06b6d4,stroke-width:2px,color:#fff;\n";
+    mText += "  classDef staff fill:#1e293b,stroke:#94a3b8,stroke-width:1px,color:#cbd5e1;\n";
+
+    // Apply styles to nodes
+    filtered.forEach(emp => {
+      const id = emp.ma_nv.replace(/[^A-Za-z0-9]/g, "_");
+      const maNvUpper = emp.ma_nv.trim().toUpperCase();
+      
+      if (!emp.nguoi_ql || maNvUpper === emp.nguoi_ql.trim().toUpperCase()) {
+        mText += `  class ${id} board;\n`;
+      } else if (managers.has(maNvUpper)) {
+        mText += `  class ${id} manager;\n`;
+      } else {
+        mText += `  class ${id} staff;\n`;
+      }
+    });
+
+    // Set inside DOM
+    const div = document.getElementById("orgMermaidDiv");
+    if (div) {
+      div.innerHTML = mText;
+      
+      // Draw
+      try {
+        delete div.dataset.processed;
+        if (typeof mermaid.run === "function") {
+          mermaid.run({ nodes: [div] }).then(() => {
+            resetZoom();
+          }).catch(err => {
+            console.error("Mermaid run error:", err);
+          });
+        } else {
+          mermaid.contentLoaded();
+          setTimeout(resetZoom, 100);
+        }
+      } catch(err) {
+        console.error("Mermaid Org Chart Draw error:", err);
+      }
+    }
+  }
+
+  function adjustZoom(amount) {
+    currentScale += amount;
+    if (currentScale < 0.2) currentScale = 0.2;
+    if (currentScale > 4.0) currentScale = 4.0;
+    
+    applyZoom();
+  }
+
+  function resetZoom() {
+    currentScale = 1.0;
+    applyZoom();
+  }
+
+  function applyZoom() {
+    // Target SVG rendered by Mermaid
+    const svg = document.querySelector("#canvas svg");
+    if (svg) {
+      const viewBox = svg.getAttribute("viewBox");
+      if (viewBox) {
+        const parts = viewBox.split(" ");
+        if (parts.length === 4) {
+          const w = parseFloat(parts[2]);
+          const h = parseFloat(parts[3]);
+          svg.style.width = (w * currentScale) + "px";
+          svg.style.height = (h * currentScale) + "px";
+          svg.style.maxWidth = "none";
+        }
+      }
+    }
+  }
+</script>
+{% endblock %}

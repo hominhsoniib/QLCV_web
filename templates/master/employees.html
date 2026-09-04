@@ -1,0 +1,394 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Danh Sách Nhân Sự{% endblock %}
+
+{% block extra_css %}
+<style>
+  .master-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    max-width: 1100px;
+    margin: auto;
+    overflow: hidden;
+  }
+  .header-navy {
+    background: rgba(10, 15, 29, 0.4);
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .input-section {
+    padding: 24px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    display: block;
+    border-left: 4px solid var(--accent-cyan);
+    padding-left: 10px;
+  }
+  .readonly-id {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    font-weight: 700;
+    color: var(--accent-cyan) !important;
+    cursor: not-allowed;
+  }
+  .button-bar {
+    background: rgba(10, 15, 29, 0.2);
+    padding: 16px 24px;
+    border-top: 1px solid var(--card-border);
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn-custom {
+    min-width: 120px;
+    font-size: 11px;
+  }
+  .table-area {
+    padding: 24px;
+  }
+  .table-responsive-emp {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .toggle-password-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.2s ease;
+    z-index: 5;
+  }
+  .toggle-password-icon:hover {
+    color: var(--accent-cyan);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="master-card mt-3">
+  <div class="header-navy d-flex justify-content-between align-items-center">
+    <h4 class="mb-0 text-uppercase" style="font-size: 18px; font-weight: 800; color: var(--text-main);">
+      <i class="fas fa-users-gear mr-2 text-info"></i> QUẢN TRỊ DANH MỤC NHÂN SỰ
+      <span class="badge badge-success ml-2" style="font-size: 11px; padding: 4px 8px; vertical-align: middle;">v5.0.5 - EMAIL READY</span>
+    </h4>
+    <small class="font-weight-bold text-muted">AMS PRO v5.0 - EMPLOYEE DATABASE</small>
+  </div>
+
+
+  <div class="input-section">
+    <span class="section-title">Thông tin nhân sự & phân quyền</span>
+    
+    <!-- Hàng 1: MÃ NV | HỌ VÀ TÊN | EMAIL | PHÂN QUYỀN TRUY CẬP -->
+    <div class="row mb-3">
+      <div class="col-md-3 form-group">
+        <label class="field-label">MÃ NHÂN VIÊN <span class="text-danger">*</span></label>
+        <input type="text" id="maNV" class="form-control form-control-lux text-center font-weight-bold" style="text-transform: uppercase;" placeholder="VD: CEO" autocomplete="off" required>
+      </div>
+      <div class="col-md-3 form-group">
+        <label class="field-label">HỌ VÀ TÊN <span class="text-danger">*</span></label>
+        <input type="text" id="tenNV" class="form-control form-control-lux" placeholder="Nhập tên nhân viên..." required>
+      </div>
+      <div class="col-md-3 form-group">
+        <label class="field-label">EMAIL ĐĂNG NHẬP</label>
+        <input type="email" id="email" class="form-control form-control-lux" placeholder="VD: nhanvien@badenfarm.com.vn" autocomplete="off">
+      </div>
+      <div class="col-md-3 form-group">
+        <label class="field-label">PHÂN QUYỀN TRUY CẬP</label>
+        <select id="quyen" class="form-control form-control-lux">
+          <option value="USER">USER (Nhân viên)</option>
+          <option value="MANAGER">MANAGER (Quản lý / Trưởng phòng)</option>
+          <option value="ADMIN">ADMIN (Quản trị viên)</option>
+          <option value="CEO">CEO (Ban Giám Đốc)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Hàng 2: MẬT KHẨU | CHỨC DANH | CHỨC VỤ | PHÒNG BAN BỘ PHẬN -->
+    <div class="row mb-3">
+      <div class="col-md-3 form-group">
+        <label class="field-label">MẬT KHẨU</label>
+        <div class="position-relative">
+          <input type="password" id="matKhau" class="form-control form-control-lux text-center pr-5" placeholder="Mặc định: 123456" autocomplete="off">
+          <span class="toggle-password-icon" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu">
+            <i id="eyeIconMatKhau" class="fas fa-eye"></i>
+          </span>
+        </div>
+      </div>
+      <div class="col-md-3 form-group">
+        <label class="field-label">CHỨC DANH</label>
+        <input type="text" id="chucDanh" class="form-control form-control-lux" placeholder="VD: Chuyên viên...">
+      </div>
+      <div class="col-md-3 form-group">
+        <label class="field-label">CHỨC VỤ</label>
+        <input type="text" id="chucVu" class="form-control form-control-lux" placeholder="VD: Trưởng phòng...">
+      </div>
+      <div class="col-md-3 form-group">
+        <label class="field-label">PHÒNG BAN BỘ PHẬN</label>
+        <select id="phongBan" class="form-control form-control-lux">
+          <option value="">-- Chọn phòng ban --</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Hàng 3: NGƯỜI QUẢN LÝ -->
+    <div class="row">
+      <div class="col-md-3 form-group">
+        <label class="field-label">NGƯỜI QUẢN LÝ</label>
+        <select id="nguoiQL" class="form-control form-control-lux">
+          <option value="">-- Chọn quản lý --</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="button-bar">
+    <button class="btn-lux-primary btn-custom" id="btnAdd" onclick="doAction('add')"><i class="fas fa-user-plus mr-2"></i> THÊM MỚI</button>
+    <button class="btn-lux-primary btn-custom" style="background: linear-gradient(135deg, var(--accent-orange), #ea580c); box-shadow: none;" id="btnUpdate" onclick="doAction('update')" disabled><i class="fas fa-save mr-2"></i> CẬP NHẬT</button>
+    <button class="btn-lux-secondary btn-custom" onclick="resetForm()"><i class="fas fa-sync-alt mr-2"></i> LÀM MỚI</button>
+    <button class="btn-lux-secondary btn-custom" onclick="goBack()"><i class="fas fa-chevron-left mr-2"></i> QUAY VỀ</button>
+  </div>
+
+  <div class="table-area">
+    <div class="premium-table-container">
+      <div class="table-responsive-emp">
+        <table class="premium-table" id="empTable">
+          <thead>
+            <tr>
+              <th style="width: 10%;">MÃ NV</th>
+              <th style="width: 20%; text-align: left;">HỌ VÀ TÊN</th>
+              <th style="width: 24%; text-align: left;">EMAIL ĐĂNG NHẬP</th>
+              <th style="width: 18%; text-align: left;">PHÒNG BAN</th>
+              <th style="width: 10%;">PHÂN QUYỀN</th>
+              <th style="width: 10%; text-align: left;">CHỨC DANH</th>
+              <th style="width: 8%;">NGƯỜI QL</th>
+            </tr>
+          </thead>
+          <tbody id="empBody">
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">Đang tải danh sách nhân viên...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let empList = [];
+
+  window.addEventListener("load", function() {
+    initDropdowns();
+  });
+
+  function initDropdowns() {
+    toggleLoader(true, "ĐANG TẢI DỮ LIỆU CẤU TRÚC...");
+    // 1. Fetch departments
+    fetch("/api/departments")
+      .then(res => res.json())
+      .then(res => {
+        if (res && res.success) {
+          const opt = '<option value="">-- Chọn phòng ban --</option>' + 
+                      res.data.map(d => `<option value="${d.tenBP}">${d.tenBP}</option>`).join("");
+          document.getElementById("phongBan").innerHTML = opt;
+        }
+        return fetch("/api/employees?dropdown=true");
+      })
+      .then(res => res.json())
+      .then(emps => {
+        const opt = '<option value="">-- Chọn quản lý --</option>' + 
+                    emps.map(e => `<option value="${e.maNV}">${e.maNV} - ${e.tenNV}</option>`).join("");
+        document.getElementById("nguoiQL").innerHTML = opt;
+        fetchEmployees();
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi nạp", err.message);
+      });
+  }
+
+  function fetchEmployees() {
+    toggleLoader(true, "ĐANG TẢI DANH SÁCH NHÂN SỰ...");
+    fetch("/api/employees")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          empList = res.data;
+          renderTable(res.data);
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", err.message);
+      });
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("empBody");
+    if (!tbody) return;
+
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">Chưa có nhân sự nào</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(e => {
+      const emailHtml = e.email 
+        ? `<span class="text-cyan font-weight-bold"><i class="fas fa-envelope mr-1 text-muted"></i>${e.email}</span>`
+        : `<span class="badge badge-warning text-dark font-weight-bold" style="font-size: 10.5px;"><i class="fas fa-triangle-exclamation mr-1"></i> Chưa có email</span>`;
+
+      return `
+        <tr onclick="fillInputs('${e.maNV}')" style="cursor: pointer;">
+          <td class="text-center font-weight-bold" style="color: var(--accent-cyan);">${e.maNV}</td>
+          <td class="text-left font-weight-bold text-white">${e.tenNV}</td>
+          <td class="text-left">${emailHtml}</td>
+          <td class="text-left small">${e.phongBan || '---'}</td>
+          <td class="text-center small"><span class="badge badge-pill badge-info px-2">${e.quyen}</span></td>
+          <td class="text-left small">${e.chucDanh || e.chucVu || '---'}</td>
+          <td class="text-center small">${e.nguoiQL || '---'}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function fillInputs(ma) {
+    const e = empList.find(x => x.maNV === ma);
+    if (e) {
+      document.getElementById("maNV").value = e.maNV;
+      document.getElementById("maNV").readOnly = true;
+      document.getElementById("maNV").classList.add("readonly-id");
+      document.getElementById("tenNV").value = e.tenNV;
+      document.getElementById("email").value = e.email || "";
+      document.getElementById("matKhau").value = e.matKhau || "********";
+      document.getElementById("quyen").value = e.quyen;
+      document.getElementById("chucDanh").value = e.chucDanh || "";
+      document.getElementById("chucVu").value = e.chucVu || "";
+      document.getElementById("phongBan").value = e.phongBan || "";
+      document.getElementById("nguoiQL").value = e.nguoiQL || "";
+      
+      document.getElementById("btnAdd").disabled = true;
+      document.getElementById("btnUpdate").disabled = false;
+      
+      document.querySelectorAll("#empBody tr").forEach(row => {
+        if (row.cells[0].innerText === ma) {
+          row.classList.add("selected");
+        } else {
+          row.classList.remove("selected");
+        }
+      });
+    }
+  }
+
+  function doAction(mode) {
+    const data = {
+      maNV: document.getElementById("maNV").value.trim().toUpperCase(),
+      tenNV: document.getElementById("tenNV").value.trim(),
+      email: document.getElementById("email").value.trim().toLowerCase(),
+      matKhau: document.getElementById("matKhau").value.trim(),
+      quyen: document.getElementById("quyen").value,
+      chucDanh: document.getElementById("chucDanh").value.trim(),
+      chucVu: document.getElementById("chucVu").value.trim(),
+      phongBan: document.getElementById("phongBan").value,
+      nguoiQL: document.getElementById("nguoiQL").value
+    };
+    
+    if (!data.maNV || !data.tenNV) {
+      showNotify("warning", "Thiếu thông tin", "Vui lòng nhập đủ Mã NV và Họ Tên!");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (data.email && !emailRegex.test(data.email)) {
+      showNotify("warning", "Email không hợp lệ", "Vui lòng nhập đúng định dạng email (VD: nhanvien@badenfarm.com.vn)!");
+      return;
+    }
+    
+    const url = mode === 'add' ? "/api/employees" : "/api/employees/update";
+    const msg = mode === 'add' ? "ĐANG THÊM MỚI NHÂN SỰ..." : "ĐANG CẬP NHẬT THÔNG TIN NHÂN SỰ...";
+
+    toggleLoader(true, msg);
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        showToast("success", res.message);
+        resetForm();
+        initDropdowns(); // Refresh lists and manager selects
+      } else {
+        showNotify("error", "Thất bại", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi kết nối", err.message);
+    });
+  }
+
+  function togglePasswordVisibility() {
+    const passInput = document.getElementById("matKhau");
+    const eyeIcon = document.getElementById("eyeIconMatKhau");
+    if (passInput && eyeIcon) {
+      if (passInput.type === "password") {
+        passInput.type = "text";
+        eyeIcon.classList.replace("fa-eye", "fa-eye-slash");
+      } else {
+        passInput.type = "password";
+        eyeIcon.classList.replace("fa-eye-slash", "fa-eye");
+      }
+    }
+  }
+
+  function resetForm() {
+    document.getElementById("maNV").value = "";
+    document.getElementById("maNV").readOnly = false;
+    document.getElementById("maNV").classList.remove("readonly-id");
+    document.getElementById("tenNV").value = "";
+    document.getElementById("email").value = "";
+    
+    const passInput = document.getElementById("matKhau");
+    const eyeIcon = document.getElementById("eyeIconMatKhau");
+    if (passInput) {
+      passInput.value = "";
+      passInput.type = "password";
+    }
+    if (eyeIcon) {
+      eyeIcon.className = "fas fa-eye";
+    }
+
+    document.getElementById("quyen").value = "USER";
+    document.getElementById("chucDanh").value = "";
+    document.getElementById("chucVu").value = "";
+    document.getElementById("phongBan").value = "";
+    document.getElementById("nguoiQL").value = "";
+    
+    document.getElementById("btnAdd").disabled = false;
+    document.getElementById("btnUpdate").disabled = true;
+    
+    document.querySelectorAll("#empBody tr").forEach(row => row.classList.remove("selected"));
+  }
+
+  function goBack() {
+    toggleLoader(true, "ĐANG QUAY VỀ TRANG CHỦ...");
+    window.location.href = "/dashboard";
+  }
+</script>
+{% endblock %}

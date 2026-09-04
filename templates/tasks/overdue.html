@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Radar Cảnh Báo Trễ Hạn{% endblock %}
+
+{% block extra_css %}
+<style>
+  .radar-header {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
+    border: 1px solid var(--card-border);
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .radar-header::after {
+    content: '';
+    position: absolute;
+    right: 20px; top: 50%; transform: translateY(-50%);
+    width: 60px; height: 60px;
+    border: 3px solid rgba(239, 68, 68, 0.2);
+    border-radius: 50%;
+    animation: ping 2s infinite;
+  }
+  @keyframes ping {
+    0% { transform: scale(0.6) translateY(-85%); opacity: 1; }
+    100% { transform: scale(1.5) translateY(-33%); opacity: 0; }
+  }
+  .radar-indicator {
+    color: var(--accent-red);
+    font-weight: 800;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="radar-header">
+  <div>
+    <h2 class="m-0 text-uppercase" style="font-size: 20px; font-weight: 800; color: var(--accent-red);">
+      <i class="fas fa-radiation mr-2"></i> RADAR CẢNH BÁO RỦI RO CHẬM HẠN
+    </h2>
+    <p class="m-0 mt-1 small text-muted">Hệ thống quét tự động toàn bộ nhiệm vụ bị quá hạn hoàn thành</p>
+  </div>
+  <div>
+    <button class="btn-lux-secondary btn-sm" onclick="navTo('/dashboard')"><i class="fas fa-home mr-1"></i> TRANG CHỦ</button>
+    <button class="btn-lux-primary btn-sm" style="background: var(--accent-red); box-shadow: none;" onclick="navTo('/tasks')"><i class="fas fa-tasks mr-1"></i> BẢNG CHUNG</button>
+  </div>
+</div>
+
+<div class="premium-card">
+  <h6 class="field-label" style="color: var(--accent-red)">DANH SÁCH NHIỆM VỤ QUÁ HẠN ĐANG ĐỐC THÚC (RADAR ACTIVE)</h6>
+  <div class="premium-table-container mt-3">
+    <div class="table-responsive">
+      <table class="premium-table">
+        <thead>
+          <tr>
+            <th style="width: 15%;">MÃ PHÂN CÔNG</th>
+            <th style="width: 10%;">MÃ CV</th>
+            <th style="width: 35%; text-align: left;">NỘI DUNG NHIỆM VỤ</th>
+            <th style="width: 10%;">NGƯỜI GIAO</th>
+            <th style="width: 10%;">NGƯỜI NHẬN</th>
+            <th style="width: 10%;">HẠN KẾT THÚC</th>
+            <th style="width: 10%;">TIẾN ĐỘ</th>
+          </tr>
+        </thead>
+        <tbody id="radarBody">
+          <tr>
+            <td colspan="7" class="text-center py-5">
+              <div class="spinner-border text-danger" role="status"></div>
+              <h6 class="mt-2 text-muted">ĐANG QUÉT RADAR RỦI RO...</h6>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.addEventListener("load", function() {
+    loadOverdueTasks();
+  });
+
+  function loadOverdueTasks() {
+    fetch("/api/tasks")
+      .then(res => res.json())
+      .then(res => {
+        if (res && res.success) {
+          const todayStr = new Date().toISOString().split('T')[0];
+          // Filter tasks where progress < 100 and deadline date exists and is in the past
+          const overdueTasks = res.data.filter(t => t.tienDo < 100 && t.ngayKT && t.ngayKT < todayStr);
+          renderRadar(overdueTasks);
+        } else {
+          showNotify("error", "Lỗi", "Không tải được danh mục radar.");
+        }
+      })
+      .catch(err => {
+        showNotify("error", "Lỗi kết nối", err.message);
+      });
+  }
+
+  function renderRadar(tasks) {
+    const tbody = document.getElementById("radarBody");
+    if (!tbody) return;
+
+    if (tasks.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-5 font-weight-bold text-success">
+            <i class="fas fa-circle-check mb-3" style="font-size: 40px; color: var(--accent-green);"></i>
+            <h5>Hệ thống sạch! Không phát hiện rủi ro chậm hạn</h5>
+            <p class="small text-muted">Mọi nhiệm vụ đều đang nằm trong quỹ đạo an toàn.</p>
+          </td>
+        </tr>`;
+      return;
+    }
+
+    tbody.innerHTML = tasks.map(t => `
+      <tr onclick="goToTask('${t.idPhanCong}')" style="cursor: pointer;">
+        <td class="text-center font-weight-bold" style="color: var(--accent-cyan);">${t.idPhanCong}</td>
+        <td class="text-center font-weight-bold">${t.maCV}</td>
+        <td class="text-left font-weight-bold" style="white-space: normal;">${t.tenCV}</td>
+        <td class="text-center">${t.nguoiGiao}</td>
+        <td class="text-center text-warning font-weight-bold">${t.nguoiNhan}</td>
+        <td class="text-center text-danger font-weight-bold">${formatDisplayDate(t.ngayKT)}</td>
+        <td class="text-center text-danger font-weight-bold">${t.tienDo}%</td>
+      </tr>
+    `).join("");
+  }
+
+  function goToTask(id) {
+    toggleLoader(true, "ĐANG ĐỊNH VỊ NHIỆM VỤ RADAR...");
+    fetch("/api/tasks/set-temp-id", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id })
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        window.location.href = "/tasks";
+      }
+    });
+  }
+
+  function formatDisplayDate(dateStr) {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+  }
+
+  function navTo(url) {
+    toggleLoader(true, "ĐANG CHUYỂN TRANG...");
+    window.location.href = url;
+  }
+</script>
+{% endblock %}

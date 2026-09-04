@@ -1,0 +1,831 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Quản lý Công việc{% endblock %}
+
+{% block extra_css %}
+<style>
+  .index-banner {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%);
+    border: 1px solid var(--card-border);
+    padding: 16px 24px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .command-bar {
+    padding: 12px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .workspace-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid var(--card-border);
+    margin-bottom: 20px;
+  }
+  
+  .history-panel {
+    border-radius: 8px;
+    padding: 12px;
+    height: 85px;
+    overflow-y: auto;
+    font-size: 11px;
+    border-left: 4px solid;
+    line-height: 1.4;
+    margin-bottom: 12px;
+    background: rgba(10, 15, 29, 0.4);
+  }
+  .panel-remind { border-color: var(--accent-red); color: #fca5a5; }
+  .panel-report { border-color: var(--accent-orange); color: #fcd34d; }
+  .history-title {
+    font-weight: 700;
+    font-size: 10px;
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  
+  .link-group-wrapper {
+    display: flex;
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(10, 15, 29, 0.6);
+  }
+  .link-group-wrapper input {
+    border: none !important;
+    flex-grow: 1;
+    padding: 0 12px;
+    font-size: 12px;
+    background: transparent !important;
+    color: var(--text-main) !important;
+    outline: none !important;
+  }
+  .btn-drive {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+    border: none;
+    border-left: 1px solid var(--card-border);
+    padding: 0 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  .btn-drive:hover {
+    background: var(--accent-blue);
+    color: white;
+  }
+  
+  /* Hard locked width table wrapper to prevent system distortion */
+  .table-responsive-lux {
+    max-height: 480px;
+    overflow: auto;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+  }
+  
+  #taskTable {
+    width: 2500px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    margin-bottom: 0;
+  }
+  #taskTable thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background-color: var(--navy-dark);
+    border-bottom: 2px solid var(--card-border);
+  }
+  .badge-status {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+  .badge-secondary { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); }
+  .badge-primary { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid rgba(59, 130, 246, 0.2); }
+  .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<input type="file" id="localFileInp" style="display:none" onchange="handleLocalUpload(event)">
+
+<div class="index-banner">
+  <div>
+    <h2 class="m-0 text-uppercase" style="font-size: 20px; font-weight: 800;">
+      <i class="fas fa-layer-group mr-2 text-primary"></i> TRUNG TÂM QUẢN LÝ CÔNG VIỆC
+    </h2>
+    <p class="m-0 mt-1 small text-muted">Hệ điều hành doanh nghiệp AMS PRO 5.0</p>
+  </div>
+  <div class="text-right">
+    <div style="font-weight: 800; font-size: 16px; color: var(--accent-cyan);" id="digitalClock">00:00:00</div>
+    <div class="small text-muted" id="currentDate">--/--/----</div>
+  </div>
+</div>
+
+<div class="command-bar">
+  <button id="btnBack" class="btn-lux-secondary btn-sm" onclick="handleBack()"><i class="fas fa-arrow-left mr-1"></i> QUAY VỀ</button>
+  <button id="btnAdd" class="btn-lux-primary btn-sm" style="box-shadow: none;" onclick="handleBtnAdd()"><i class="fas fa-plus mr-1"></i> THÊM MỚI</button>
+  <button id="btnSave" class="btn-lux-primary btn-sm" style="background: linear-gradient(135deg, var(--accent-green), #059669); box-shadow: none;" onclick="handleBtnSave()" disabled><i class="fas fa-save mr-1"></i> LƯU</button>
+  <button id="btnSaveTT" class="btn-lux-secondary btn-sm" style="color: var(--accent-cyan);" onclick="handleBtnSaveTT()" disabled><i class="fas fa-sync-alt mr-1"></i> LƯU & TT</button>
+  <button id="btnForward" class="btn-lux-secondary btn-sm" style="color: #a855f7;" onclick="handleForward()" disabled><i class="fas fa-share-nodes mr-1"></i> ỦY QUYỀN</button>
+  <button id="btnRemind" class="btn-lux-secondary btn-sm" style="color: var(--accent-red);" onclick="handleRemind()" disabled><i class="fas fa-bell mr-1"></i> NHẮC NHỞ</button>
+  <button id="btnReport" class="btn-lux-secondary btn-sm" style="color: var(--accent-orange);" onclick="handleReport()" disabled><i class="fas fa-chart-pie mr-1"></i> BÁO CÁO</button>
+  <button id="btnHelp" class="btn-lux-secondary btn-sm" style="color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.1);" onclick="handleHelp()"><i class="fas fa-circle-question mr-1"></i> HƯỚNG DẪN</button>
+  
+  <div class="ml-auto" style="position: relative; min-width: 250px;">
+    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="Tìm mã hoặc tên CV..." class="form-control form-control-lux" style="height: 32px !important; padding-left: 30px !important;">
+    <i class="fas fa-search" style="position: absolute; left: 10px; top: 10px; color: var(--text-muted); font-size: 11px;"></i>
+  </div>
+</div>
+
+<div class="workspace-card">
+  <div class="row">
+    <!-- Left form edits -->
+    <div class="col-md-9 pr-md-4 border-right border-secondary">
+      <div class="row mb-3 align-items-end">
+        <div class="col-2 pr-1">
+          <label class="field-label">ID</label>
+          <input type="text" id="txtId" class="form-control form-control-lux text-center" disabled readonly>
+        </div>
+        <div class="col-3 px-1">
+          <label class="field-label">MÃ CV</label>
+          <input type="text" id="txtMaCV" class="form-control form-control-lux text-center text-danger font-weight-bold" disabled readonly>
+        </div>
+        <div class="col-7 pl-1">
+          <label class="field-label">TÊN NỘI DUNG CÔNG VIỆC CHI TIẾT</label>
+          <input type="text" id="txtTenCV" class="form-control form-control-lux" disabled placeholder="Nội dung nhiệm vụ...">
+        </div>
+      </div>
+      
+      <div class="row mb-3 align-items-end">
+        <div class="col-4 pr-1">
+          <label class="field-label">NGƯỜI GIAO</label>
+          <select id="selGiao" class="form-control form-control-lux" disabled onchange="handleGiaoChange()"></select>
+        </div>
+        <div class="col-4 px-1">
+          <label class="field-label">NGƯỜI NHẬN</label>
+          <select id="selNhan" class="form-control form-control-lux" disabled></select>
+        </div>
+        <div class="col-4 pl-1">
+          <label class="field-label">CC (PHỐI HỢP)</label>
+          <div class="d-flex">
+            <select id="selPH" class="form-control form-control-lux" style="width: 75px; border-radius: 8px 0 0 8px !important;" disabled onchange="handlePHChange()"></select>
+            <div id="phTagContainer" style="flex:1; border:1px solid var(--card-border); border-left:none; height:38px; background:rgba(10,15,29,0.3); border-radius:0 8px 8px 0; display:flex; align-items:center; overflow-x:auto; padding:0 8px;"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="row mb-3 align-items-end">
+        <div class="col-3 pr-1">
+          <label class="field-label">NGÀY BẮT ĐẦU</label>
+          <input type="date" id="txtNgayBD" class="form-control form-control-lux" disabled>
+        </div>
+        <div class="col-3 px-1">
+          <label class="field-label">HẠN KẾT THÚC</label>
+          <input type="date" id="txtNgayKT" class="form-control form-control-lux font-weight-bold text-danger" disabled>
+        </div>
+        <div class="col-2 px-1">
+          <label class="field-label">TIẾN ĐỘ %</label>
+          <input type="number" id="txtTienDo" class="form-control form-control-lux text-center font-weight-bold" min="0" max="100" disabled>
+        </div>
+        <div class="col-4 pl-1">
+          <label class="field-label">TRẠNG THÁI</label>
+          <select id="selStatus" class="form-control form-control-lux" disabled>
+            <option value="Chưa bắt đầu">Chưa bắt đầu</option>
+            <option value="Đang thực hiện">Đang thực hiện</option>
+            <option value="Vướng mắc">Vướng mắc</option>
+            <option value="Hoàn thành">Hoàn thành</option>
+            <option value="Tạm dừng">Tạm dừng</option>
+            <option value="Đã ủy quyền">Đã ủy quyền</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="row">
+        <div class="col-12">
+          <label class="field-label" style="color: var(--accent-cyan)">LINK TÀI LIỆU / FILE ĐÍNH KÈM / DRIVE</label>
+          <div class="link-group-wrapper">
+            <input type="text" id="txtLink" placeholder="Tải file lên hoặc nhập liên kết..." disabled>
+            
+            <div class="btn-drive" onclick="openCurrentLink()" style="color: var(--accent-cyan);" title="Mở liên kết">
+              <i class="fas fa-external-link-alt"></i>
+            </div>
+            
+            <div class="btn-drive" onclick="triggerLocalUpload()" title="Chọn tệp từ máy tính">
+              <i class="fas fa-upload"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right stats and history log panels -->
+    <div class="col-md-3 pl-md-4">
+      <div class="history-panel panel-remind">
+        <div class="history-title">
+          <span><i class="fas fa-bullhorn mr-2"></i> LỊCH SỬ CHỈ ĐẠO GẦN NHẤT</span>
+          <span><span id="countRemind" class="badge badge-danger">0</span> LẦN</span>
+        </div>
+        <div id="displayLichSuNhac" style="font-style: italic; overflow-y: auto; max-height: 50px;">...</div>
+      </div>
+      
+      <div class="history-panel panel-report">
+        <div class="history-title">
+          <span><i class="fas fa-edit mr-2"></i> LỊCH SỬ BÁO CÁO GẦN NHẤT</span>
+          <span><span id="countReport" class="badge badge-warning" style="color: #070b19;">0</span> LẦN</span>
+        </div>
+        <div id="displayLichSuBC" style="font-style: italic; overflow-y: auto; max-height: 50px;">...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Task Table Grid -->
+<div class="premium-table-container">
+  <div class="table-responsive-lux">
+    <table id="taskTable" class="premium-table">
+      <thead>
+        <tr>
+          <th style="width: 140px;">ID_PC</th>
+          <th style="width: 100px;">MÃ CV</th>
+          <th style="width: 350px;">NỘI DUNG CÔNG VIỆC</th>
+          <th style="width: 80px;">GIAO</th>
+          <th style="width: 80px;">NHẬN</th>
+          <th style="width: 110px;">HẠN KT</th>
+          <th style="width: 80px;">TIẾN ĐỘ</th>
+          <th style="width: 60px;">BC</th>
+          <th style="width: 60px;">NHẮC</th>
+          <th style="width: 120px;">TRẠNG THÁI</th>
+          <th style="width: 650px; text-align: left;">NHẬT KÝ BÁO CÁO (CỘT J)</th>
+          <th style="width: 650px; text-align: left;">CHỈ ĐẠO CẤP TRÊN (CỘT N)</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let globalTaskList = [];
+  let currentPHList = []; 
+  let isAddMode = false;
+  let loggedInUser = "{{ user.ma }}";
+
+  window.addEventListener("load", function() {
+    updateClock(); 
+    setInterval(updateClock, 1000);
+    initApp();
+  });
+
+  function updateClock() {
+    const clockEl = document.getElementById("digitalClock");
+    const dateEl = document.getElementById("currentDate");
+    if (!clockEl || !dateEl) return;
+    const now = new Date();
+    clockEl.innerText = now.toLocaleTimeString('vi-VN');
+    dateEl.innerText = now.toLocaleDateString('vi-VN', { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'numeric', 
+      year: 'numeric' 
+    });
+  }
+
+  function initApp() {
+    toggleLoader(true, "ĐANG ĐỒNG BỘ DỮ LIỆU NHÂN SỰ...");
+    fetch("/api/employees?dropdown=true")
+      .then(res => res.json())
+      .then(emps => {
+        const opt = '<option value="">-- Chọn --</option>' + emps.map(e => `<option value="${e.maNV}">${e.maNV} - ${e.tenNV}</option>`).join("");
+        ["selGiao", "selNhan", "selPH"].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = opt;
+        });
+        loadTaskData();
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", "Không tải được danh sách nhân viên");
+      });
+  }
+
+  function loadTaskData() {
+    toggleLoader(true, "ĐANG TẢI BẢNG CÔNG VIỆC...");
+    fetch("/api/tasks")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          globalTaskList = res.data;
+          renderTable(res.data);
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", "Không tải được danh sách công việc");
+      });
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("tableBody");
+    if (!tbody) return;
+    
+    if (data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="12" class="text-center py-5 text-muted font-weight-bold">Không tìm thấy công việc nào</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(t => {
+      let stClass = "badge-secondary";
+      if (t.status === "Hoàn thành") stClass = "badge-success";
+      else if (t.status === "Đang thực hiện") stClass = "badge-primary";
+      else if (t.status === "Vướng mắc") stClass = "badge-danger";
+      else if (t.status === "Tạm dừng") stClass = "badge-warning";
+      
+      let diary = t.nhatKyBaoCao || "";
+      let remind = t.noiDungNhacNho || "";
+      let soLanNhac = parseInt(t.soLanNhac) || 0;
+      let nhacStyle = soLanNhac >= 3 ? "color: var(--accent-red); font-weight: 800; font-size: 13px;" : "font-weight: bold;";
+
+      return `
+        <tr onclick="selectTaskRow(this, '${t.idPhanCong}')">
+          <td class="text-center font-weight-bold" style="color: var(--accent-cyan);">${t.idPhanCong}</td>
+          <td class="text-center"><b>${t.maCV}</b></td>
+          <td style="white-space: normal; font-weight: 600;">${t.tenCV}</td>
+          <td class="text-center">${t.nguoiGiao}</td>
+          <td class="text-center">${t.nguoiNhan}</td>
+          <td class="text-center text-danger font-weight-bold">${formatDisplayDate(t.ngayKT)}</td>
+          <td class="text-center font-weight-bold">${t.tienDo}%</td>
+          <td class="text-center font-weight-bold text-warning" style="background: rgba(245,158,11,0.05);">${t.soLanBaoCao || 0}</td>
+          <td class="text-center" style="${nhacStyle} background: rgba(239,68,68,0.05);">${soLanNhac}</td>
+          <td class="text-center"><span class="badge ${stClass} badge-status">${t.status}</span></td>
+          <td class="text-left text-muted small" style="white-space: normal; line-height: 1.5;">${diary.replace(/\n/g, "<br>")}</td>
+          <td class="text-left small" style="white-space: normal; line-height: 1.5; color: #fca5a5;">${remind.replace(/\n/g, "<br>")}</td>
+        </tr>`;
+    }).join("");
+  }
+
+  function selectTaskRow(el, id) {
+    isAddMode = false;
+    setFormLock(false);
+    
+    document.querySelectorAll("#tableBody tr").forEach(r => r.classList.remove("selected"));
+    el.classList.add("selected");
+    
+    const item = globalTaskList.find(x => x.idPhanCong === id);
+    if (!item) return;
+
+    document.getElementById("txtId").value = item.idPhanCong;
+    document.getElementById("txtMaCV").value = item.maCV;
+    document.getElementById("txtTenCV").value = item.tenCV;
+    document.getElementById("selGiao").value = item.nguoiGiao;
+    document.getElementById("selNhan").value = item.nguoiNhan;
+    document.getElementById("txtNgayBD").value = item.ngayBD || "";
+    document.getElementById("txtNgayKT").value = item.ngayKT || "";
+    document.getElementById("txtTienDo").value = item.tienDo;
+    document.getElementById("selStatus").value = item.status;
+    document.getElementById("txtLink").value = item.link || "";
+    document.getElementById("txtLink").setAttribute("data-url", item.link || "");
+    
+    // Parse CC Coordinators list
+    currentPHList = item.phoiHop ? item.phoiHop.split(",").map(s => s.trim()).filter(s => s !== "") : [];
+    renderPHTags();
+    
+    // Load historical text panels
+    document.getElementById("displayLichSuNhac").innerHTML = item.noiDungNhacNho ? item.noiDungNhacNho.replace(/\n/g, "<br>") : "Chưa có chỉ đạo...";
+    document.getElementById("displayLichSuBC").innerHTML = item.nhatKyBaoCao ? item.nhatKyBaoCao.replace(/\n/g, "<br>") : "Chưa có báo cáo...";
+    
+    document.getElementById("countRemind").innerText = item.soLanNhac;
+    document.getElementById("countReport").innerText = item.soLanBaoCao;
+
+    // Enable routing action buttons
+    ["btnForward", "btnReport", "btnRemind", "btnSave", "btnSaveTT"].forEach(btnId => {
+      const btn = document.getElementById(btnId);
+      if (btn) btn.disabled = false;
+    });
+  }
+
+  function handleBtnAdd() {
+    isAddMode = true;
+    setFormLock(false);
+    
+    document.getElementById("txtId").value = "";
+    document.getElementById("txtMaCV").value = "TỰ ĐỘNG";
+    document.getElementById("txtTenCV").value = "";
+    document.getElementById("selGiao").value = loggedInUser; // Default delegator is current user
+    document.getElementById("selNhan").value = "";
+    document.getElementById("txtNgayBD").value = new Date().toISOString().split('T')[0];
+    document.getElementById("txtNgayKT").value = "";
+    document.getElementById("txtTienDo").value = 0;
+    document.getElementById("selStatus").value = "Chưa bắt đầu";
+    document.getElementById("txtLink").value = "";
+    document.getElementById("txtLink").removeAttribute("data-url");
+    
+    currentPHList = [];
+    renderPHTags();
+    
+    document.getElementById("displayLichSuNhac").innerHTML = "Đang thêm mới...";
+    document.getElementById("displayLichSuBC").innerHTML = "Đang thêm mới...";
+    document.getElementById("countRemind").innerText = 0;
+    document.getElementById("countReport").innerText = 0;
+
+    document.getElementById("btnSave").disabled = false;
+    document.getElementById("btnSaveTT").disabled = false;
+    ["btnForward", "btnReport", "btnRemind"].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) btn.disabled = true;
+    });
+    
+    // Trigger suggestions
+    handleGiaoChange();
+  }
+
+  function handleGiaoChange() {
+    const prefix = document.getElementById("selGiao").value;
+    if (!prefix || !isAddMode) return;
+    
+    fetch(`/api/tasks/suggested-code?prefix=${prefix}`)
+      .then(res => res.json())
+      .then(newCode => {
+        document.getElementById("txtMaCV").value = newCode;
+        document.getElementById("txtId").value = newCode;
+      });
+  }
+
+  function handlePHChange() {
+    const val = document.getElementById("selPH").value;
+    if (!val || currentPHList.includes(val)) return;
+    currentPHList.push(val); 
+    renderPHTags();
+  }
+
+  function renderPHTags() {
+    const container = document.getElementById("phTagContainer");
+    if (!container) return;
+    container.innerHTML = currentPHList.map(ma => `
+      <span class="badge badge-info mr-1 text-uppercase" style="font-size: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;">
+        ${ma} 
+        <i class="fas fa-times" onclick="removePHTag('${ma}')" style="cursor: pointer; color: #ffcccc;" title="Xóa"></i>
+      </span>
+    `).join("");
+  }
+
+  function removePHTag(maNV) {
+    const selPH = document.getElementById("selPH");
+    if (selPH && selPH.disabled) return;
+    currentPHList = currentPHList.filter(item => item !== maNV); 
+    renderPHTags();
+  }
+
+  function save(isTT) {
+    const payload = {
+      idPhanCong: document.getElementById("txtId").value, 
+      maCV: document.getElementById("txtMaCV").value,
+      tenCV: document.getElementById("txtTenCV").value,
+      nguoiGiao: document.getElementById("selGiao").value,
+      nguoiNhan: document.getElementById("selNhan").value,
+      status: document.getElementById("selStatus").value,
+      tienDo: document.getElementById("txtTienDo").value,
+      ngayBD: document.getElementById("txtNgayBD").value,
+      ngayKT: document.getElementById("txtNgayKT").value,
+      link: document.getElementById("txtLink").getAttribute("data-url") || document.getElementById("txtLink").value,
+      phoiHop: currentPHList.join(", ")
+    };
+
+    if (!payload.tenCV || !payload.nguoiNhan) {
+      showNotify("warning", "Thiếu thông tin", "Vui lòng nhập Tên công việc và Người nhận!");
+      return;
+    }
+
+    toggleLoader(true, payload.idPhanCong ? "ĐANG LƯU THAY ĐỔI..." : "ĐANG TẠO MỚI NHIỆM VỤ...");
+    
+    fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        showToast("success", res.message);
+        if (isTT) {
+          handleBtnAdd();
+        }
+        loadTaskData();
+      } else {
+        showNotify("error", "Lỗi lưu", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi mạng", "Không kết nối được server");
+    });
+  }
+
+  function handleBtnSave() { save(false); }
+  function handleBtnSaveTT() { save(true); }
+
+  function triggerLocalUpload() {
+    const el = document.getElementById("selStatus");
+    if (el && el.disabled) return; // Readonly block
+    document.getElementById("localFileInp").click();
+  }
+
+  function handleLocalUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    toggleLoader(true, "ĐANG TẢI TẬP TIN LÊN SERVER...");
+    
+    fetch("/api/drive/upload-local", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        const inputLink = document.getElementById("txtLink");
+        inputLink.value = res.name;
+        inputLink.setAttribute("data-url", res.url);
+        showToast("success", "✅ Đính kèm tệp tin thành công!");
+      } else {
+        showNotify("error", "Thất bại", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi", "Lỗi kết nối khi tải file");
+    });
+  }
+
+  function openCurrentLink() {
+    const inputEl = document.getElementById("txtLink");
+    if (!inputEl) return;
+    let url = inputEl.getAttribute("data-url") || inputEl.value.trim();
+    
+    if (!url || url === "" || url === "undefined") {
+      showNotify("warning", "Trống tài liệu", "Chưa đính kèm tài liệu nào để mở!");
+      return;
+    }
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url; 
+    }
+    window.open(url, '_blank');
+  }
+
+  function setFormLock(l) {
+    const ids = ["txtTenCV", "txtNgayBD", "txtNgayKT", "txtTienDo", "txtLink", "selGiao", "selNhan", "selPH", "selStatus"];
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.disabled = l;
+    });
+  }
+
+  function formatDisplayDate(dateStr) {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return dateStr;
+  }
+
+  function filterTable() {
+    const v = document.getElementById("searchInput").value.toUpperCase();
+    const filtered = globalTaskList.filter(t => 
+      (t.tenCV || "").toUpperCase().includes(v) || 
+      (t.maCV || "").toUpperCase().includes(v) ||
+      (t.idPhanCong || "").toUpperCase().includes(v)
+    );
+    renderTable(filtered);
+  }
+
+  // Routing actions
+  function handleBack() { navTo("/dashboard"); }
+  
+  function handleForward() {
+    const id = document.getElementById("txtId").value;
+    setTempIdAndNavigate(id, "/tasks/forward");
+  }
+  
+  function handleRemind() {
+    const id = document.getElementById("txtId").value;
+    setTempIdAndNavigate(id, "/tasks/remind");
+  }
+  
+  function handleReport() {
+    const id = document.getElementById("txtId").value;
+    setTempIdAndNavigate(id, "/tasks/report");
+  }
+
+  function setTempIdAndNavigate(id, targetUrl) {
+    toggleLoader(true, "ĐANG CHUYỂN TIẾP TRANG...");
+    fetch("/api/tasks/set-temp-id", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id })
+    })
+    .then(res => res.json())
+    .then(res => {
+      if (res.success) {
+        window.location.href = targetUrl + "?id=" + id;
+      } else {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", "Không ghi được task ID tạm thời");
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi kết nối", err.message);
+    });
+  }
+
+  function navTo(url) {
+    toggleLoader(true, "ĐANG CHUYỂN TRANG...");
+    window.location.href = url;
+  }
+
+  function handleHelp() {
+    $('#helpModal').modal('show');
+  }
+</script>
+
+<!-- Modal Hướng Dẫn Vận Hành AMS PRO 5.0 -->
+<div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+    <div class="modal-content" style="background: #0d1322; color: #f1f5f9; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.1); background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(6, 182, 212, 0.15)); padding: 18px 24px; align-items: center;">
+        <h5 class="modal-title font-weight-bold" id="helpModalTitle" style="color: #38bdf8; font-size: 18px; display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-book-open"></i> HƯỚNG DẪN VẬN HÀNH FORM ĐIỀU HÀNH DOANH NGHIỆP (AMS PRO 5.0)
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.8; outline: none;">
+          <span aria-hidden="true" style="font-size: 24px;">&times;</span>
+        </button>
+      </div>
+
+      <div class="modal-body" style="padding: 24px; font-size: 13px; line-height: 1.6; max-height: 75vh; overflow-y: auto;">
+        
+        <!-- SECTION 1: 3-TIER STRUCTURE CARDS -->
+        <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+          <h6 class="font-weight-bold text-uppercase text-primary mb-3"><i class="fas fa-sitemap mr-2"></i>1. BỐ CỤC FORM 3 TẦNG CHỨC NĂNG</h6>
+          
+          <!-- Tầng 1 -->
+          <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+            <div style="font-weight: 800; color: #c084fc; font-size: 14px; margin-bottom: 8px;">
+              <i class="fas fa-sliders-h mr-2"></i>TẦNG 1: THANH CÔNG CỤ ĐIỀU HÀNH (HEADER TOOLBAR)
+            </div>
+            <div class="row">
+              <div class="col-md-3"><strong>1. Điều hướng:</strong> Quay về • Thêm mới</div>
+              <div class="col-md-3"><strong>2. Lưu dữ liệu:</strong> Lưu • Lưu & tiếp tục</div>
+              <div class="col-md-3"><strong>3. Ủy quyền:</strong> Ủy quyền • Nhắc nhớ</div>
+              <div class="col-md-3"><strong>4. Báo cáo/Tìm:</strong> Báo cáo • Tìm kiếm mã/tên CV</div>
+            </div>
+          </div>
+
+          <!-- Tầng 2 -->
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 10px; padding: 14px; margin-bottom: 12px;">
+            <div style="font-weight: 800; color: #34d399; font-size: 14px; margin-bottom: 8px;">
+              <i class="fas fa-edit mr-2"></i>TẦNG 2: KHU VỰC THÔNG TIN CÔNG VIỆC (MAIN INPUT FORM)
+            </div>
+            <div class="row mb-2">
+              <div class="col-md-6"><strong>• Định danh công việc:</strong> Mã CV • Nội dung nhiệm vụ chi tiết</div>
+              <div class="col-md-6"><strong>• Phân công nhân sự:</strong> Người giao • Người nhận • CC (Phối hợp)</div>
+            </div>
+            <div class="row">
+              <div class="col-md-6"><strong>• Thời gian & Tiến độ:</strong> Ngày bắt đầu - Hạn kết thúc • % Tiến độ • Trạng thái</div>
+              <div class="col-md-6"><strong>• Tài liệu đính kèm:</strong> Link đính kèm • File upload từ máy • Google Drive</div>
+            </div>
+          </div>
+
+          <!-- Tầng 3 -->
+          <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 10px; padding: 14px;">
+            <div style="font-weight: 800; color: #fbbf24; font-size: 14px; margin-bottom: 8px;">
+              <i class="fas fa-clock-rotate-left mr-2"></i>TẦNG 3: GIÁM SÁT LỊCH SỬ HAI CHIỀU (RIGHT PANEL)
+            </div>
+            <div class="row">
+              <div class="col-md-6"><strong>• Lịch sử chỉ đạo (Top-Down):</strong> Nhật ký ý kiến chỉ đạo, phê duyệt, đôn đốc của CEO và Cấp quản lý.</div>
+              <div class="col-md-6"><strong>• Lịch sử báo cáo (Bottom-Up):</strong> Nhật ký % tiến độ, sản phẩm hoàn thành và phản ánh khó khăn vướng mắc của Nhân viên.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: WORKFLOW TOP-DOWN & BOTTOM-UP -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; height: 100%;">
+              <h6 class="font-weight-bold text-cyan mb-3"><i class="fas fa-turn-down mr-2"></i>2. QUY TRÌNH GIAO VIỆC ĐA TẦNG (TOP-DOWN)</h6>
+              <ol class="pl-3 mb-0" style="line-height: 1.8;">
+                <li><strong>CEO:</strong> Giao việc chiến lược, chọn Người giao: CEO, Người nhận: GĐBP và bấm [LƯU].</li>
+                <li><strong>GĐ Bộ Phận:</strong> Bấm nút [ÚY QUYỀN], chuyển tiếp phân việc cho Trưởng/Phó phòng.</li>
+                <li><strong>Trưởng Phòng:</strong> Cụ thể hóa kế hoạch và phân công cho Tổ/Nhóm trưởng.</li>
+                <li><strong>Tổ Trưởng:</strong> Chia nhỏ task tác nghiệp và giao cho Nhân viên trực tiếp.</li>
+                <li><strong>Nhân Viên:</strong> Mở task, nhận nhiệm vụ và chuyển Trạng thái sang "Đang thực hiện".</li>
+              </ol>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; height: 100%;">
+              <h6 class="font-weight-bold text-warning mb-3"><i class="fas fa-turn-up mr-2"></i>3. BÁO CÁO & THÁO GỠ VƯỚNG MẮC (BOTTOM-UP)</h6>
+              <ol class="pl-3 mb-0" style="line-height: 1.8;">
+                <li><strong>Nhân Viên:</strong> Phát hiện vướng mắc, chuyển Trạng thái = "VƯỚNG MẮC", bấm nút [📢 BÁO CÁO] ghi rõ nguyên nhân & đề xuất rồi bấm [LƯU].</li>
+                <li><strong>Tổ/Trưởng Phòng:</strong> Xem ô "Lịch sử báo cáo", nhập hướng dẫn vào ô "Lịch sử chỉ đạo" hoặc bấm [ÚY QUYỀN / BÁO CÁO] leo thang lên GĐBP.</li>
+                <li><strong>CEO & Cấp Cao:</strong> Xem điểm nghẽn, nhập chỉ đạo cấp ngân sách/chính sách vào "Lịch sử chỉ đạo", bấm [🔔 NHẮC NHỜ] cho nhân sự triển khai ngay.</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 3: BUTTON REFERENCE TABLE -->
+        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px;">
+          <h6 class="font-weight-bold text-success mb-3"><i class="fas fa-list-check mr-2"></i>4. BẢNG MÔ TẢ CHI TIẾT NÚT THAO TÁC</h6>
+          <div class="table-responsive">
+            <table class="table table-dark table-bordered table-sm mb-0" style="font-size: 12px; background: transparent;">
+              <thead style="background: rgba(59, 130, 246, 0.2); color: #38bdf8;">
+                <tr>
+                  <th style="width: 20%;">Tên Nút Bấm</th>
+                  <th style="width: 20%;">Nhóm Chức Năng</th>
+                  <th>Ý Nghĩa Vận Hành & Hướng Dẫn Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-weight-bold text-white"><i class="fas fa-arrow-left mr-1"></i> QUAY VỀ</td>
+                  <td>Điều hướng</td>
+                  <td>Quay về màn hình Bảng điều khiển (Dashboard) chính của hệ thống.</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold text-primary"><i class="fas fa-plus mr-1"></i> THÊM MỚI</td>
+                  <td>Điều hướng</td>
+                  <td>Xóa sạch thông tin cũ để bắt đầu tạo một công việc/nhiệm vụ mới.</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold text-success"><i class="fas fa-save mr-1"></i> LƯU</td>
+                  <td>Lưu dữ liệu</td>
+                  <td>Lưu thông tin công việc hiện tại vào hệ thống dữ liệu AMS PRO 5.0.</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold text-cyan"><i class="fas fa-sync-alt mr-1"></i> LƯU & TT</td>
+                  <td>Lưu dữ liệu</td>
+                  <td>Lưu công việc hiện tại và tự động tạo trang mới để giao việc liên tục nhanh chóng.</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold" style="color: #a855f7;"><i class="fas fa-share-nodes mr-1"></i> ÚY QUYỀN</td>
+                  <td>Ủy quyền</td>
+                  <td>Dành cho cấp trung gian chuyển tiếp nhiệm vụ cho cấp dưới trực tiếp xử lý chính.</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold text-danger"><i class="fas fa-bell mr-1"></i> NHẮC NHỜ</td>
+                  <td>Ủy quyền</td>
+                  <td>Gửi tín hiệu thông báo đôn đốc thúc giục deadline tới Người nhận hoặc CC khẩn cấp.</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold text-warning"><i class="fas fa-chart-pie mr-1"></i> BÁO CÁO</td>
+                  <td>Báo cáo/Tìm</td>
+                  <td>Dành cho Người nhận công việc báo cáo % tiến độ hoặc gửi đề xuất tháo gỡ khó khăn vướng mắc.</td>
+                </tr>
+                <tr>
+                  <td class="font-weight-bold" style="color: #38bdf8;"><i class="fas fa-circle-question mr-1"></i> HƯỚNG DẪN</td>
+                  <td>Báo cáo/Tìm</td>
+                  <td>Mở bảng tài liệu hướng dẫn vận hành chi tiết toàn bộ chức năng form.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer" style="border-top: 1px solid rgba(255,255,255,0.1); background: rgba(10, 15, 29, 0.8);">
+        <button type="button" class="btn btn-secondary btn-sm font-weight-bold px-4" data-dismiss="modal" style="border-radius: 8px;">
+          <i class="fas fa-check mr-1"></i> ĐÃ HIỂU HƯỚNG DẪN
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

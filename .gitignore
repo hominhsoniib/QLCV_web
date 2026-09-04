@@ -1,0 +1,68 @@
+# Python Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*/__pycache__/
+*.py[cod]
+*$py.class
+
+# Local Databases & Dynamic Data
+*.db
+*.sqlite
+*.sqlite3
+database/master_system.db
+database/tenants/
+
+# Environment & Secrets
+.env
+!.env.example
+ai_config.txt
+
+# Logs & Temporary outputs
+*.log
+fastapi_server.log
+scratch_response.html
+docx_contents.txt
+Huong_Dan_Su_Dung_AMS_PRO_5.0.html
+
+# Heavy Binaries & Compressed Archives
+cloudflared.exe
+*.tar.gz
+*.zip
+*.rar
+*.exe
+*.spec
+
+# Build & Dist artifacts
+dist/
+build/
+
+# Local User Uploads (Keep directory structure)
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Test screenshots & scratch renders in static folder
+static/*.png
+static/*.html
+
+# Personal Documents & Quotations in root
+*.docx
+so do *.png
+Bao-gia/
+
+# Scratch & Maintenance Helper Scripts
+create_html_guide.py
+create_user_guide.py
+test_ssh.py
+sync_to_vps.py
+don_dep.bat
+don_dep_he_thong.py
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini

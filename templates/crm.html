@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Quản lý Khách hàng (CRM){% endblock %}
+
+{% block content %}
+<style>
+  .iframe-container {
+    transition: all 0.25s ease-in-out;
+  }
+  .iframe-container.fullscreen-mode {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 999999 !important;
+    background: #f8fafc !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  .iframe-container.fullscreen-mode .iframe-inner {
+    border-radius: 0 !important;
+    border: none !important;
+  }
+  .fullscreen-btn {
+    position: absolute;
+    top: 15px;
+    right: 35px; /* Lệch sang trái để không đè vào nút cuộn dọc nếu có */
+    z-index: 1000000;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #cbd5e1;
+    color: #334155;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .fullscreen-btn:hover {
+    background: #ffffff;
+    border-color: #94a3b8;
+    color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.15);
+  }
+  .fullscreen-btn i {
+    font-size: 14px;
+  }
+</style>
+
+<div id="crm-container" class="premium-card iframe-container" style="padding: 0; min-height: calc(100vh - 120px); border: none; display: flex; flex-direction: column; overflow: hidden; background: transparent; margin-bottom: 0; position: relative;">
+  <button id="toggle-fs" class="fullscreen-btn">
+    <i class="fa-solid fa-expand"></i>
+    <span>Toàn màn hình</span>
+  </button>
+  <div class="iframe-inner" style="flex: 1; position: relative; min-height: calc(100vh - 130px); border-radius: 16px; overflow: hidden; border: 1px solid var(--card-border); transition: border-radius 0.25s;">
+    <iframe src="/crm/spa?token={{ crm_token }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; background: #f1f5f9;"></iframe>
+  </div>
+</div>
+
+<script>
+  document.getElementById('toggle-fs').addEventListener('click', function() {
+    var container = document.getElementById('crm-container');
+    var btn = this;
+    var icon = btn.querySelector('i');
+    var text = btn.querySelector('span');
+    
+    container.classList.toggle('fullscreen-mode');
+    
+    if (container.classList.contains('fullscreen-mode')) {
+      icon.className = 'fa-solid fa-compress';
+      text.textContent = 'Thu nhỏ';
+      container.style.minHeight = '100vh';
+      btn.style.right = '20px';
+      btn.style.top = '10px';
+    } else {
+      icon.className = 'fa-solid fa-expand';
+      text.textContent = 'Toàn màn hình';
+      container.style.minHeight = 'calc(100vh - 120px)';
+      btn.style.right = '35px';
+      btn.style.top = '15px';
+    }
+  });
+</script>
+{% endblock %}

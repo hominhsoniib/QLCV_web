@@ -1,0 +1,290 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Kho Tài Nguyên Trực Tuyến{% endblock %}
+
+{% block extra_css %}
+<style>
+  .master-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    max-width: 1200px;
+    margin: auto;
+    padding: 24px;
+  }
+  
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--card-border);
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+  }
+  .header-title {
+    color: var(--accent-blue);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+  }
+
+  /* 🔍 FILTERS */
+  .filter-section {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 300px;
+  }
+  .dropdown-filter {
+    width: 220px;
+    font-weight: 700;
+    border: 1px solid var(--accent-blue) !important;
+    color: var(--accent-blue) !important;
+    background-color: rgba(59, 130, 246, 0.05) !important;
+  }
+  .dropdown-filter option {
+    background-color: var(--navy-dark);
+    color: var(--text-main);
+  }
+  
+  /* Style for word doc previewer */
+  #previewDocxContainer {
+    background-color: #f3f4f6 !important;
+    color: #1f2937 !important;
+    font-family: 'Inter', Arial, sans-serif !important;
+  }
+  .docx-wrapper {
+    background-color: #f3f4f6 !important;
+    padding: 30px !important;
+  }
+  .docx {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    margin: 0 auto 30px auto !important;
+    border-radius: 8px !important;
+    background: white !important;
+    padding: 50px 60px !important;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="master-card">
+  <div class="header-section">
+    <h4 class="header-title"><i class="fas fa-university mr-2"></i> KHO TÀI NGUYÊN TRỰC TUYẾN NỘI BỘ</h4>
+    <button class="btn-lux-secondary btn-sm" onclick="goBack()"><i class="fas fa-home mr-2"></i> TRANG CHỦ</button>
+  </div>
+
+  <div class="filter-section">
+    <input type="text" id="searchInp" class="form-control form-control-lux search-box" placeholder="Nhập tên tài liệu hoặc mã số cần tìm..." onkeyup="filterLib()">
+    
+    <select id="dropFilter" class="form-control form-control-lux dropdown-filter" onchange="filterLib()">
+      <option value="ALL">-- TẤT CẢ LOẠI --</option>
+      <option value="QT">QUY TRÌNH (QT)</option>
+      <option value="BM">BIỂU MẪU (BM)</option>
+      <option value="HD">HƯỚNG DẪN / HĐ (HD)</option>
+      <option value="MC">MÔ TẢ CV (MC)</option>
+      <option value="QC">QUY CHẾ (QC)</option>
+      <option value="QD">QUYẾT ĐỊNH (QD)</option>
+    </select>
+  </div>
+
+  <div class="premium-table-container">
+    <table class="premium-table" id="docTable">
+      <thead>
+        <tr>
+          <th style="width: 10%;">MÃ SỐ</th>
+          <th style="width: 35%; text-align: left;">TÊN TÀI LIỆU / QUY TRÌNH</th>
+          <th style="width: 15%;">PHÂN LOẠI</th>
+          <th style="width: 20%;">PHÒNG BAN</th>
+          <th style="width: 10%;">CẬP NHẬT</th>
+          <th style="width: 10%;">XEM FILE</th>
+        </tr>
+      </thead>
+      <tbody id="libraryBody">
+        <tr>
+          <td colspan="6" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <h6 class="mt-2 text-muted">ĐANG TRUY XUẤT KHO DỮ LIỆU...</h6>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Document Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document" style="max-width: 90%; height: 85vh; margin: 30px auto;">
+    <div class="modal-content" style="background: var(--card-bg); border: 1px solid var(--accent-blue); border-radius: 12px; height: 100%; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(59, 130, 246, 0.25);">
+      <div class="modal-header" style="border-bottom: 1px solid var(--card-border); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; background: rgba(30, 41, 59, 0.5);">
+        <h5 class="modal-title font-weight-bold" id="previewModalLabel" style="color: var(--accent-blue); font-size: 15px; margin: 0; display: flex; align-items: center;">
+          <i class="fas fa-file-alt mr-2"></i> XEM CHI TIẾT TÀI LIỆU
+        </h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="color: var(--text-main); opacity: 0.8; font-size: 24px; background: none; border: none; outline: none; cursor: pointer; padding: 0; margin: 0;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" style="padding: 0; flex: 1; position: relative; overflow: hidden; background: #0f172a; display: flex; flex-direction: column;">
+        <iframe id="previewIframe" src="" style="width: 100%; height: 100%; border: none; display: none;" allow="autoplay"></iframe>
+        <div id="previewDocxContainer" style="width: 100%; height: 100%; overflow-y: auto; display: none;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- JSZip & docx-preview for in-app Word file rendering -->
+<script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx-preview@0.1.15/dist/docx-preview.min.js"></script>
+<script>
+  let allDocs = [];
+
+  window.addEventListener("load", function() {
+    loadLibrary();
+  });
+
+  function loadLibrary() {
+    toggleLoader(true, "ĐANG ĐỒNG BỘ THƯ VIỆN...");
+    fetch("/api/documents/library")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          allDocs = res.data;
+          renderLibrary(allDocs);
+        } else {
+          showNotify("error", "Lỗi", "Không thể tải thư viện.");
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi kết nối mạng", err.message);
+      });
+  }
+
+  function renderLibrary(data) {
+    const container = document.getElementById("libraryBody");
+    if (!container) return;
+
+    if (data.length === 0) {
+      container.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted font-weight-bold">Không tìm thấy tài liệu phù hợp nào.</td></tr>`;
+      return;
+    }
+
+    container.innerHTML = data.map(d => `
+      <tr>
+        <td class="text-center font-weight-bold text-danger">${d.maTL}</td>
+        <td class="text-left font-weight-bold" style="color: var(--text-main);">${d.tenTL}</td>
+        <td class="text-center text-muted small">${d.loai || '---'}</td>
+        <td class="text-center text-info small">${d.phongBan || 'Tất cả'}</td>
+        <td class="text-center text-muted small">${d.ngayCapNhat || '---'}</td>
+        <td class="text-center">
+          ${d.previewUrl ? `
+            <button type="button" class="btn btn-sm btn-outline-info font-weight-bold px-3 py-1" style="font-size:10px; border-radius: 4px; cursor: pointer;" onclick="openPreview('${d.tenTL.replace(/'/g, "\\'")}', '${d.previewUrl}')">
+              <i class="fas fa-eye mr-1"></i> MỞ FILE
+            </button>
+          ` : '---'}
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  function filterLib() {
+    const term = document.getElementById("searchInp").value.toUpperCase();
+    const dropVal = document.getElementById("dropFilter").value;
+
+    const filtered = allDocs.filter(d => {
+      const maFull = String(d.maTL || "").toUpperCase();
+      const prefix = maFull.substring(0, 2);
+      
+      const matchSearch = (d.tenTL || "").toUpperCase().includes(term) || maFull.includes(term);
+      const matchDrop = (dropVal === "ALL") || (prefix === dropVal);
+      
+      return matchSearch && matchDrop;
+    });
+    renderLibrary(filtered);
+  }
+
+  function goBack() {
+    toggleLoader(true, "QUAY LẠI TRANG CHỦ...");
+    window.location.href = "/dashboard";
+  }
+
+  function openPreview(title, previewUrl) {
+    if (!previewUrl) {
+      showNotify("warning", "Thông báo", "Tài liệu này chưa cấu hình liên kết trực tuyến.");
+      return;
+    }
+    
+    document.getElementById("previewModalLabel").innerHTML = `<i class="fas fa-file-alt mr-2"></i> ${title}`;
+    
+    const iframe = document.getElementById("previewIframe");
+    const docxContainer = document.getElementById("previewDocxContainer");
+    
+    // Hide both initially and reset contents
+    iframe.style.display = "none";
+    docxContainer.style.display = "none";
+    iframe.src = "";
+    docxContainer.innerHTML = "";
+    
+    toggleLoader(true, "ĐANG TẢI BẢN XEM TRƯỚC TÀI LIỆU...");
+    
+    // Check if it's a Word document (.docx)
+    const isDocx = previewUrl.toLowerCase().includes(".docx");
+    
+    if (isDocx) {
+      docxContainer.style.display = "block";
+      fetch(previewUrl)
+        .then(res => {
+          if (!res.ok) throw new Error("Không thể tải file docx từ máy chủ.");
+          return res.arrayBuffer();
+        })
+        .then(buffer => {
+          docx.renderAsync(buffer, docxContainer)
+            .then(() => {
+              toggleLoader(false);
+            })
+            .catch(err => {
+              console.error(err);
+              docxContainer.innerHTML = `<div class="alert alert-danger m-3">Lỗi hiển thị tài liệu Word: ${err.message}</div>`;
+              toggleLoader(false);
+            });
+        })
+        .catch(err => {
+          console.error(err);
+          docxContainer.innerHTML = `<div class="alert alert-danger m-3">Không thể tải tài liệu: ${err.message}</div>`;
+          toggleLoader(false);
+        });
+    } else {
+      iframe.style.display = "block";
+      iframe.src = previewUrl;
+      iframe.onload = function() {
+        toggleLoader(false);
+      };
+      
+      // Fail-safe to hide loader after 4 seconds
+      setTimeout(function() {
+        toggleLoader(false);
+      }, 4000);
+    }
+    
+    $("#previewModal").modal("show");
+  }
+
+  // Clear iframe and container on modal close to release memory
+  $(document).ready(function() {
+    $('#previewModal').on('hidden.bs.modal', function () {
+      document.getElementById("previewIframe").src = "";
+      document.getElementById("previewDocxContainer").innerHTML = "";
+    });
+  });
+</script>
+{% endblock %}

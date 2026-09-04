@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AMS PRO 5.0 - Sơ Đồ Value Chain & Cẩm Nang Vận Hành</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --navy-bg: #0f172a;
+      --navy-card: #1e293b;
+      --light-bg: #f8fafc;
+      --light-card: #ffffff;
+      --border-color: #e2e8f0;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+      --accent-green: #10b981;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-dark);
+      line-height: 1.65;
+      padding: 24px 16px;
+    }
+    .guide-container {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    /* TOP ACTION CARD (WHITE CONTAINER) */
+    .top-action-card {
+      background: var(--light-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px 30px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .top-action-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .top-icon-box {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+      flex-shrink: 0;
+    }
+    .top-action-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin-bottom: 4px;
+    }
+    .top-action-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .top-action-btns {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border: 1px solid transparent;
+    }
+    .btn-top-blue {
+      background: rgba(37, 99, 235, 0.08);
+      color: #2563eb;
+      border-color: rgba(37, 99, 235, 0.2);
+    }
+    .btn-top-blue:hover {
+      background: rgba(37, 99, 235, 0.15);
+      color: #1d4ed8;
+    }
+    .btn-top-green {
+      background: rgba(16, 185, 129, 0.08);
+      color: #059669;
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .btn-top-green:hover {
+      background: rgba(16, 185, 129, 0.15);
+      color: #047857;
+    }
+    .btn-top-dark {
+      background: #1e293b;
+      color: #ffffff;
+    }
+    .btn-top-dark:hover {
+      background: #0f172a;
+    }
+
+    /* INNER NAVY HEADER BAR */
+    .navy-header-bar {
+      background: #1e293b;
+      border-radius: 14px 14px 0 0;
+      padding: 20px 24px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .navy-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .navy-brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: #3b82f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: white;
+    }
+    .navy-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .version-tag {
+      background: rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .navy-sub {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .search-box-wrap {
+      position: relative;
+      width: 320px;
+      max-width: 100%;
+    }
+    .search-box-wrap i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 14px;
+    }
+    .search-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 9px 14px 9px 38px;
+      color: white;
+      font-size: 13px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+    }
+    .search-input::placeholder {
+      color: #64748b;
+    }
+
+    /* MAIN DOCUMENT CONTENT WRAPPER */
+    .doc-content-card {
+      background: var(--light-card);
+      border: 1px solid var(--border-color);
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+    }
+
+    /* VALUE CHAIN DIAGRAM DISPLAY */
+    .vc-img-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      text-align: center;
+    }
+    .vc-img-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      border: 1px solid #cbd5e1;
+    }
+    .vc-img-caption {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0369a1;
+    }
+
+    /* 6 LAYERS VISUAL GRID */
+    .layer-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 20px;
+      background: #f8fafc;
+    }
+    .layer-card-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .layer-1 { border-left: 5px solid #1e3a8a; }
+    .layer-1 .layer-card-title { color: #1e3a8a; }
+    
+    .layer-2 { border-left: 5px solid #0284c7; }
+    .layer-2 .layer-card-title { color: #0284c7; }
+
+    .layer-3 { border-left: 5px solid #15803d; }
+    .layer-3 .layer-card-title { color: #15803d; }
+
+    .layer-4 { border-left: 5px solid #b45309; }
+    .layer-4 .layer-card-title { color: #b45309; }
+
+    .layer-5 { border-left: 5px solid #7e22ce; }
+    .layer-5 .layer-card-title { color: #7e22ce; }
+
+    .layer-6 { border-left: 5px solid #c2410c; }
+    .layer-6 .layer-card-title { color: #c2410c; }
+
+    /* TABLE OF CONTENTS BOX */
+    .toc-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 30px;
+    }
+    .toc-header-title {
+      font-size: 15px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-transform: uppercase;
+    }
+    .toc-list-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 10px;
+    }
+    .toc-link-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      color: #334155;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    .toc-link-item:hover {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      color: #2563eb;
+      transform: translateX(4px);
+    }
+    .toc-link-item i {
+      color: #3b82f6;
+      font-size: 14px;
+      width: 18px;
+      text-align: center;
+    }
+
+    /* SECTIONS & CHAPTERS */
+    .part-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 32px 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chapter-section {
+      margin-bottom: 28px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .chapter-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chapter-title i {
+      color: #2563eb;
+    }
+
+    p {
+      margin-bottom: 12px;
+      color: #475569;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+    ul, ol {
+      margin-left: 22px;
+      margin-bottom: 16px;
+      color: #475569;
+      font-size: 14px;
+    }
+    li { margin-bottom: 6px; }
+
+    /* CALLOUT BOXES */
+    .callout-light {
+      background: #eff6ff;
+      border-left: 4px solid #3b82f6;
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 18px 0;
+    }
+    .callout-light-title {
+      font-weight: 800;
+      color: #1d4ed8;
+      font-size: 13px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* CODE & TREE BOX */
+    .tree-box-light {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 13px;
+      color: #38bdf8;
+      overflow-x: auto;
+      margin: 18px 0;
+      line-height: 1.5;
+    }
+
+    /* TABLES */
+    .table-custom-wrap {
+      overflow-x: auto;
+      margin: 18px 0;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    .table-custom {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .table-custom th {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-weight: 700;
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .table-custom td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #334155;
+    }
+    .table-custom tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .badge-blue { background: #dbeafe; color: #1d4ed8; }
+    .badge-green { background: #d1fae5; color: #047857; }
+    .badge-red { background: #fee2e2; color: #b91c1c; }
+    .badge-yellow { background: #fef3c7; color: #b45309; }
+
+    .module-item-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+    }
+    .module-item-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #1e293b;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Print Styles */
+    @media print {
+      body { background: white; padding: 0; }
+      .top-action-card, .search-box-wrap, .btn-top { display: none !important; }
+      .doc-content-card { border: none; box-shadow: none; padding: 0; }
+      .chapter-section { page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <div class="guide-container">
+
+    <!-- TOP ACTION CARD (WHITE CONTAINER) -->
+    <div class="top-action-card">
+      <div class="top-action-info">
+        <div class="top-icon-box"><i class="fas fa-book-open"></i></div>
+        <div>
+          <div class="top-action-title">Hướng Dẫn Sử Dụng & Vận Hành Hệ Thống AMS PRO</div>
+          <div class="top-action-sub">Tài liệu HDSD-AMS v5.0 — Sơ đồ Value Chain & Cẩm Nang Thực Chiến</div>
+        </div>
+      </div>
+      <div class="top-action-btns">
+        <a href="/guide" target="_blank" class="btn-top btn-top-blue"><i class="fas fa-arrow-up-right-from-square"></i> Mở Cửa Sổ Mới</a>
+        <a href="/download-guide-word" class="btn-top btn-top-green"><i class="fas fa-file-word"></i> Tải File Word (.docx)</a>
+        <button onclick="window.print()" class="btn-top btn-top-dark"><i class="fas fa-print"></i> In / Xuất PDF</button>
+      </div>
+    </div>
+
+    <!-- INNER NAVY HEADER BAR -->
+    <div class="navy-header-bar">
+      <div class="navy-brand">
+        <div class="navy-brand-icon"><i class="fas fa-sitemap"></i></div>
+        <div>
+          <div class="navy-title">AMS PRO 5.0 <span class="version-tag">v5.0.0</span></div>
+          <div class="navy-sub">SƠ ĐỒ VALUE CHAIN TỪ CEO ĐẾN NGƯỜI THỰC THI (HDSD-AMS)</div>
+        </div>
+      </div>
+      <div class="search-box-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" class="search-input" id="guideSearchInp" placeholder="Tìm kiếm nội dung..." onkeyup="searchGuide(this.value)">
+      </div>
+    </div>
+
+    <!-- MAIN DOCUMENT CONTENT -->
+    <div class="doc-content-card">
+
+      <!-- VALUE CHAIN DIAGRAM DISPLAY -->
+      <div class="vc-img-card">
+        <img src="/VALUECHAIN-PB.png" alt="Sơ Đồ Value Chain Của AMS PRO 5.0">
+        <div class="vc-img-caption">
+          <i class="fas fa-sitemap mr-1"></i> SƠ ĐỒ VALUE CHAIN CỦA AMS PRO 5.0 — TỪ CEO ĐẾN NGƯỜI THỰC THI – MỌI CÔNG VIỆC ĐỀU TẠO RA GIÁ TRỊ
+        </div>
+      </div>
+
+      <!-- FAMILY TREE DIAGRAM DISPLAY -->
+      <div class="vc-img-card" style="border-top: 4px solid #2563eb;">
+        <a href="/so-do-gia-pha.png" target="_blank">
+          <img src="/so-do-gia-pha.png" alt="Sơ Đồ Gia Phả Công Việc AMS PRO 5.0 (Family Tree)">
+        </a>
+        <div class="vc-img-caption" style="color: #1e3a8a;">
+          <i class="fas fa-tree mr-1"></i> SƠ ĐỒ GIA PHẢ CÔNG VIỆC (FAMILY TREE) — TỪ CEO ➔ GIÁM ĐỐC ➔ TRƯỞNG PHÒNG ➔ TỔ TRƯỞNG ➔ NHÂN VIÊN (MÃ GIA PHẢ DNA)
+        </div>
+      </div>
+
+      <!-- 6 LAYERS CARDS breakdown -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-bottom: 30px;">
+        
+        <div class="layer-card layer-1">
+          <div class="layer-card-title"><i class="fas fa-user-tie"></i> 1. CEO CHIẾN LƯỢC</div>
+          <p><strong>CEO & Ban Giám Đốc:</strong> Xác định mục tiêu chiến lược ➔ Mục tiêu năm & KPI ➔ Khởi tạo nhiệm vụ chiến lược ➔ Điều hành qua Dashboard thời gian thực.</p>
+        </div>
+
+        <div class="layer-card layer-2">
+          <div class="layer-card-title"><i class="fas fa-link"></i> 2. VALUE CHAIN DÒNG GIÁ TRỊ</div>
+          <p><strong>Chuỗi 7 bước tạo giá trị:</strong> 1. Marketing ➔ 2. Sales ➔ 3. Kế hoạch ➔ 4. Sản xuất/Triển khai ➔ 5. Giao hàng/Cung ứng ➔ 6. CSKH ➔ 7. Tài chính ➔ Giá trị cuối cùng (Doanh thu & Lợi nhuận).</p>
+        </div>
+
+        <div class="layer-card layer-3">
+          <div class="layer-card-title"><i class="fas fa-building"></i> 3. PHÒNG BAN TỔ CHỨC</div>
+          <p><strong>7 Phòng ban chức năng:</strong> Phòng Marketing, Phòng Kinh doanh, Phòng Kế hoạch, Phòng Sản xuất, Phòng Kho/Cung ứng, Phòng CSKH, Phòng Kế toán Tài chính.</p>
+        </div>
+
+        <div class="layer-card layer-4">
+          <div class="layer-card-title"><i class="fas fa-user-astronaut"></i> 4. CÁ NHÂN THỰC THI</div>
+          <p><strong>Luồng 6 bước cá nhân:</strong> Nhận việc ➔ Lập kế hoạch ➔ Thực hiện ➔ Báo cáo tiến độ ➔ Phát sinh VƯỚNG MẮC ❓ ➔ Hoàn thành ✅.</p>
+        </div>
+
+        <div class="layer-card layer-5">
+          <div class="layer-card-title"><i class="fas fa-brain"></i> 5. AI TRÍ TUỆ HỖ TRỢ</div>
+          <p><strong>Lớp AI hỗ trợ:</strong> AI Copilot, Hỏi đáp dữ liệu, Phân tích hiệu suất, Dự báo rủi ro & Cảnh báo, Đề xuất & Tối ưu, Tự động hóa báo cáo.</p>
+        </div>
+
+        <div class="layer-card layer-6">
+          <div class="layer-card-title"><i class="fas fa-university"></i> 6. TÀI NGUYÊN TRI THỨC</div>
+          <p><strong>Kho tri thức:</strong> Quy trình SOP, Biểu mẫu, Tài liệu HD, Mô tả CV (JD), Hợp đồng pháp lý, Quy chế quy định, Dữ liệu CSDL, Tri thức nội bộ.</p>
+        </div>
+
+      </div>
+
+      <!-- TABLE OF CONTENTS BOX -->
+      <div class="toc-box">
+        <div class="toc-header-title"><i class="fas fa-list-ol text-primary"></i> MỤC LỤC TÀI LIỆU (12 PHẦN / 21 CHƯƠNG CHI TIẾT)</div>
+        <div class="toc-list-grid">
+          <a href="#part-giapha" class="toc-link-item" style="border-left: 4px solid #2563eb; background: #eff6ff;"><i class="fas fa-tree text-primary"></i> <span>Chuyên Đề: Sơ Đồ Gia Phả (Family Tree)</span></a>
+          <a href="#part1" class="toc-link-item"><i class="fas fa-user-tie"></i> <span>Phần I: CEO - Trung Tâm Điều Hành</span></a>
+          <a href="#part2" class="toc-link-item"><i class="fas fa-diagram-project"></i> <span>Phần II: Value Chain - Xương Sống QLCV</span></a>
+          <a href="#part3" class="toc-link-item"><i class="fas fa-sitemap"></i> <span>Phần III: Phòng Ban & Cấp Bậc Vận Hành</span></a>
+          <a href="#part4" class="toc-link-item"><i class="fas fa-user-astronaut"></i> <span>Phần IV: Cá Nhân Thực Thi (11 Tab)</span></a>
+          <a href="#part5" class="toc-link-item"><i class="fas fa-robot"></i> <span>Phần V: Trợ Lý AI Copilot</span></a>
+          <a href="#part6" class="toc-link-item"><i class="fas fa-university"></i> <span>Phần VI: Kho Tài Nguyên Tri Thức</span></a>
+          <a href="#part7" class="toc-link-item"><i class="fas fa-users"></i> <span>Phần VII: CRM & Doanh Thu</span></a>
+          <a href="#part8" class="toc-link-item"><i class="fas fa-building"></i> <span>Phần VIII: Cơ Cấu Tổ Chức & SOP</span></a>
+          <a href="#part9" class="toc-link-item"><i class="fas fa-chart-pie"></i> <span>Phần IX: Báo Cáo & Radar Cảnh Báo</span></a>
+          <a href="#part10" class="toc-link-item"><i class="fas fa-graduation-cap"></i> <span>Phần X: Đào Tạo & Quy Trình Chuẩn</span></a>
+          <a href="#part11" class="toc-link-item"><i class="fas fa-server"></i> <span>Phần XI: Hệ Thống Đa CSDL Multi-Tenant</span></a>
+        </div>
+      </div>
+
+      <!-- PHẦN CHUYÊN ĐỀ SƠ ĐỒ GIA PHẢ -->
+      <div id="part-giapha" class="part-title"><i class="fas fa-tree text-primary"></i> CHUYÊN ĐỀ. SƠ ĐỒ GIA PHẢ CÔNG VIỆC (FAMILY TREE & MÃ GIA PHẢ DNA)</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-dna"></i> 1. Nguyên Tắc Mã Gia Phả (DNA Công Việc)</div>
+        <p>Mỗi công việc trong AMS PRO 5.0 được gắn một <strong>Mã Gia Phả duy nhất</strong> đóng vai trò là "DNA" liên kết chặt chẽ nhiệm vụ chiến lược cao nhất của CEO đến từng hành động thực thi của Nhân viên.</p>
+        <div class="callout-light">
+          <div class="callout-light-title"><i class="fas fa-code-branch"></i> Quy Tắc Tạo Mã Gia Phả DNA:</div>
+          <p style="margin-bottom:0; font-weight:700; color:#1e293b;">
+            <code>Mã Cha</code> + <code>"."</code> + <code>Mã Con</code><br>
+            <em>Ví dụ:</em> <code>CEO001</code> (Nhiệm vụ chiến lược) ➔ <code>CEO001.GDKD001</code> (Giám đốc Kinh doanh) ➔ <code>CEO001.GDKD001.TPKD01</code> (Trưởng phòng KD Miền Bắc) ➔ <code>...TPKD01.TL01</code> (Tổ trưởng Sales 1) ➔ <code>...TL01.NV01</code> (Tư vấn KH A)
+          </p>
+        </div>
+      </div>
+
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-network-wired"></i> 2. Sơ Đồ Phân Rã 5 Cấp Bậc (CEO ➔ Giám Đốc ➔ Trưởng Phòng ➔ Tổ Trưởng ➔ Nhân Viên)</div>
+        <p>Sơ đồ Gia phả tự động phân rã nhiệm vụ và tổng hợp dữ liệu theo 5 cấp bậc quản trị trong doanh nghiệp:</p>
+        <div class="table-custom-wrap">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th style="width: 140px;">Cấp Bậc</th>
+                <th style="width: 200px;">Mã Gia Phả Mẫu</th>
+                <th>Nhiệm Vụ & Phạm Vi Phụ Trách</th>
+                <th style="width: 160px;">Chỉ Số & Tiến Độ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cấp 1: CEO</strong></td>
+                <td><code>CEO001</code></td>
+                <td>Triển khai kế hoạch kinh doanh Năm 2025 (Nhiệm vụ chiến lược gốc)</td>
+                <td><span class="badge-tag badge-blue">KPI: 100% | 68%</span></td>
+              </tr>
+              <tr>
+                <td><strong>Cấp 2: Giám Đốc</strong></td>
+                <td><code>CEO001.GDKD001</code><br><code>CEO001.GDTC001</code><br><code>CEO001.GDNS001</code></td>
+                <td>
+                  • GĐ Kinh doanh: Phụ trách toàn bộ kênh bán hàng<br>
+                  • GĐ Tài chính: Quản trị tài chính & dòng tiền<br>
+                  • GĐ Nhân sự: Phát triển nguồn nhân lực & văn hóa
+                </td>
+                <td>
+                  <span class="badge-tag badge-blue">Kinh doanh: 72%</span><br>
+                  <span class="badge-tag badge-blue">Tài chính: 65%</span><br>
+                  <span class="badge-tag badge-blue">Nhân sự: 60%</span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Cấp 3: Trưởng Phòng</strong></td>
+                <td><code>...GDKD001.TPKD01</code><br><code>...GDTC001.TPKT</code><br><code>...GDNS001.TPTD</code></td>
+                <td>
+                  • TPKD Miền Bắc / Miền Nam<br>
+                  • TP Kế toán / TP Tài chính<br>
+                  • TP Tuyển dụng / TP Đào tạo
+                </td>
+                <td>
+                  <span class="badge-tag badge-green">TPKD Bắc: 75%</span><br>
+                  <span class="badge-tag badge-yellow">TP Tài chính: 62%</span><br>
+                  <span class="badge-tag badge-yellow">TP Tuyển dụng: 55%</span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Cấp 4: Tổ Trưởng</strong></td>
+                <td><code>...TPKD01.TL01</code><br><code>...TPKT.TL01</code><br><code>...TPTD.TL01</code></td>
+                <td>
+                  • Tổ trưởng Nhóm Sales 1 - 4<br>
+                  • Tổ trưởng Kế toán tổng hợp / Thuế / Công nợ / Ngân quỹ<br>
+                  • Tổ trưởng Tuyển dụng A/B & Đào tạo nội bộ/kỹ năng
+                </td>
+                <td>
+                  <span class="badge-tag badge-green">Sales 1: 80%</span><br>
+                  <span class="badge-tag badge-yellow">Kế toán thuế: 58%</span><br>
+                  <span class="badge-tag badge-red">Tuyển dụng A: 50% 🚨</span>
+                </td>
+              </tr>
+              <tr>
+                <td><strong>Cấp 5: Nhân Viên</strong></td>
+                <td><code>...TL01.NV01</code> ... <code>NV20</code></td>
+                <td>Thực thi các công việc cụ thể (Tư vấn KH A/B, Nhập liệu hóa đơn, Sàng lọc hồ sơ, Báo cáo thuế GTGT...)</td>
+                <td><span class="badge-tag badge-green">Hoàn thành: 90%</span><br><span class="badge-tag badge-red">Vướng mắc: 50%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-arrows-up-down"></i> 3. Cơ Chế Truy Vết 2 Chiều (Two-Way Traceability)</div>
+        <p>Cơ chế truy vết 2 chiều thông minh cho phép Ban lãnh đạo và Nhân viên nắm bắt bức tranh toàn cảnh một cách linh hoạt:</p>
+        <ul style="margin-left: 20px;">
+          <li><strong>Từ Trên Xuống (Top-Down):</strong> Phân rã nhiệm vụ chiến lược thành các mục tiêu con cụ thể cho từng cấp, giúp nhân viên hiểu rõ đóng góp của công việc mình làm đối với mục tiêu chung của CEO.</li>
+          <li><strong>Từ Dưới Lên (Bottom-Up):</strong> Tự động tổng hợp kết quả, % tiến độ và cảnh báo rủi ro từ Nhân viên ➔ Tổ trưởng ➔ Trưởng phòng ➔ Giám đốc ➔ CEO theo thời gian thực.</li>
+          <li><strong>Giữ nguyên liên kết:</strong> Đảm bảo dữ liệu không bị gãy đoạn khi ủy quyền, chuyển giao hoặc phân rã công việc.</li>
+        </ul>
+      </div>
+
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-palette"></i> 4. Chú Thích Trạng Thái & Thông Tin Trên Thẻ Công Việc</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;">
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px;">
+            <div style="font-weight: 800; color: #1e293b; margin-bottom: 8px;"><i class="fas fa-circle-info text-primary"></i> 6 Thông Tin Trên Thẻ Công Việc:</div>
+            <ol style="margin-left: 20px; font-size: 13px;">
+              <li>Mã Gia Phả (DNA)</li>
+              <li>Tên công việc</li>
+              <li>Người phụ trách</li>
+              <li>KPI / Tiến độ (%)</li>
+              <li>Trạng thái làm việc</li>
+              <li>Thời hạn hoàn thành</li>
+            </ol>
+          </div>
+
+          <div style="background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px;">
+            <div style="font-weight: 800; color: #1e293b; margin-bottom: 8px;"><i class="fas fa-swatchbook text-warning"></i> Chú Thích 5 Trạng Thái Màu Sắc:</div>
+            <ul style="list-style: none; padding-left: 0; font-size: 13px;">
+              <li style="margin-bottom: 6px;"><span class="badge-tag badge-green">🟢 Hoàn thành</span> — Nhiệm vụ đã hoàn tất 100%</li>
+              <li style="margin-bottom: 6px;"><span class="badge-tag badge-blue">🔵 Đang thực hiện</span> — Đang triển khai đúng tiến độ</li>
+              <li style="margin-bottom: 6px;"><span class="badge-tag badge-yellow">🟠 Chậm tiến độ</span> — Cần đẩy nhanh tiến độ</li>
+              <li style="margin-bottom: 6px;"><span class="badge-tag badge-red">🔴 Vướng mắc</span> — Gặp sự cố, cần hỗ trợ cấp trên</li>
+              <li style="margin-bottom: 6px;"><span class="badge-tag" style="background:#e2e8f0; color:#64748b;">⚪ Chưa bắt đầu</span> — Chờ khởi tạo / kích hoạt</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-award text-warning"></i> 5. Top 5 Lợi Ích Cốt Lõi Của Sơ Đồ Gia Phả</div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px;">
+          <div class="module-item-box">
+            <div class="module-item-title"><i class="fas fa-bullseye text-primary"></i> 1. Liên kết mục tiêu chiến lược</div>
+            <p style="margin: 0; font-size: 13px;">Gắn kết mục tiêu dài hạn của CEO với công việc tác nghiệp hàng ngày của từng nhân sự.</p>
+          </div>
+          <div class="module-item-box">
+            <div class="module-item-title"><i class="fas fa-user-check text-success"></i> 2. Minh bạch trách nhiệm</div>
+            <p style="margin: 0; font-size: 13px;">Rõ người - rõ việc - rõ kết quả; triệt tiêu hoàn toàn tình trạng đùn đẩy trách nhiệm.</p>
+          </div>
+          <div class="module-item-box">
+            <div class="module-item-title"><i class="fas fa-magnifying-glass-chart text-info"></i> 3. Phát hiện điểm nghẽn</div>
+            <p style="margin: 0; font-size: 13px;">Theo dõi tiến độ toàn diện theo cây gia phả, phát hiện ngay các khâu chậm trễ hoặc vướng mắc.</p>
+          </div>
+          <div class="module-item-box">
+            <div class="module-item-title"><i class="fas fa-handshake-angle text-warning"></i> 4. Tối ưu giao việc & phối hợp</div>
+            <p style="margin: 0; font-size: 13px;">Tránh trùng lặp công việc, hỗ trợ giao việc và phối hợp liên phòng ban nhanh chóng.</p>
+          </div>
+          <div class="module-item-box">
+            <div class="module-item-title"><i class="fas fa-brain text-purple"></i> 5. Ra quyết định dựa trên dữ liệu</div>
+            <p style="margin: 0; font-size: 13px;">Dữ liệu tập trung giúp CEO & Ban quản trị ra quyết định điều hành nhanh chóng và chính xác.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PHẦN I -->
+      <div id="part1" class="part-title"><i class="fas fa-user-tie text-primary"></i> PHẦN I. CEO – TRUNG TÂM ĐIỀU HÀNH DOANH NGHIỆP</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-bullseye"></i> Chương 1. CEO và Mô hình Quản trị Doanh nghiệp Mới</div>
+        <p>AMS PRO 5.0 giúp doanh nghiệp chuyển đổi từ quản lý thủ công sang <strong>Quản trị theo Dòng công việc (Value Chain Workflow)</strong>. CEO điều hành bằng dữ liệu thực tế thời gian thực, chuyển đổi từ <i>"đi hỏi báo cáo"</i> sang <i>"nhìn thấy hệ thống"</i> và triệt tiêu 90% thời gian họp hành lãng phí.</p>
+      </div>
+
+      <!-- PHẦN II -->
+      <div id="part2" class="part-title"><i class="fas fa-diagram-project text-primary"></i> PHẦN II. VALUE CHAIN – XƯƠNG SỐNG VẬN HÀNH DOANH NGHIỆP</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-link"></i> Chương 2 & 3. QLCV ➔ Value Chain: Trung Tâm Tạo Ra Giá Trị</div>
+        <p>Trong AMS PRO 5.0, Quản lý Công việc (QLCV) là xương sống kết nối: <strong>Mục tiêu ➔ Công việc ➔ Người thực hiện ➔ Kết quả ➔ Giá trị</strong>.</p>
+        
+        <div class="tree-box-light">
+[CEO KHỞI TẠO MỤC TIÊU - DNA MÃ GIA PHẢ]
+ └── 🆔 CEO001: [KẾ HOẠCH TỔNG THỂ] Mở rộng Thị trường Tây Nam Bộ Doanh số 100 Tỷ
+       │
+       ├── 🆔 CEO001.CFO001: [F1 - CFO] Thu xếp Vốn 20 Tỷ cho Dự án
+       │     └── 🆔 CEO001.CFO001.TPTC001: [F2 - TP Tài chính] Lập Hồ sơ Tín dụng Ngân hàng
+       │           └── 🆔 CEO001.CFO001.TPTC001.KT01: [F3 - Kế toán] Giải ngân Giai đoạn 1 (Đạt 80%)
+       │
+       └── 🆔 CEO001.GDKD001: [F1 - GĐKD] Chỉ tiêu Doanh số 100 Tỷ
+             └── 🆔 CEO001.GDKD001.TPKD01: [F2 - RSM] Doanh số 60 Tỷ Miền Tây (VƯỚNG MẮC 🚨)
+        </div>
+      </div>
+
+      <!-- PHẦN III -->
+      <div id="part3" class="part-title"><i class="fas fa-sitemap text-primary"></i> PHẦN III. PHÒNG BAN & CẤP BẬC VẬN HÀNH</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-users-gear"></i> Chương 4 & 5. Vận Hành Theo Cấp Bậc (CEO ➔ GĐ ➔ TP ➔ NV)</div>
+        <div class="table-custom-wrap">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th style="width: 150px;">Vai Trò Cấp Bậc</th>
+                <th style="width: 150px;">Hành Động Hệ Thống</th>
+                <th>Kịch Bản Vận Hành Chi Tiết</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>CEO / BDG</strong></td>
+                <td><span class="badge-tag badge-blue">+ THÊM MỚI</span></td>
+                <td>Khởi tạo task chiến lược đầu cá, theo dõi Cây gia phả, chỉ đạo 1-Click qua nút NHẮC NHỜ.</td>
+              </tr>
+              <tr>
+                <td><strong>Giám đốc / TP</strong></td>
+                <td><span class="badge-tag badge-yellow">🔀 ỦY QUYỀN</span></td>
+                <td>Nhận việc cấp trên, ủy quyền rẽ nhánh cho cấp dưới, tháo gỡ vướng mắc nội bộ phòng ban.</td>
+              </tr>
+              <tr>
+                <td><strong>Sale / NV Thực thi</strong></td>
+                <td><span class="badge-tag badge-green">📊 BÁO CÁO</span></td>
+                <td>Cập nhật % tiến độ, đính kèm file nhật ký, khi gặp khó khăn đổi trạng thái = VƯỚNG MẮC 🚨.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PHẦN IV -->
+      <div id="part4" class="part-title"><i class="fas fa-user-astronaut text-primary"></i> PHẦN IV. CÁ NHÂN – NƠI GIÁ TRỊ ĐƯỢC THỰC THI</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-list-check"></i> Chương 6 & 7. Trung Tâm Cá Nhân (/tasks/personal - 11 Tab)</div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-chart-line text-primary"></i> 1. TAB TỔNG QUAN (DASHBOARD)</div>
+          <p>Bản tin AI chào buổi sáng + Việc hôm nay + Lịch sắp tới + Mục tiêu đang theo.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-list-check text-info"></i> 2. TAB CÔNG VIỆC (TASK PLANNER)</div>
+          <p>Quản lý task cá nhân với bộ lọc chuyên mục & mức độ ưu tiên.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-calendar-week text-success"></i> 3. TAB KẾ HOẠCH TUẦN</div>
+          <p>Phân bổ công việc vào 7 cột T2-CN, so sánh giờ dự kiến vs thực tế.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-calendar-days text-warning"></i> 4. TAB LỊCH CÁ NHÂN</div>
+          <p>Lịch tháng Grid View và Dòng thời gian Timeline View kèm nhắc nhở 15p, 1h, 1 ngày.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-briefcase text-primary"></i> 5. TAB CÔNG TÁC</div>
+          <p>Mục đích, hành trình di chuyển, phương tiện, khách sạn và so sánh Ngân sách vs Chi phí thực tế.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-plane-departure text-success"></i> 6. TAB DU LỊCH</div>
+          <p>Lên kế hoạch chuyến nghỉ dưỡng gia đình kèm checklist hành lý.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-bullseye text-purple"></i> 7. TAB MỤC TIÊU (OKRs)</div>
+          <p>Thiết lập mục tiêu Năm/Quý/Tháng/Tuần kèm chỉ số KPI và thanh % tiến độ.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-bell text-warning"></i> 8. TAB NHẮC NHỜ</div>
+          <p>Đặt lịch nhắc nhở đa kênh (App, Email, SMS, Zalo, Telegram).</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-book-open text-info"></i> 9. TAB NHẬT KÝ</div>
+          <p>Ghi chép câu chuyện bài học kinh nghiệm và cảm xúc hàng ngày.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-wallet text-danger"></i> 10. TAB TÀI CHÍNH & SỨC KHỎE</div>
+          <p>Quản lý thu chi cá nhân + Ghi chép chỉ số Huyết áp, Cân nặng, Nhịp tim.</p>
+        </div>
+        <div class="module-item-box">
+          <div class="module-item-title"><i class="fas fa-chart-pie text-purple"></i> 11. TAB ĐÁNH GIÁ HIỆU QUẢ (AI ANALYTICS)</div>
+          <p>Biểu đồ năng suất Chart.js & Lời khuyên đánh giá năng suất từ Cố vấn AI.</p>
+        </div>
+      </div>
+
+      <!-- PHẦN V -> XI -->
+      <div id="part5" class="part-title"><i class="fas fa-robot text-primary"></i> PHẦN V. AI – LỚP TRÍ TUỆ CỦA HỆ THỐNG</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-comments"></i> Chương 8. AMS AI Copilot (/ai-chat)</div>
+        <p>Hỏi đáp tiếng Việt tự nhiên ('Việc gì chưa hoàn thành?', 'Có việc nào quá hạn không?'), AI Daily Briefing, AI Performance Coach và AI Soạn Quy trình ISO kèm sơ đồ Mermaid.js.</p>
+      </div>
+
+      <div id="part6" class="part-title"><i class="fas fa-university text-primary"></i> PHẦN VI. TÀI NGUYÊN – TRI THỨC CỦA DOANH NGHIỆP</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-folder-open"></i> Chương 9 & 10. Kho Tài Nguyên Nội Bộ (/documents/repository)</div>
+        <p>Thư viện tập trung tài liệu Biểu mẫu (BM), Quy trình (QT), Hướng dẫn (HD), Hợp đồng, Quy chế (QC), Quyết định (QD), JDs (MC) & Trình xem Word/PDF In-App (`👁️ MỞ FILE`).</p>
+      </div>
+
+      <div id="part7" class="part-title"><i class="fas fa-users text-primary"></i> PHẦN VII. KHÁCH HÀNG & DOANH THU</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-user-tag"></i> Chương 11. CRM Quản Lý Khách Hàng (/crm)</div>
+        <p>Quản lý đối tác, MST khách hàng, người đại diện, doanh số và tạo các sub-task chăm sóc khách hàng chuyên sâu.</p>
+      </div>
+
+      <div id="part8" class="part-title"><i class="fas fa-building text-primary"></i> PHẦN VIII. TỔ CHỨC – NHÂN SỰ – ISO</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-boxes-packing"></i> Chương 12 & 13. Cơ Cấu Tổ Chức & SOP</div>
+        <p>Sơ đồ phòng ban (`/master/departments`), Tài khoản nhân sự (`/master/employees`), Quy trình chuẩn ISO (`/processes`) & Mô tả công việc (`/jds`).</p>
+      </div>
+
+      <div id="part9" class="part-title"><i class="fas fa-chart-pie text-primary"></i> PHẦN IX. ĐO LƯỜNG & ĐIỀU HÀNH</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-radiation text-danger"></i> Chương 14 & 15. Báo Cáo Quản Trị & Radar Cảnh Báo</div>
+        <p>Báo cáo quản trị tự động 100% (`/tasks/report-center`) và Đài ra-đa quét tự động 24/7 công việc trễ hạn deadline (`/tasks/overdue`).</p>
+      </div>
+
+      <div id="part10" class="part-title"><i class="fas fa-graduation-cap text-primary"></i> PHẦN X. ĐÀO TẠO & CHUYỂN ĐỔI</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-chalkboard-user"></i> Chương 16, 17, 18. Quy Trình Chuẩn & Đào Tạo Theo Vai Trò</div>
+        <p>Luồng 5 bước: Nhận việc ➔ Thực hiện ➔ Báo cáo ➔ Xử lý vướng mắc ➔ Hoàn thành kèm Checklist thực hành cho CEO, Quản lý và Nhân viên.</p>
+      </div>
+
+      <div id="part11" class="part-title"><i class="fas fa-server text-primary"></i> PHẦN XI. HỆ THỐNG & TRA CỨU</div>
+      <div class="chapter-section searchable-item">
+        <div class="chapter-title"><i class="fas fa-database"></i> Chương 19 & 20. Quản Trị Đa Công Ty (Multi-Tenant)</div>
+        <div class="table-custom-wrap">
+          <table class="table-custom">
+            <thead>
+              <tr>
+                <th>Mã Số Thuế</th>
+                <th>Doanh Nghiệp / Đơn Vị</th>
+                <th>Tài Khoản Admin</th>
+                <th>Ghi Chú CSDL</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="badge-tag badge-blue">0312345678</span></td>
+                <td><strong>CÔNG TY TNHH GIẢI PHÁP CÔNG NGHIỆP VIỆT</strong></td>
+                <td><code>admin@company.com</code> (Pass: <strong>Adminnsx@123</strong>)</td>
+                <td>CSDL Mặc định (<code>qlcv.db</code>) - 131 NV, 112 Tasks gốc</td>
+              </tr>
+              <tr>
+                <td><span class="badge-tag badge-blue">3901323107</span></td>
+                <td><strong>HTX SẢN XUẤT VÀ THƯƠNG MẠI SAVINA</strong></td>
+                <td><code>htxsavina2312@gmail.com</code> (Pass: <strong>Adminnsx@123</strong>)</td>
+                <td>CSDL Riêng (`database/tenants/3901323107.db`)</td>
+              </tr>
+              <tr>
+                <td><span class="badge-tag badge-blue">0317598974</span></td>
+                <td><strong>CÔNG TY TNHH THIẾT BỊ TƯỚI PHÚC AN</strong></td>
+                <td><code>sales@phucan.vn</code> (Pass: <strong>123456</strong>)</td>
+                <td>CSDL Riêng (`database/tenants/0317598974.db`)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div class="footer-actions">
+      AMS PRO 5.0 — HỆ THỐNG ĐIỀU HÀNH DOANH NGHIỆP THEO VALUE CHAIN<br>
+      © 2026 AMS PRO SYSTEM. All Rights Reserved.
+    </div>
+
+  </div>
+
+  <script>
+    function searchGuide(term) {
+      const query = String(term || '').toLowerCase().trim();
+      const items = document.querySelectorAll('.searchable-item');
+      items.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        if (!query || text.includes(query)) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

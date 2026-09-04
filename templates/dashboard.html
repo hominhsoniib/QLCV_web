@@ -1,0 +1,347 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Bảng Điều Khiển Trung Tâm{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* Hero section styling */
+  .dashboard-hero {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 100%);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 30px 40px;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
+  }
+  .dashboard-hero::after {
+    content: '';
+    position: absolute;
+    right: -5%; top: -20%; width: 250px; height: 250px;
+    background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .dashboard-hero h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+    background: linear-gradient(90deg, #ffffff 30%, var(--text-muted) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .dashboard-hero p {
+    color: var(--accent-cyan);
+    font-weight: 600;
+    margin-bottom: 0;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Stats cards */
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+  }
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(59, 130, 246, 0.2);
+  }
+  .stat-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-right: 16px;
+  }
+  .stat-blue { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); border: 1px solid rgba(59, 130, 246, 0.2); }
+  .stat-red { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); border: 1px solid rgba(239, 68, 68, 0.2); }
+  .stat-purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.2); }
+  
+  .stat-num {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.1;
+  }
+  .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* Menu items grid */
+  .menu-grid {
+    margin-top: 30px;
+  }
+  .menu-item-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-bottom: 4px solid var(--accent-blue);
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  .menu-item-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent-cyan);
+    border-bottom-width: 6px;
+    background: rgba(30, 41, 73, 0.6);
+  }
+  .menu-accent {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 4px;
+  }
+  
+  .menu-icon-box {
+    font-size: 28px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+  }
+  .menu-item-card:hover .menu-icon-box {
+    transform: scale(1.1);
+  }
+  .menu-title {
+    font-weight: 800;
+    font-size: 13px;
+    color: var(--text-main);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    letter-spacing: 0.5px;
+  }
+  .menu-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: 0;
+  }
+  .admin-badge {
+    position: absolute;
+    top: 12px; right: 12px;
+    font-size: 8px;
+    font-weight: 800;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--accent-orange);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero greeting -->
+<div class="dashboard-hero">
+  <h1>Xin chào, <span id="helloName">{{ user.ten }}</span>!</h1>
+  <p><i class="fas fa-satellite-dish mr-2"></i> TRUNG TÂM ĐIỀU HÀNH THÔNG TIN AMS PRO</p>
+</div>
+
+<!-- Stats Counters -->
+<div class="row mb-4">
+  <div class="col-md-4 mb-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-blue"><i class="fas fa-briefcase"></i></div>
+      <div>
+        <div class="stat-num" id="statTotal">0</div>
+        <div class="stat-label">Việc đang đảm nhiệm</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-red"><i class="fas fa-radiation"></i></div>
+      <div>
+        <div class="stat-num text-danger" id="statOverdue">0</div>
+        <div class="stat-label">Nhiệm vụ quá hạn</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4 mb-3">
+    <div class="stat-card">
+      <div class="stat-icon stat-purple"><i class="fas fa-box-open"></i></div>
+      <div>
+        <div class="stat-num" style="color: #a855f7;" id="statDocs">0</div>
+        <div class="stat-label">Tài nguyên kho nội bộ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Menu Grid -->
+<div class="menu-grid">
+  <div class="row">
+    <!-- 1. Task board -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/tasks')">
+        <div class="menu-accent" style="background: var(--accent-blue);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-blue);"><i class="fas fa-tasks"></i></div>
+        <div class="menu-title">Quản lý công việc</div>
+        <p class="menu-desc">Trung tâm giám sát & cập nhật.</p>
+      </div>
+    </div>
+    
+    <!-- 2. Personal tasks -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/tasks/personal')">
+        <div class="menu-accent" style="background: var(--accent-green);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-green);"><i class="fas fa-user-check"></i></div>
+        <div class="menu-title">Kế hoạch cá nhân</div>
+        <p class="menu-desc">Nhiệm vụ trọng tâm của riêng bạn.</p>
+      </div>
+    </div>
+    
+    <!-- 3. Document Repository -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/documents/repository')">
+        <div class="menu-accent" style="background: #a855f7;"></div>
+        <div class="menu-icon-box" style="color: #a855f7;"><i class="fas fa-cubes"></i></div>
+        <div class="menu-title">Kho tài nguyên</div>
+        <p class="menu-desc">Quy trình, biểu mẫu & quy chế nội bộ.</p>
+      </div>
+    </div>
+    
+    <!-- 4. Warning radar -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/tasks/overdue')">
+        <div class="menu-accent" style="background: var(--accent-red);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-red);"><i class="fas fa-radiation"></i></div>
+        <div class="menu-title">Radar cảnh báo</div>
+        <p class="menu-desc">Theo dõi các tiến độ bị trễ hạn.</p>
+      </div>
+    </div>
+    
+    <!-- 4b. AI Assistant -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/ai-chat')">
+        <div class="menu-accent" style="background: var(--accent-cyan);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-cyan);"><i class="fas fa-robot"></i></div>
+        <div class="menu-title">Trợ lý AI</div>
+        <p class="menu-desc">Hỏi đáp & tra cứu công việc cá nhân.</p>
+      </div>
+    </div>
+    
+    <!-- 5. Organization structure chart -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/master/departments')">
+        <div class="menu-accent" style="background: var(--accent-orange);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-orange);"><i class="fas fa-sitemap"></i></div>
+        <div class="menu-title">Cơ cấu tổ chức</div>
+        <p class="menu-desc">Sơ đồ phòng ban & khối chức năng.</p>
+      </div>
+    </div>
+
+    <!-- Admin only cards -->
+    {% if user.role in ['ADMIN', 'CEO'] %}
+    {% if user.is_master_admin %}
+    <!-- 5b. Multi-Company & Database administration (Master Admin NSX only) -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/master/companies')">
+        <span class="admin-badge" style="background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.3);">NHÀ SẢN XUẤT</span>
+        <div class="menu-accent" style="background: var(--accent-blue);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-blue);"><i class="fas fa-building-circle-check"></i></div>
+        <div class="menu-title">Quản lý Công ty & DB</div>
+        <p class="menu-desc">Khai báo đa công ty & database MST.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 6. Document administration -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/documents')">
+        <span class="admin-badge">ADMIN</span>
+        <div class="menu-accent" style="background: var(--accent-cyan);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-cyan);"><i class="fas fa-file-circle-plus"></i></div>
+        <div class="menu-title">Quản trị tài liệu</div>
+        <p class="menu-desc">Tạo lập, cập nhật danh mục tài nguyên.</p>
+      </div>
+    </div>
+
+    <!-- 7. Employee administration -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/master/employees')">
+        <span class="admin-badge">ADMIN</span>
+        <div class="menu-accent" style="background: var(--accent-cyan);"></div>
+        <div class="menu-icon-box" style="color: var(--accent-cyan);"><i class="fas fa-user-gear"></i></div>
+        <div class="menu-title">Danh sách nhân sự</div>
+        <p class="menu-desc">Quản lý tài khoản, chức vụ & phân quyền.</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 8. Report center -->
+    <div class="col-6 col-md-3 mb-4">
+      <div class="menu-item-card" onclick="navTo('/tasks/report-center')">
+        <div class="menu-accent" style="background: var(--text-muted);"></div>
+        <div class="menu-icon-box" style="color: var(--text-muted);"><i class="fas fa-chart-pie"></i></div>
+        <div class="menu-title">Trung tâm báo cáo</div>
+        <p class="menu-desc">Phân tích & tổng hợp tiến độ tự động.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.addEventListener("load", function() {
+    toggleLoader(true, "ĐỒNG BỘ THỐNG KÊ DASHBOARD...");
+    
+    // Fetch stats via API
+    fetch("/api/dashboard/stats")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          animateValue("statTotal", res.stats.totalTasks);
+          animateValue("statOverdue", res.stats.overdue);
+          animateValue("statDocs", res.stats.totalDocs);
+        } else {
+          showToast("error", "Lỗi nạp thống kê: " + (res.message || ""));
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showToast("error", "Lỗi kết nối máy chủ");
+      });
+  });
+
+  function navTo(url) {
+    toggleLoader(true, "ĐANG CHUYỂN TRANG...");
+    window.location.href = url;
+  }
+
+  function animateValue(id, val) {
+    const obj = document.getElementById(id);
+    if (!obj) return;
+    let start = 0;
+    const duration = 1000;
+    const startTime = performance.now();
+    
+    function step(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
+      obj.innerText = Math.floor(easedProgress * val);
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,381 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Ủy Quyền Công Việc{% endblock %}
+
+{% block extra_css %}
+<style>
+  .forward-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-lg);
+    max-width: 1000px;
+    margin: auto;
+    overflow: hidden;
+    position: relative;
+  }
+  .forward-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 6px;
+    background: linear-gradient(90deg, #a855f7, #7c3aed);
+  }
+  .card-header-lux {
+    background: rgba(10, 15, 29, 0.4);
+    padding: 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--card-border);
+  }
+  
+  .section-title {
+    color: #a855f7;
+    font-weight: 800;
+    border-left: 4px solid #a855f7;
+    padding-left: 10px;
+    margin-bottom: 20px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .readonly-box {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+    font-weight: 700;
+    color: var(--text-main) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .tag-box-lux {
+    min-height: 38px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: rgba(10, 15, 29, 0.6);
+  }
+
+  .link-group-wrapper {
+    display: flex;
+    width: 100%;
+    height: 38px;
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(10, 15, 29, 0.6);
+  }
+  .link-group-wrapper input {
+    border: none !important;
+    flex-grow: 1;
+    padding: 0 12px;
+    font-size: 12px;
+    background: transparent !important;
+    color: var(--text-main) !important;
+    outline: none !important;
+  }
+  .btn-drive {
+    background: rgba(59, 130, 246, 0.2);
+    color: var(--accent-blue);
+    border: none;
+    border-left: 1px solid var(--card-border);
+    padding: 0 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+  }
+  .btn-drive:hover {
+    background: var(--accent-blue);
+    color: white;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<input type="file" id="localFileInp" style="display:none" onchange="handleLocalUpload(event)">
+
+<div class="forward-card mt-3">
+  <div class="card-header-lux">
+    <h3 class="mb-1 font-weight-bold" style="color: var(--text-main);"><i class="fas fa-share-nodes mr-2" style="color: #a855f7;"></i> ỦY QUYỀN CÔNG VIỆC</h3>
+    <p class="mb-0 text-muted small">Chuyển giao trách nhiệm thực hiện, tạo lập mắt xích công tác cấp dưới</p>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="box-section">
+      <h6 class="section-title">Nội dung công việc gốc</h6>
+      <div class="row mb-4">
+        <div class="col-md-2 pr-1">
+          <label class="field-label">ID Gốc</label>
+          <input type="text" id="txtIdGoc" class="form-control form-control-lux readonly-box text-center" readonly>
+        </div>
+        <div class="col-md-2 px-1">
+          <label class="field-label">Mã CV gốc</label>
+          <input type="text" id="txtMaCVGoc" class="form-control form-control-lux readonly-box text-center" readonly>
+        </div>
+        <div class="col-md-8 pl-1">
+          <label class="field-label">Tên công việc</label>
+          <input type="text" id="txtTenCV" class="form-control form-control-lux readonly-box" readonly>
+        </div>
+      </div>
+
+      <h6 class="section-title">Thông tin ủy quyền mới</h6>
+      <div class="row mb-3">
+        <div class="col-md-3 pr-1">
+          <label class="field-label">Người ủy quyền</label>
+          <input type="text" id="txtNguoiGiao" class="form-control form-control-lux readonly-box text-center" readonly>
+        </div>
+        <div class="col-md-4 px-1">
+          <label class="field-label" style="color: var(--accent-blue)">Người nhận ủy quyền *</label>
+          <select id="selNhan" class="form-control form-control-lux" onchange="handleReceiverChange()"></select>
+        </div>
+        <div class="col-md-2 px-1">
+          <label class="field-label">Mã CV Mới</label>
+          <input type="text" id="txtNewMaCV" class="form-control form-control-lux readonly-box text-center text-danger font-weight-bold" readonly>
+        </div>
+        <div class="col-md-3 pl-1">
+          <label class="field-label">Hạn hoàn thành</label>
+          <input type="date" id="txtNgayKT" class="form-control form-control-lux font-weight-bold text-danger">
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <div class="col-md-5 pr-md-3 border-right border-secondary">
+          <label class="field-label">Nhân sự phối hợp mới</label>
+          <select id="selPH" class="form-control form-control-lux mb-2" onchange="addTagPH()"></select>
+          <div id="tagBox" class="tag-box-lux">
+            <span class="text-muted small italic">Chưa chọn người phối hợp...</span>
+          </div>
+        </div>
+
+        <div class="col-md-7 pl-md-3">
+          <label class="field-label" style="color: #a855f7;"><i class="fas fa-paperclip mr-1"></i> Link tài liệu / File đính kèm ủy quyền</label>
+          <div class="link-group-wrapper">
+            <input type="text" id="txtLinkForwardDisplay" placeholder="Chưa có tài liệu đính kèm..." readonly>
+            <input type="hidden" id="txtActualLinkForward">
+            <div class="btn-drive" onclick="triggerLocalUpload()" title="Chọn tệp">
+              <i class="fas fa-upload"></i>
+            </div>
+          </div>
+          <small class="text-muted italic mt-1 d-block">* Tài liệu chỉ đạo chi tiết hoặc hồ sơ liên quan giúp cấp dưới triển khai.</small>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="col-12">
+          <label class="field-label">Ghi chú ủy quyền / Chỉ dẫn chi tiết</label>
+          <textarea id="txtNote" class="form-control form-control-lux" rows="3" placeholder="Nhập các lưu ý đặc biệt hoặc hướng dẫn công tác cho cấp dưới..."></textarea>
+        </div>
+      </div>
+
+      <div class="row pt-3 border-top border-secondary justify-content-center">
+        <div class="col-md-3 mr-2">
+          <button class="btn-lux-secondary btn-block" onclick="goBack()"><i class="fas fa-arrow-left mr-2"></i> QUAY LẠI</button>
+        </div>
+        <div class="col-md-4">
+          <button id="btnSubmit" class="btn-lux-primary btn-block" style="background: linear-gradient(135deg, #a855f7, #7c3aed); box-shadow: none;" onclick="submitForward()"><i class="fas fa-check-circle mr-2"></i> XÁC NHẬN ỦY QUYỀN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let currentId = "{{ taskId }}";
+  let currentPH = [];
+  let delegatorMa = "";
+
+  window.addEventListener("load", function() {
+    if (!currentId || currentId === "undefined" || currentId === "") {
+      showNotify("error", "Lỗi ID", "Không xác định được ID công việc gốc.", function() {
+        goBack();
+      });
+      return;
+    }
+    initForm();
+  });
+
+  function initForm() {
+    toggleLoader(true, "ĐANG TẢI THÔNG TIN NHÂN SỰ...");
+    fetch("/api/employees?dropdown=true")
+      .then(res => res.json())
+      .then(employees => {
+        const opt = '<option value="">-- Chọn nhân sự --</option>' + 
+                    employees.map(e => `<option value="${e.maNV}">${e.maNV} - ${e.tenNV}</option>`).join("");
+        document.getElementById("selNhan").innerHTML = opt;
+        document.getElementById("selPH").innerHTML = opt;
+        
+        loadTaskDetail(currentId);
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", "Không tải được danh sách nhân sự");
+      });
+  }
+
+  function loadTaskDetail(id) {
+    toggleLoader(true, "ĐANG ĐỒNG BỘ MẮT XÍCH...");
+    fetch(`/api/tasks/${id}`)
+      .then(res => res.json())
+      .then(task => {
+        toggleLoader(false);
+        if (task) {
+          document.getElementById("txtIdGoc").value = task.idPhanCong;
+          document.getElementById("txtMaCVGoc").value = task.maCV;
+          document.getElementById("txtTenCV").value = task.tenCV;
+          
+          delegatorMa = task.nguoiNhan; // Delegator is the receiver of the parent task
+          document.getElementById("txtNguoiGiao").value = delegatorMa;
+        } else {
+          showNotify("error", "Rỗng", "Không tìm thấy dữ liệu Task cha.", function() {
+            goBack();
+          });
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi", err.message);
+      });
+  }
+
+  function handleReceiverChange() {
+    const receiver = document.getElementById("selNhan").value;
+    if (!receiver) {
+      document.getElementById("txtNewMaCV").value = "";
+      return;
+    }
+    
+    fetch(`/api/tasks/suggested-code?prefix=${receiver}`)
+      .then(res => res.json())
+      .then(newCode => {
+        document.getElementById("txtNewMaCV").value = newCode;
+      });
+  }
+
+  function addTagPH() {
+    const sel = document.getElementById("selPH");
+    const val = sel.value;
+    if (val && !currentPH.includes(val)) {
+      currentPH.push(val);
+      renderTags();
+    }
+    sel.value = ""; 
+  }
+
+  function removeTagPH(ma) {
+    currentPH = currentPH.filter(i => i !== ma);
+    renderTags();
+  }
+
+  function renderTags() {
+    const box = document.getElementById("tagBox");
+    if (currentPH.length === 0) {
+      box.innerHTML = '<span class="text-muted small italic">Chưa chọn...</span>';
+      return;
+    }
+    box.innerHTML = currentPH.map(ma => `
+      <div class="badge badge-info mr-1 text-uppercase" style="padding: 5px 8px; display: inline-flex; align-items: center; gap: 4px;">
+        ${ma} <i class="fas fa-times" onclick="removeTagPH('${ma}')" style="cursor:pointer; color:#ffcccc;"></i>
+      </div>
+    `).join("");
+  }
+
+  function triggerLocalUpload() {
+    document.getElementById("localFileInp").click();
+  }
+
+  function handleLocalUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append("file", file);
+    
+    toggleLoader(true, "ĐANG ĐỒNG BỘ TẬP TIN...");
+    fetch("/api/drive/upload-local", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success) {
+        document.getElementById("txtActualLinkForward").value = res.url;
+        const disp = document.getElementById("txtLinkForwardDisplay");
+        disp.value = res.name;
+        disp.style.borderColor = "var(--accent-green)";
+        showToast("success", "✅ Tải file lên thành công!");
+      } else {
+        showNotify("error", "Lỗi tải lên", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi", "Lỗi kết nối");
+    });
+  }
+
+  function submitForward() {
+    const receiver = document.getElementById("selNhan").value;
+    const ngayKT = document.getElementById("txtNgayKT").value;
+    const note = document.getElementById("txtNote").value.trim();
+    const newMaCV = document.getElementById("txtNewMaCV").value;
+
+    if (!receiver) {
+      showNotify("warning", "Thiếu thông tin", "Vui lòng chọn người nhận ủy quyền!");
+      return;
+    }
+    if (!ngayKT) {
+      showNotify("warning", "Thiếu thông tin", "Vui lòng chọn hạn hoàn thành!");
+      return;
+    }
+    if (!newMaCV) {
+      showNotify("error", "Lỗi", "Hệ thống chưa cấp được Mã CV mới.");
+      return;
+    }
+
+    showNotify("question", "Xác nhận Ủy Quyền", `Giao việc này cho [${receiver}] xử lý?`, function() {
+      toggleLoader(true, "ĐANG THIẾT LẬP MẮT XÍCH ỦY QUYỀN...");
+      
+      const payload = {
+        idPhanCongGoc: currentId,
+        nguoiNhanUyQuyen: receiver,
+        nguoiGiao: delegatorMa,
+        ngayKT: ngayKT,
+        tenCV: "Ủy quyền: " + document.getElementById("txtTenCV").value,
+        phoiHopMoi: currentPH.join(", "),
+        txtNote: note ? "Chỉ dẫn: " + note : "",
+        link: document.getElementById("txtActualLinkForward").value
+      };
+
+      fetch("/api/tasks/forward", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showNotify("success", "Thành công", "Ủy quyền thành công!", function() {
+            goBack();
+          });
+        } else {
+          showNotify("error", "Lỗi", res.message);
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showNotify("error", "Lỗi mạng", err.message);
+      });
+    });
+  }
+
+  function goBack() {
+    toggleLoader(true, "QUAY LẠI TRANG CHỦ...");
+    window.location.href = "/tasks";
+  }
+</script>
+{% endblock %}

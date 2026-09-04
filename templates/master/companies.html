@@ -1,0 +1,829 @@
+{% extends "layout.html" %}
+
+{% block title %}AMS PRO 5.0 - Khai Báo Công Ty & Quản Trị Database (CRM Standard){% endblock %}
+
+{% block extra_css %}
+<style>
+  .crm-header-banner {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .crm-header-banner h2 {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text-main);
+  }
+
+  .kpi-crm-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .kpi-crm-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+
+  .crm-toolbar {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .mst-pill {
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--accent-cyan);
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+    font-family: var(--font-display);
+    font-size: 11px;
+  }
+  .code-pill {
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--accent-blue);
+    font-weight: 800;
+    padding: 3px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    font-size: 11px;
+  }
+  .db-size-pill {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    font-size: 11px;
+  }
+
+  /* Table styling enhancements */
+  .premium-table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+  }
+  .premium-table th {
+    padding: 10px 12px !important;
+    white-space: nowrap;
+    font-size: 11px !important;
+  }
+  .premium-table td {
+    padding: 10px 12px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* Highlighted Yellow Edit Button */
+  .btn-edit-yellow {
+    background-color: #f59e0b !important;
+    color: #000000 !important;
+    font-weight: 800 !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 5px 12px !important;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4) !important;
+    transition: all 0.2s ease !important;
+  }
+  .btn-edit-yellow:hover {
+    background-color: #d97706 !important;
+    color: #000000 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.6) !important;
+  }
+
+  .nav-tabs-lux {
+    border-bottom: 1px solid var(--card-border);
+  }
+  .nav-tabs-lux .nav-link {
+    color: var(--text-muted);
+    font-weight: 700;
+    border: none;
+    border-bottom: 3px solid transparent;
+    padding: 10px 18px;
+    font-size: 13px;
+  }
+  .nav-tabs-lux .nav-link.active {
+    color: var(--accent-blue);
+    background: transparent;
+    border-bottom-color: var(--accent-blue);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header Banner -->
+<div class="crm-header-banner d-flex justify-content-between align-items-center flex-wrap gap-3">
+  <div>
+    <h2><i class="fas fa-building-circle-check text-info mr-2"></i> KHAI BÁO CÔNG TY & QUẢN TRỊ DATABASE (MULTI-TENANT)</h2>
+    <p class="text-muted mb-0 small">Hệ thống quản lý đa công ty, tự động cấp Cơ sở dữ liệu (SQLite DB) độc lập theo Mã Số Thuế (MST)</p>
+  </div>
+  <div>
+    <button class="btn btn-lux-primary" onclick="openCreateModal()">
+      <i class="fas fa-plus-circle mr-2"></i> KHAI BÁO CÔNG TY MỚI
+    </button>
+  </div>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="row mb-3">
+  <div class="col-md-3 col-6 mb-3">
+    <div class="kpi-crm-card">
+      <div class="kpi-crm-icon" style="background: rgba(59, 130, 246, 0.15); color: var(--accent-blue);"><i class="fas fa-building"></i></div>
+      <div>
+        <div class="h5 font-weight-bold mb-0 text-white" id="kpiTotalCompanies">0</div>
+        <div class="small text-muted font-weight-bold text-uppercase" style="font-size:10px">Công ty khai báo</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="kpi-crm-card">
+      <div class="kpi-crm-icon" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);"><i class="fas fa-database"></i></div>
+      <div>
+        <div class="h5 font-weight-bold mb-0 text-white" id="kpiTotalDBs">0</div>
+        <div class="small text-muted font-weight-bold text-uppercase" style="font-size:10px">Database SQLite</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="kpi-crm-card">
+      <div class="kpi-crm-icon" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;"><i class="fas fa-users-gear"></i></div>
+      <div>
+        <div class="h5 font-weight-bold mb-0 text-white" id="kpiTotalStaff">0</div>
+        <div class="small text-muted font-weight-bold text-uppercase" style="font-size:10px">Tài khoản nhân sự</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 col-6 mb-3">
+    <div class="kpi-crm-card">
+      <div class="kpi-crm-icon" style="background: rgba(16, 185, 129, 0.15); color: var(--accent-green);"><i class="fas fa-server"></i></div>
+      <div>
+        <div class="h5 font-weight-bold mb-0 text-success">ONLINE</div>
+        <div class="small text-muted font-weight-bold text-uppercase" style="font-size:10px">Máy chủ VPS</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="crm-toolbar">
+  <div class="input-group" style="max-width: 300px;">
+    <div class="input-group-prepend">
+      <span class="input-group-text bg-transparent border-right-0 text-muted" style="border-color: var(--card-border);"><i class="fas fa-search"></i></span>
+    </div>
+    <input type="text" id="searchInput" class="form-control form-control-lux border-left-0" placeholder="Tìm tên công ty, MST, mã..." oninput="filterCompanies()">
+  </div>
+
+  <select id="statusFilter" class="form-control form-control-lux" style="width: 170px;" onchange="filterCompanies()">
+    <option value="">Tất cả trạng thái</option>
+    <option value="ACTIVE">Hoạt động (ACTIVE)</option>
+    <option value="INACTIVE">Tạm khóa (INACTIVE)</option>
+  </select>
+
+  <div class="ml-auto d-flex gap-2">
+    <button class="btn btn-lux-secondary btn-sm" onclick="loadCompanies()"><i class="fas fa-rotate mr-1"></i> Tải lại</button>
+  </div>
+</div>
+
+<!-- Companies List Table -->
+<div class="premium-card">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 text-uppercase font-weight-bold text-info"><i class="fas fa-list-check mr-2"></i> Danh Sách Công Ty & Cơ Sở Dữ Liệu Khai Báo</h5>
+    <span class="small text-muted" id="companyCountLabel">Hiển thị 0 công ty</span>
+  </div>
+
+  <div class="premium-table-container">
+    <table class="premium-table">
+      <thead>
+        <tr>
+          <th style="width: 40px;">STT</th>
+          <th style="width: 220px;">THAO TÁC SỬA ĐỔI & DỮ LIỆU</th>
+          <th style="width: 130px;">MÃ CTY & MST</th>
+          <th>TÊN CÔNG TY & ĐẠI DIỆN</th>
+          <th>LIÊN HỆ & TRỤ SỞ</th>
+          <th style="width: 140px;">DATABASE</th>
+          <th style="width: 80px;">NHÂN SỰ</th>
+          <th style="width: 90px;">TRẠNG THÁI</th>
+        </tr>
+      </thead>
+      <tbody id="companyTableBody">
+        <tr>
+          <td colspan="8" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i> Đang nạp danh sách công ty...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- MODAL: KHAI BÁO / CHỈNH SỬA CÔNG TY (CHUẨN CRM MULTI-TAB) -->
+<!-- ===================================================================== -->
+<div class="modal fade" id="createCompanyModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content style-modal" style="background: #121829; border: 1px solid var(--card-border); color: #fff;">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title font-weight-bold text-info" id="companyModalTitle"><i class="fas fa-building mr-2"></i> Form Khai Báo Công Ty & Khởi Tạo Database</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+
+      <!-- Tab Navigation -->
+      <ul class="nav nav-tabs nav-tabs-lux mt-3 px-3" id="companyFormTabs">
+        <li class="nav-item">
+          <a class="nav-link active" data-toggle="tab" href="#tabLegal"><i class="fas fa-id-card mr-1"></i> 1. Thông Tin Pháp Lý</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-toggle="tab" href="#tabContact"><i class="fas fa-map-location-dot mr-1"></i> 2. Trụ Sở & Liên Hệ</a>
+        </li>
+        <li class="nav-item" id="navTabAdmin">
+          <a class="nav-link" data-toggle="tab" href="#tabAdmin"><i class="fas fa-user-shield mr-1"></i> 3. Tài Khoản Admin</a>
+        </li>
+      </ul>
+
+      <div class="modal-body">
+        <form id="createCompanyForm">
+          <input type="hidden" id="editMode" value="create">
+          <input type="hidden" id="originalTaxCode" value="">
+          
+          <div class="tab-content pt-2">
+            <!-- TAB 1: THÔNG TIN PHÁP LÝ -->
+            <div class="tab-pane fade show active" id="tabLegal">
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">MÃ SỐ THUẾ (MST) <span class="text-danger">*</span></label>
+                  <input type="text" id="addTaxCode" class="form-control form-control-lux" placeholder="VD: 0312345678" required>
+                  <small class="text-muted">MST định danh file database (`database/tenants/MST.db`)</small>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">MÃ KÝ HIỆU CÔNG TY</label>
+                  <input type="text" id="addCode" class="form-control form-control-lux" placeholder="VD: CTY01, CTY-BD">
+                </div>
+                <div class="col-md-12 mb-3">
+                  <label class="field-label">TÊN ĐẦY ĐỦ CÔNG TY / ĐƠN VỊ THỰC TẾ <span class="text-danger">*</span></label>
+                  <input type="text" id="addName" class="form-control form-control-lux" placeholder="VD: CÔNG TY TNHH GIẢI PHÁP CÔNG NGHIỆP VIỆT" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">TÊN VIẾT TẮT / GIAO DỊCH</label>
+                  <input type="text" id="addShortName" class="form-control form-control-lux" placeholder="VD: VIET INDUS">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">NGƯỜI ĐẠI DIỆN PHÁP LUẬT / GIÁM ĐỐC</label>
+                  <input type="text" id="addLegalRep" class="form-control form-control-lux" placeholder="VD: Nguyễn Văn A">
+                </div>
+                <div class="col-md-12 mb-3">
+                  <label class="field-label">LĨNH VỰC HOẠT ĐỘNG / NGÀNH NGHỀ</label>
+                  <input type="text" id="addBusinessField" class="form-control form-control-lux" placeholder="VD: Sản xuất, Công nghệ thông tin, Thương mại số...">
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: TRỤ SỞ & LIÊN HỆ -->
+            <div class="tab-pane fade" id="tabContact">
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="field-label">ĐỊA CHỈ TRỤ SỞ CHÍNH THỰC TẾ</label>
+                  <input type="text" id="addAddress" class="form-control form-control-lux" placeholder="VD: 123 Đường Công Nghiệp, Q. Bình Tân, TP.HCM">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">SỐ ĐIỆN THOẠI CÔNG TY / HOTLINE</label>
+                  <input type="text" id="addPhone" class="form-control form-control-lux" placeholder="VD: (028) 3838 3838">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">EMAIL CÔNG TY</label>
+                  <input type="email" id="addEmail" class="form-control form-control-lux" placeholder="VD: contact@congty.com">
+                </div>
+                <div class="col-md-12 mb-3">
+                  <label class="field-label">WEBSITE CÔNG TY</label>
+                  <input type="text" id="addWebsite" class="form-control form-control-lux" placeholder="VD: https://congty.com">
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: TÀI KHOẢN ADMIN -->
+            <div class="tab-pane fade" id="tabAdmin">
+              <div class="alert alert-info border-0 mb-3" style="background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan);">
+                <i class="fas fa-info-circle mr-1"></i> Tài khoản này sẽ có quyền Quản trị cao nhất (ADMIN) đối với cơ sở dữ liệu riêng của công ty mới.
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">EMAIL ĐĂNG NHẬP ADMIN <span class="text-danger">*</span></label>
+                  <input type="email" id="addAdminEmail" class="form-control form-control-lux" placeholder="VD: admin@congty.com">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="field-label">MẬT KHẨU KHỞI TẠO <span class="text-danger">*</span></label>
+                  <input type="text" id="addAdminPass" class="form-control form-control-lux" value="Admin@123">
+                </div>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer border-top-0">
+        <button type="button" class="btn btn-lux-secondary" data-dismiss="modal">HỦY BỎ</button>
+        <button type="button" id="btnSubmitCompany" class="btn btn-lux-primary" onclick="submitSaveCompany()"><i class="fas fa-check mr-1"></i> TẠO CÔNG TY & DATABASE</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- MODAL: KHAI BÁO NHÂN VIÊN ĐĂNG NHẬP CHO CÔNG TY -->
+<!-- ===================================================================== -->
+<div class="modal fade" id="addEmpModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content style-modal" style="background: #121829; border: 1px solid var(--card-border); color: #fff;">
+      <div class="modal-header border-bottom-0">
+        <h5 class="modal-title font-weight-bold text-info"><i class="fas fa-user-plus mr-2"></i> Khai Báo Nhân Viên Đăng Nhập</h5>
+        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="addEmpForm">
+          <input type="hidden" id="empTaxCode">
+          <div class="form-group mb-3">
+            <label class="field-label">CÔNG TY SỞ HỮU</label>
+            <input type="text" id="empCompanyName" class="form-control form-control-lux" readonly>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="field-label">MÃ NHÂN VIÊN <span class="text-danger">*</span></label>
+              <input type="text" id="empMaNV" class="form-control form-control-lux" placeholder="VD: NV01" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="field-label">HỌ VÀ TÊN <span class="text-danger">*</span></label>
+              <input type="text" id="empTenNV" class="form-control form-control-lux" placeholder="VD: Nguyễn Văn A" required>
+            </div>
+          </div>
+          <div class="form-group mb-3">
+            <label class="field-label">EMAIL ĐĂNG NHẬP <span class="text-danger">*</span></label>
+            <input type="email" id="empEmail" class="form-control form-control-lux" placeholder="VD: nhanvien@congty.com" required>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="field-label">MẬT KHẨU <span class="text-danger">*</span></label>
+              <input type="password" id="empPass" class="form-control form-control-lux" value="123456" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="field-label">VAI TRÒ / QUYỀN <span class="text-danger">*</span></label>
+              <select id="empRole" class="form-control form-control-lux">
+                <option value="USER">USER - Nhân viên</option>
+                <option value="MANAGER">MANAGER - Quản lý / Trưởng phòng</option>
+                <option value="ADMIN">ADMIN - Quản trị viên</option>
+                <option value="CEO">CEO - Ban Giám Đốc</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-top-0">
+        <button type="button" class="btn btn-lux-secondary" data-dismiss="modal">HỦY BỎ</button>
+        <button type="button" class="btn btn-lux-primary" onclick="submitAddEmployee()"><i class="fas fa-user-check mr-1"></i> LƯU NHÂN VIÊN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================================================================== -->
+<!-- MODAL: XÁC NHẬN XÓA CÔNG TY & DATABASE -->
+<!-- ===================================================================== -->
+<div class="modal fade" id="deleteCompanyModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content style-modal" style="background: #150f14; border: 1px solid rgba(239, 68, 68, 0.4); color: #fff;">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title font-weight-bold text-danger">
+          <i class="fas fa-triangle-exclamation mr-2"></i> XÁC NHẬN XÓA DỮ LIỆU CÔNG TY
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="deleteTaxCode">
+        <div class="alert alert-danger border-0 mb-3" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+          <strong>⚠️ CẢNH BÁO NGUY HIỂM:</strong> Hành động này sẽ <strong>XÓA VĨNH VIỄN</strong> toàn bộ dữ liệu, tài khoản nhân viên và file cơ sở dữ liệu SQLite của công ty này. Không thể khôi phục sau khi xóa!
+        </div>
+        <div class="p-3 mb-3 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid var(--card-border);">
+          <div class="mb-2">🏢 Công ty: <strong id="deleteCompanyName" class="text-warning">---</strong></div>
+          <div>🔢 Mã số thuế: <span id="deleteCompanyMST" class="mst-pill">---</span></div>
+        </div>
+      </div>
+      <div class="modal-footer border-top-0">
+        <button type="button" class="btn btn-lux-secondary" data-dismiss="modal">HỦY BỎ</button>
+        <button type="button" id="btnConfirmDelete" class="btn btn-danger font-weight-bold" onclick="submitDeleteCompany()">
+          <i class="fas fa-trash-can mr-1"></i> XÁC NHẬN XÓA VĨNH VIỄN
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  let allCompaniesData = [];
+
+  window.addEventListener("load", function() {
+    loadCompanies();
+  });
+
+  function loadCompanies() {
+    toggleLoader(true, "ĐANG NẠP DANH SÁCH CÔNG TY & DATABASE...");
+    fetch("/api/companies/list")
+      .then(res => res.json())
+      .then(res => {
+        toggleLoader(false);
+        if (res && res.success) {
+          allCompaniesData = res.companies || [];
+          updateKPIs(allCompaniesData);
+          filterCompanies();
+        } else {
+          showToast("error", res.message || "Lỗi tải danh sách công ty");
+        }
+      })
+      .catch(err => {
+        toggleLoader(false);
+        showToast("error", "Lỗi kết nối máy chủ");
+      });
+  }
+
+  function updateKPIs(companies) {
+    document.getElementById("kpiTotalCompanies").innerText = companies.length;
+    document.getElementById("kpiTotalDBs").innerText = companies.length;
+    
+    let totalStaff = 0;
+    companies.forEach(c => totalStaff += (c.emp_count || 0));
+    document.getElementById("kpiTotalStaff").innerText = totalStaff;
+  }
+
+  function filterCompanies() {
+    const q = (document.getElementById("searchInput").value || "").toLowerCase().trim();
+    const st = document.getElementById("statusFilter").value;
+
+    const filtered = allCompaniesData.filter(c => {
+      const matchQ = !q || 
+        (c.name || "").toLowerCase().includes(q) ||
+        (c.tax_code || "").toLowerCase().includes(q) ||
+        (c.code || "").toLowerCase().includes(q) ||
+        (c.legal_rep || "").toLowerCase().includes(q);
+
+      const matchSt = !st || c.status === st;
+
+      return matchQ && matchSt;
+    });
+
+    document.getElementById("companyCountLabel").innerText = `Hiển thị ${filtered.length} / ${allCompaniesData.length} công ty`;
+    renderCompanyTable(filtered);
+  }
+
+  function renderCompanyTable(companies) {
+    const tbody = document.getElementById("companyTableBody");
+    if (!companies || companies.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">Không tìm thấy công ty nào phù hợp.</td></tr>`;
+      return;
+    }
+
+    let html = "";
+    companies.forEach((comp, idx) => {
+      const statusBadge = comp.status === "ACTIVE" 
+        ? `<span class="badge badge-success px-2 py-1">HOẠT ĐỘNG</span>`
+        : `<span class="badge badge-secondary px-2 py-1">TẠM KHÓA</span>`;
+
+      const dbName = comp.tax_code === "0312345678" ? "qlcv.db (Mặc định)" : `tenants/${comp.tax_code}.db`;
+      const isDefaultCompany = comp.tax_code === "0312345678" || comp.tax_code === "default";
+      const safeCompName = (comp.name || "").replace(/'/g, "\\'");
+
+      html += `
+        <tr>
+          <td class="text-center font-weight-bold">${idx + 1}</td>
+          <td class="text-center">
+            <div class="d-flex align-items-center justify-content-center flex-wrap gap-1">
+              <button class="btn btn-sm btn-info text-white mr-1 mb-1 font-weight-bold" title="Truy cập trực tiếp vào dữ liệu công ty này" onclick="switchCompany('${comp.tax_code}', '${safeCompName}')">
+                <i class="fas fa-right-to-bracket mr-1"></i> VÀO CTY
+              </button>
+              <button class="btn btn-edit-yellow btn-sm mr-1 mb-1" title="Chỉnh sửa thông tin thực tế" onclick="openEditModal('${comp.tax_code}')">
+                <i class="fas fa-pen mr-1"></i> SỬA
+              </button>
+              <button class="btn btn-sm btn-outline-info mr-1 mb-1" title="Thêm NV" onclick="openAddEmpModal('${comp.tax_code}', '${safeCompName}')">
+                <i class="fas fa-user-plus"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-warning mr-1 mb-1" title="Khóa/Mở công ty" onclick="toggleStatus('${comp.tax_code}')">
+                <i class="fas fa-power-off"></i>
+              </button>
+              ${!isDefaultCompany ? `
+              <button class="btn btn-sm btn-danger mb-1" title="Xóa toàn bộ Data & Database công ty này" onclick="openDeleteModal('${comp.tax_code}', '${safeCompName}')">
+                <i class="fas fa-trash-can mr-1"></i> XÓA DATA
+              </button>
+              ` : `
+              <button class="btn btn-sm btn-secondary mb-1" title="Công ty Nhà Sản Xuất mặc định (Không thể xóa)" disabled style="opacity: 0.4;">
+                <i class="fas fa-lock"></i>
+              </button>
+              `}
+            </div>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-1 mb-1">
+              <span class="code-pill">${comp.code || 'CTY'}</span>
+              <span class="mst-pill">${comp.tax_code}</span>
+            </div>
+          </td>
+          <td>
+            <div class="font-weight-bold text-white mb-1" style="font-size:13.5px">${comp.name}</div>
+            <div class="small text-cyan"><i class="fas fa-user-tie mr-1"></i>Đại diện: ${comp.legal_rep || "Chưa khai báo"}</div>
+            ${comp.business_field ? `<div class="small text-muted"><i class="fas fa-briefcase mr-1"></i>${comp.business_field}</div>` : ''}
+          </td>
+          <td>
+            <div class="small text-white mb-1"><i class="fas fa-location-dot text-danger mr-1"></i>${comp.address || "---"}</div>
+            <div class="small text-muted"><i class="fas fa-phone mr-1"></i>${comp.phone || "---"} | <i class="fas fa-envelope mr-1"></i>${comp.email || "---"}</div>
+          </td>
+          <td>
+            <div class="small text-white font-weight-bold mb-1">${dbName}</div>
+            <span class="db-size-pill"><i class="fas fa-hard-drive mr-1"></i>${comp.db_size_kb} KB</span>
+          </td>
+          <td class="text-center">
+            <span class="badge badge-pill badge-info px-3 py-1 font-weight-bold">${comp.emp_count} NV</span>
+          </td>
+          <td class="text-center">${statusBadge}</td>
+        </tr>
+      `;
+    });
+    tbody.innerHTML = html;
+  }
+
+  function openCreateModal() {
+    document.getElementById("editMode").value = "create";
+    document.getElementById("originalTaxCode").value = "";
+    document.getElementById("createCompanyForm").reset();
+    
+    document.getElementById("companyModalTitle").innerHTML = '<i class="fas fa-building mr-2"></i> Form Khai Báo Công Ty & Khởi Tạo Database';
+    document.getElementById("navTabAdmin").style.display = "block";
+    document.getElementById("btnSubmitCompany").innerHTML = '<i class="fas fa-check mr-1"></i> TẠO CÔNG TY & DATABASE';
+    
+    $('#companyFormTabs a[href="#tabLegal"]').tab('show');
+    $("#createCompanyModal").modal("show");
+  }
+
+  function openEditModal(taxCode) {
+    const comp = allCompaniesData.find(c => c.tax_code === taxCode);
+    if (!comp) return;
+
+    document.getElementById("editMode").value = "update";
+    document.getElementById("originalTaxCode").value = comp.tax_code;
+    
+    document.getElementById("addTaxCode").value = comp.tax_code;
+    document.getElementById("addCode").value = comp.code || "";
+    document.getElementById("addName").value = comp.name || "";
+    document.getElementById("addShortName").value = comp.short_name || "";
+    document.getElementById("addLegalRep").value = comp.legal_rep || "";
+    document.getElementById("addBusinessField").value = comp.business_field || "";
+    document.getElementById("addAddress").value = comp.address || "";
+    document.getElementById("addPhone").value = comp.phone || "";
+    document.getElementById("addEmail").value = comp.email || "";
+    document.getElementById("addWebsite").value = comp.website || "";
+
+    document.getElementById("companyModalTitle").innerHTML = `<i class="fas fa-pen-to-square mr-2"></i> Chỉnh Sửa Thông Tin Thực Tế: ${comp.name}`;
+    document.getElementById("navTabAdmin").style.display = "none";
+    document.getElementById("btnSubmitCompany").innerHTML = '<i class="fas fa-save mr-1"></i> LƯU THAY ĐỔI THỰC TẾ';
+
+    $('#companyFormTabs a[href="#tabLegal"]').tab('show');
+    $("#createCompanyModal").modal("show");
+  }
+
+  function submitSaveCompany() {
+    const mode = document.getElementById("editMode").value;
+    const originalTaxCode = document.getElementById("originalTaxCode").value;
+    const tax_code = document.getElementById("addTaxCode").value.trim();
+    const code = document.getElementById("addCode").value.trim();
+    const name = document.getElementById("addName").value.trim();
+    const short_name = document.getElementById("addShortName").value.trim();
+    const legal_rep = document.getElementById("addLegalRep").value.trim();
+    const business_field = document.getElementById("addBusinessField").value.trim();
+    const address = document.getElementById("addAddress").value.trim();
+    const phone = document.getElementById("addPhone").value.trim();
+    const email = document.getElementById("addEmail").value.trim();
+    const website = document.getElementById("addWebsite").value.trim();
+
+    if (!tax_code || !name) {
+      showToast("warning", "Vui lòng nhập đầy đủ Mã Số Thuế và Tên Công Ty!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("tax_code", mode === "update" ? originalTaxCode : tax_code);
+    if (mode === "update") {
+      formData.append("new_tax_code", tax_code);
+    }
+    formData.append("code", code);
+    formData.append("name", name);
+    formData.append("short_name", short_name);
+    formData.append("legal_rep", legal_rep);
+    formData.append("business_field", business_field);
+    formData.append("address", address);
+    formData.append("phone", phone);
+    formData.append("email", email);
+    formData.append("website", website);
+
+    let url = "/api/companies/create";
+    if (mode === "create") {
+      const admin_email = document.getElementById("addAdminEmail").value.trim();
+      const admin_pass = document.getElementById("addAdminPass").value.trim();
+      if (!admin_email || !admin_pass) {
+        showToast("warning", "Vui lòng nhập Email và Mật khẩu Admin khởi tạo!");
+        return;
+      }
+      formData.append("admin_email", admin_email);
+      formData.append("admin_pass", admin_pass);
+    } else {
+      url = "/api/companies/update";
+    }
+
+    toggleLoader(true, mode === "create" ? "ĐANG TẠO CÔNG TY & DATABASE..." : "ĐANG LƯU CẬP NHẬT THỰC TẾ...");
+    fetch(url, {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res && res.success) {
+        $("#createCompanyModal").modal("hide");
+        showNotify("success", "Thành công!", res.message);
+        loadCompanies();
+      } else {
+        showNotify("error", "Không thể lưu!", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi!", "Không thể kết nối đến máy chủ.");
+    });
+  }
+
+  function openAddEmpModal(taxCode, compName) {
+    document.getElementById("addEmpForm").reset();
+    document.getElementById("empTaxCode").value = taxCode;
+    document.getElementById("empCompanyName").value = `${compName} (${taxCode})`;
+    $("#addEmpModal").modal("show");
+  }
+
+  function submitAddEmployee() {
+    const tax_code = document.getElementById("empTaxCode").value;
+    const ma_nv = document.getElementById("empMaNV").value.trim();
+    const ten_nv = document.getElementById("empTenNV").value.trim();
+    const email = document.getElementById("empEmail").value.trim();
+    const mat_khau = document.getElementById("empPass").value.trim();
+    const quyen = document.getElementById("empRole").value;
+
+    if (!ma_nv || !ten_nv || !email || !mat_khau) {
+      showToast("warning", "Vui lòng nhập đầy đủ thông tin nhân viên!");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("tax_code", tax_code);
+    formData.append("ma_nv", ma_nv);
+    formData.append("ten_nv", ten_nv);
+    formData.append("email", email);
+    formData.append("mat_khau", mat_khau);
+    formData.append("quyen", quyen);
+
+    toggleLoader(true, "ĐANG LƯU THÔNG TIN NHÂN VIÊN...");
+    fetch("/api/companies/add-employee", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res && res.success) {
+        $("#addEmpModal").modal("hide");
+        showNotify("success", "Thành công!", res.message);
+        loadCompanies();
+      } else {
+        showNotify("error", "Lỗi!", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi!", "Không thể kết nối đến máy chủ.");
+    });
+  }
+
+  function toggleStatus(taxCode) {
+    const formData = new FormData();
+    formData.append("tax_code", taxCode);
+
+    toggleLoader(true, "CẬP NHẬT TRẠNG THÁI...");
+    fetch("/api/companies/toggle-status", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res && res.success) {
+        showToast("success", res.message);
+        loadCompanies();
+      } else {
+        showToast("error", res.message);
+      }
+    });
+  }
+
+  function openDeleteModal(taxCode, compName) {
+    document.getElementById("deleteTaxCode").value = taxCode;
+    document.getElementById("deleteCompanyName").innerText = compName;
+    document.getElementById("deleteCompanyMST").innerText = taxCode;
+    $("#deleteCompanyModal").modal("show");
+  }
+
+  function submitDeleteCompany() {
+    const taxCode = document.getElementById("deleteTaxCode").value.trim();
+    if (!taxCode) return;
+
+    $("#deleteCompanyModal").modal("hide");
+    toggleLoader(true, "ĐANG XÓA TOÀN BỘ DỮ LIỆU & CƠ SỞ DỮ LIỆU CÔNG TY...");
+
+    const formData = new FormData();
+    formData.append("tax_code", taxCode);
+
+    fetch("/api/companies/delete", {
+      method: "POST",
+      body: formData
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res && res.success) {
+        showNotify("success", "Đã xóa thành công!", res.message);
+        loadCompanies();
+      } else {
+        showNotify("error", "Lỗi xóa dữ liệu!", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi mạng!", "Không thể kết nối đến máy chủ: " + err.message);
+    });
+  }
+
+  function switchCompany(taxCode, compName) {
+    Swal.fire({
+      title: 'Truy cập công ty?',
+      html: `Bạn đang chuẩn bị chuyển phiên làm việc sang <b>${compName}</b> (MST: <code>${taxCode}</code>) với quyền Admin tối cao.`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#06b6d4',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: '<i class="fas fa-right-to-bracket mr-1"></i> Truy cập ngay',
+      cancelButtonText: 'Hủy'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        toggleLoader(true, "ĐANG CHUYỂN PHIÊN LÀM VIỆC SANG CÔNG TY...");
+        const formData = new FormData();
+        formData.append("tax_code", taxCode);
+        fetch("/api/companies/switch-tenant", {
+          method: "POST",
+          body: formData
+        })
+        .then(res => res.json())
+        .then(res => {
+          toggleLoader(false);
+          if (res && res.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Thành công!',
+              text: res.message,
+              timer: 1200,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.href = res.redirect_url || "/dashboard";
+            });
+          } else {
+            showNotify("error", "Lỗi chuyển công ty!", res.message);
+          }
+        })
+        .catch(err => {
+          toggleLoader(false);
+          showNotify("error", "Lỗi!", "Không thể kết nối máy chủ.");
+        });
+      }
+    });
+  }
+</script>
+{% endblock %}
