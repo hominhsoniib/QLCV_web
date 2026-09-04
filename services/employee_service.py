@@ -74,13 +74,14 @@ class EmployeeService:
             
         password = str(data.get("matKhau", "")).strip()
         if not password or password == "********":
-            password = "123456" # Default password
-            
+            password = "123456" # Default password — user should be prompted to change on first login
+
+        from services.security_utils import hash_password
         emp = Employee(
             ma_nv=ma_nv,
             ten_nv=ten_nv,
             email=email_val if email_val else None,
-            mat_khau=password,
+            mat_khau=hash_password(password),
             quyen=str(data.get("quyen", "USER")).strip().upper(),
             chuc_danh=str(data.get("chucDanh", "")).strip(),
             chuc_vu=str(data.get("chucVu", "")).strip(),
@@ -116,11 +117,14 @@ class EmployeeService:
             
         password = str(data.get("matKhau", "")).strip()
         if not password or password == "********":
-            password = emp.mat_khau # Keep current password
-            
+            new_mat_khau = emp.mat_khau # Keep current (already-hashed) password
+        else:
+            from services.security_utils import hash_password
+            new_mat_khau = hash_password(password)
+
         emp.ten_nv = str(data.get("tenNV", emp.ten_nv)).strip()
         emp.email = email_val if email_val else None
-        emp.mat_khau = password
+        emp.mat_khau = new_mat_khau
         emp.quyen = str(data.get("quyen", emp.quyen)).strip().upper()
         emp.chuc_danh = str(data.get("chucDanh", "")).strip()
         emp.chuc_vu = str(data.get("chucVu", "")).strip()

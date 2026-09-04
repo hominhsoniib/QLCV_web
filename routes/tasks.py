@@ -10,6 +10,28 @@ import json
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+
+def _user_can_access_task(db: Session, session: dict, task_id: str) -> bool:
+    """Returns True if the logged-in user is ADMIN, the assigner, the assignee,
+    or a collaborator (nguoi_phoi_hop) on the given task. Used to prevent
+    IDOR: any authenticated user editing/viewing tasks that aren't theirs.
+    """
+    from models.models import Task
+    role = str(session.get("role", "")).upper()
+    ma_nv = str(session.get("ma", "")).upper()
+    if ma_nv == "ADMIN" or role == "ADMIN":
+        return True
+    task = db.query(Task).filter(Task.id_phan_cong == task_id).first()
+    if not task:
+        # Let the underlying service report "not found" instead of a silent 403.
+        return True
+    phoi_hop = str(task.nguoi_phoi_hop or "").upper()
+    return (
+        str(task.nguoi_giao or "").upper() == ma_nv or
+        str(task.nguoi_nhan or "").upper() == ma_nv or
+        ma_nv in [p.strip() for p in phoi_hop.split(",")]
+    )
+
 # Web Pages
 @router.get("/tasks", response_class=HTMLResponse)
 def get_tasks_page(request: Request):
@@ -157,6 +179,21 @@ def api_save_task(request: Request, payload: dict, db: Session = Depends(get_db)
     session = AuthService.get_session(request)
     if not session:
         return {"success": False, "message": "🚨 Chưa đăng nhập!"}
+
+    role = str(session.get("role", "")).upper()
+    ma_nv = str(session.get("ma", "")).upper()
+
+    id_pc = str(payload.get("idPhanCong", "")).strip()
+    is_new = not id_pc or id_pc == "TỰ ĐỘNG"
+
+    if is_new:
+        # Non-admins cannot impersonate another employee as the task's assigner.
+        if role != "ADMIN":
+            payload["nguoiGiao"] = ma_nv
+    else:
+        if not _user_can_access_task(db, session, id_pc):
+            return {"success": False, "message": "🚨 Bạn không có quyền chỉnh sửa công việc này!"}
+
     return TaskService.save_task_data(db, payload)
 
 @router.get("/api/tasks/suggested-code")
@@ -165,28 +202,49 @@ def api_suggested_code(prefix: str, db: Session = Depends(get_db)):
     return TaskService.get_suggested_ma_cv(db, prefix)
 
 @router.get("/api/tasks/{task_id}")
-def api_get_task_by_id(task_id: str, db: Session = Depends(get_db)):
+def api_get_task_by_id(task_id: str, request: Request, db: Session = Depends(get_db)):
     """API to get details of a specific task."""
+    session = AuthService.get_session(request)
+    if not session:
+        return {"success": False, "message": "🚨 Chưa đăng nhập!"}
+    if not _user_can_access_task(db, session, task_id):
+        return {"success": False, "message": "🚨 Bạn không có quyền xem công việc này!"}
     task = TaskService.get_task_by_id(db, task_id)
     if not task:
         return {"success": False, "message": f"Task [{task_id}] not found"}
     return task
 
 @router.post("/api/tasks/{task_id}/report")
-def api_update_report(task_id: str, payload: dict, db: Session = Depends(get_db)):
+def api_update_report(task_id: str, payload: dict, request: Request, db: Session = Depends(get_db)):
     """API to submit a progress report for a task."""
+    session = AuthService.get_session(request)
+    if not session:
+        return {"success": False, "message": "🚨 Chưa đăng nhập!"}
+    if not _user_can_access_task(db, session, task_id):
+        return {"success": False, "message": "🚨 Bạn không có quyền báo cáo công việc này!"}
     payload["id"] = task_id
     return TaskService.update_bao_cao(db, payload)
 
 @router.post("/api/tasks/{task_id}/remind")
-def api_update_remind(task_id: str, payload: dict, db: Session = Depends(get_db)):
+def api_update_remind(task_id: str, payload: dict, request: Request, db: Session = Depends(get_db)):
     """API to post a management directive or reminder."""
+    session = AuthService.get_session(request)
+    if not session:
+        return {"success": False, "message": "🚨 Chưa đăng nhập!"}
+    if not _user_can_access_task(db, session, task_id):
+        return {"success": False, "message": "🚨 Bạn không có quyền chỉ đạo công việc này!"}
     message = payload.get("message", "")
     return TaskService.update_nhac_nho(db, task_id, message)
 
 @router.post("/api/tasks/forward")
-def api_forward_task(payload: dict, db: Session = Depends(get_db)):
+def api_forward_task(payload: dict, request: Request, db: Session = Depends(get_db)):
     """API to forward/delegate a task to another employee."""
+    session = AuthService.get_session(request)
+    if not session:
+        return {"success": False, "message": "🚨 Chưa đăng nhập!"}
+    parent_id = str(payload.get("idPhanCongGoc", "")).strip()
+    if parent_id and not _user_can_access_task(db, session, parent_id):
+        return {"success": False, "message": "🚨 Bạn không có quyền ủy quyền công việc này!"}
     return TaskService.save_forward(db, payload)
 
 

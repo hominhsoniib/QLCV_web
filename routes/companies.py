@@ -229,10 +229,11 @@ def api_add_employee(
             
         t_db = get_tenant_session(clean_tax_code)
         try:
+            from services.security_utils import hash_password
             emp = Employee(
                 ma_nv=clean_ma_nv,
                 ten_nv=ten_nv,
-                mat_khau=mat_khau,
+                mat_khau=hash_password(mat_khau),
                 email=clean_email,
                 quyen=quyen,
                 phong_ban=phong_ban

@@ -61,6 +61,7 @@ test_ssh.py
 sync_to_vps.py
 don_dep.bat
 don_dep_he_thong.py
+fix-code/
 
 # OS generated files
 .DS_Store

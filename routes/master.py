@@ -49,24 +49,48 @@ def api_get_departments(request: Request, db: Session = Depends(get_db)):
         return {"success": False, "message": "🚨 Chưa đăng nhập!"}
     return DepartmentService.get_department_management_data(db)
 
+def _require_dept_admin(request: Request):
+    """Enforces login + ADMIN/CEO/MANAGER role for department write operations.
+    Returns the session dict, or an error dict to be returned directly by the caller.
+    """
+    session = AuthService.get_session(request)
+    if not session:
+        return None, {"success": False, "message": "🚨 Chưa đăng nhập!"}
+    if session.get("role") not in ["ADMIN", "CEO", "MANAGER"]:
+        return None, {"success": False, "message": "🚨 Không có quyền truy cập!"}
+    return session, None
+
+
 @router.post("/api/departments")
-def api_add_department(payload: dict, db: Session = Depends(get_db)):
+def api_add_department(request: Request, payload: dict, db: Session = Depends(get_db)):
     """API to add a new department."""
+    session, err = _require_dept_admin(request)
+    if err:
+        return err
     return DepartmentService.add_department(db, payload)
 
 @router.post("/api/departments/update")
-def api_update_department(payload: dict, db: Session = Depends(get_db)):
+def api_update_department(request: Request, payload: dict, db: Session = Depends(get_db)):
     """API to update a department."""
+    session, err = _require_dept_admin(request)
+    if err:
+        return err
     return DepartmentService.update_department(db, payload)
 
 @router.delete("/api/departments/{ma_bp}")
-def api_delete_department(ma_bp: str, db: Session = Depends(get_db)):
+def api_delete_department(ma_bp: str, request: Request, db: Session = Depends(get_db)):
     """API to delete a department."""
+    session, err = _require_dept_admin(request)
+    if err:
+        return err
     return DepartmentService.delete_department(db, ma_bp)
 
 @router.post("/api/departments/generate")
-def api_generate_department_functions(payload: dict, db: Session = Depends(get_db)):
+def api_generate_department_functions(request: Request, payload: dict, db: Session = Depends(get_db)):
     """API to generate department functions and duties via AI."""
+    session, err = _require_dept_admin(request)
+    if err:
+        return err
     prompt = payload.get("prompt", "").strip()
     if not prompt:
         return {"success": False, "message": "Nội dung yêu cầu không được trống!"}

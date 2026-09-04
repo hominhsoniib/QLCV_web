@@ -54,25 +54,53 @@ class DriveService:
             print(f"Error renaming Google Drive file [{file_id}]:", e)
             return f"https://drive.google.com/open?id={file_id}"
 
+    # Extensions explicitly blocked because they can be served back by the browser
+    # as active content (stored-XSS) or executed on the server if ever misconfigured.
+    _BLOCKED_EXTENSIONS = {
+        ".html", ".htm", ".svg", ".js", ".mjs", ".php", ".phtml", ".exe", ".sh",
+        ".bat", ".cmd", ".py", ".ps1", ".dll", ".jar", ".vbs", ".msi", ".com"
+    }
+    _MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
+
     @staticmethod
     def upload_local_file(file: UploadFile) -> str:
-        """Saves an uploaded file locally to static/uploads/ and returns its access URL."""
+        """Saves an uploaded file locally to static/uploads/ and returns its access URL.
+        Rejects disallowed extensions and enforces a max file size.
+        """
         try:
-            filename = file.filename
+            filename = file.filename or ""
             # Sanitize filename
             filename_clean = "".join([c for c in filename if c.isalpha() or c.isdigit() or c in (".", "_", "-")]).strip()
-            
+            if not filename_clean:
+                print("Upload rejected: empty/invalid filename after sanitization.")
+                return ""
+
+            base, ext = os.path.splitext(filename_clean)
+            if ext.lower() in DriveService._BLOCKED_EXTENSIONS:
+                print(f"Upload rejected: disallowed file extension '{ext}'.")
+                return ""
+
             # Append timestamp to prevent overwrite collisions
             import time
             timestamp = int(time.time())
-            base, ext = os.path.splitext(filename_clean)
             filename_final = f"{base}_{timestamp}{ext}"
-            
+
             filepath = os.path.join(Config.UPLOAD_DIR, filename_final)
-            
+
+            written = 0
             with open(filepath, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-                
+                while True:
+                    chunk = file.file.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    written += len(chunk)
+                    if written > DriveService._MAX_UPLOAD_BYTES:
+                        buffer.close()
+                        os.remove(filepath)
+                        print(f"Upload rejected: file exceeds {DriveService._MAX_UPLOAD_BYTES // (1024*1024)}MB limit.")
+                        return ""
+                    buffer.write(chunk)
+
             return f"/static/uploads/{filename_final}"
         except Exception as e:
             print("Failed to upload local file:", e)

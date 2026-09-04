@@ -27,50 +27,14 @@ class AuthService:
                 
             from database.multi_tenant import MasterSessionLocal, get_tenant_session, get_tenant_engine, get_tenant_db_path, Base
             from models.master_models import GlobalUserIndex, MasterCompany
-            
-            # --- 1. MASTER SYSTEM ADMIN / DEVELOPER LOGIN CHECK ---
-            master_admin_passwords = [
-                "admin", "Admin@123", "admin123", "Soniib@24072112"
-            ]
-            master_admin_usernames = [
-                "ADMIN", "SUPERADMIN", "ROOT", "SYSADMIN"
-            ]
-            
-            clean_user_prefix = username_lower.split("@")[0] if "@" in username_lower else username_lower
-            is_master_admin_user = (
-                username_upper in master_admin_usernames or 
-                clean_user_prefix in ["admin", "superadmin", "root", "sysadmin"] or
-                username_lower in ["admin@ams.vn", "admin@company.com", "admin@company", "root@ams.vn"]
-            )
-            is_master_admin_pass = (password_clean in master_admin_passwords)
-            
-            if is_master_admin_user and is_master_admin_pass:
-                target_mst = clean_mst or "0312345678"
-                target_comp_name = "CÔNG TY TNHH GIẢI PHÁP CÔNG NGHIỆP VIỆT"
-                try:
-                    master_db = MasterSessionLocal()
-                    try:
-                        comp = master_db.query(MasterCompany).filter_by(tax_code=target_mst).first()
-                        if comp and comp.name:
-                            target_comp_name = comp.name
-                    finally:
-                        master_db.close()
-                except Exception as ex_m:
-                    print("[AUTH] Master DB query notice:", ex_m)
-                    
-                display_name = "Quản trị hệ thống (AMS PRO)"
-                return {
-                    "success": True,
-                    "userName": display_name,
-                    "role": "ADMIN",
-                    "maNV": "ADMIN",
-                    "email": username_lower if "@" in username_lower else "admin@ams.vn",
-                    "company_mst": target_mst,
-                    "company_name": target_comp_name,
-                    "is_master_admin": True
-                }
-            
-            # --- 2. XÁC ĐỊNH MÃ SỐ THUẾ CỦA DOANH NGHIỆP (TENANT TAX CODE) ---
+
+            # NOTE: The previous hardcoded "Master Admin backdoor" (fixed username/password
+            # list granting is_master_admin=True on ANY tenant) has been REMOVED.
+            # Master-admin (NSX) rights are now only ever granted after a normal,
+            # hashed-password login against the default tenant's ADMIN account
+            # (see is_nsx_master_admin computation below).
+
+            # --- XÁC ĐỊNH MÃ SỐ THUẾ CỦA DOANH NGHIỆP (TENANT TAX CODE) ---
             company_mst = clean_mst
             comp_name = ""
             
@@ -121,14 +85,14 @@ class AuthService:
                 ).first()
                 
                 if user:
-                    password_valid = False
-                    if user.mat_khau == password_clean:
-                        password_valid = True
-                    elif str(user.mat_khau or "").strip().lower() == password_clean.lower():
-                        password_valid = True
-                    elif password_clean in ["admin", "123456", "Admin@123", "Voc@123456", "Cfo@123456", "Ceo@123456"]:
-                        password_valid = True
-                        
+                    from services.security_utils import verify_password, hash_password, is_bcrypt_hash
+                    password_valid = verify_password(password_clean, user.mat_khau)
+
+                    if password_valid and not is_bcrypt_hash(user.mat_khau):
+                        # Legacy plaintext account successfully matched: upgrade in place to bcrypt.
+                        user.mat_khau = hash_password(password_clean)
+                        tenant_db.commit()
+
                     if password_valid:
                         # --- Kiểm tra hạn sử dụng phần mềm của công ty ---
                         from datetime import datetime as _dt_check
@@ -186,18 +150,15 @@ class AuthService:
             return {"success": False, "message": "❌ Mật khẩu mới không được để trống!"}
             
         user = db.query(Employee).filter(Employee.ma_nv == ma_nv_clean).first()
-        
-        developer_passwords = [
-            "admin", "123456", "Admin@123", "ADMIN", "admin123", "12345678",
-            "Ceo@123456", "Cfo@123456", "Voc@123456", "Soniib@24072112"
-        ]
-        
+
+        from services.security_utils import verify_password, hash_password
+
         if not user:
             if ma_nv_clean == "ADMIN":
                 user = Employee(
                     ma_nv="ADMIN",
                     ten_nv="Quản trị hệ thống",
-                    mat_khau=new_pass_clean,
+                    mat_khau=hash_password(new_pass_clean),
                     quyen="ADMIN",
                     phong_ban="Ban Giám Đốc",
                     chuc_danh="Quản trị hệ thống"
@@ -206,17 +167,15 @@ class AuthService:
                 db.commit()
                 return {"success": True, "message": "✅ Đổi mật khẩu thành công!"}
             return {"success": False, "message": "❌ Không tìm thấy thông tin tài khoản."}
-            
-        is_old_valid = (
-            user.mat_khau == old_pass_clean or 
-            str(user.mat_khau or "").strip().lower() == old_pass_clean.lower() or 
-            old_pass_clean in developer_passwords
-        )
-        
+
+        # No hardcoded/developer backdoor passwords anymore — must match this
+        # specific user's own current password (bcrypt hash or legacy plaintext).
+        is_old_valid = verify_password(old_pass_clean, user.mat_khau)
+
         if not is_old_valid:
             return {"success": False, "message": "❌ Mật khẩu cũ không chính xác!"}
-            
-        user.mat_khau = new_pass_clean
+
+        user.mat_khau = hash_password(new_pass_clean)
         db.commit()
         return {"success": True, "message": "✅ Đổi mật khẩu thành công!"}
 

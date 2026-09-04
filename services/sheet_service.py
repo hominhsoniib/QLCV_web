@@ -2,6 +2,7 @@ import pandas as pd
 import datetime
 from sqlalchemy.orm import Session
 from models.models import Employee, Department, Task, Document
+from services.security_utils import hash_password, is_bcrypt_hash
 import os
 
 def clean_val(val, default=""):
@@ -53,7 +54,7 @@ def seed_database_from_excel(db: Session, excel_path: str = "seed.xlsx") -> bool
             admin = Employee(
                 ma_nv="ADMIN",
                 ten_nv="Quản trị hệ thống",
-                mat_khau="admin",
+                mat_khau=hash_password("admin"),  # ⚠️ Đổi ngay mật khẩu này sau lần đăng nhập đầu tiên!
                 quyen="ADMIN",
                 phong_ban="Ban Giám Đốc"
             )
@@ -79,14 +80,15 @@ def seed_database_from_excel(db: Session, excel_path: str = "seed.xlsx") -> bool
                     # Update email if missing
                     if email_val and not existing_emp.email:
                         existing_emp.email = email_val
-                    # Update password if old default '123' or '123456'
-                    if existing_emp.mat_khau in ("123", "123456") or not existing_emp.mat_khau:
-                        existing_emp.mat_khau = clean_val(row.get('MatKhau'), "Voc@123456")
+                    # Update password if old default '123'/'123456' (plaintext legacy) or empty
+                    if (not is_bcrypt_hash(existing_emp.mat_khau) and
+                            existing_emp.mat_khau in ("123", "123456", "")) or not existing_emp.mat_khau:
+                        existing_emp.mat_khau = hash_password(clean_val(row.get('MatKhau'), "Voc@123456"))
                 else:
                     emp = Employee(
                         ma_nv=ma_nv,
                         ten_nv=clean_val(row.get('TenNV')),
-                        mat_khau=clean_val(row.get('MatKhau'), "Voc@123456"),
+                        mat_khau=hash_password(clean_val(row.get('MatKhau'), "Voc@123456")),
                         email=email_val if email_val else None,
                         quyen=clean_val(row.get('Quyen'), "USER").upper(),
                         chuc_danh=clean_val(row.get('Chucdanh')),

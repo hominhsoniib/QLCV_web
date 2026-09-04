@@ -185,10 +185,11 @@ def create_company_tenant(
         # 2. Create Default Admin user in Tenant DB
         tenant_db = get_tenant_session(clean_mst)
         try:
+            from services.security_utils import hash_password
             admin_emp = Employee(
                 ma_nv="ADMIN",
                 ten_nv=f"Quản trị viên ({name})",
-                mat_khau=admin_pass,
+                mat_khau=hash_password(admin_pass),
                 email=clean_admin_email,
                 quyen="ADMIN",
                 phong_ban="Ban Giám Đốc",

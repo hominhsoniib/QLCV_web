@@ -48,9 +48,11 @@ else:
     os.makedirs("static/js", exist_ok=True)
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Mount user's local document directory if it exists
-local_docs_dir = "D:/POWER BI-VBA EXCEL/QLCV-QT-MTCV"
-if os.path.exists(local_docs_dir):
+# Mount an optional local document directory (configure via LOCAL_DOCS_DIR in .env).
+# Previously this was a hardcoded personal machine path — removed for portability
+# and because it silently exposed a local folder as a public static route.
+local_docs_dir = os.getenv("LOCAL_DOCS_DIR", "").strip()
+if local_docs_dir and os.path.exists(local_docs_dir):
     app.mount("/local_docs", StaticFiles(directory=local_docs_dir), name="local_docs")
 
 # Include Routers
@@ -130,9 +132,18 @@ async def startup_db_init():
 
 @app.exception_handler(404)
 def custom_404_handler(request: Request, exc):
+    # Only redirect page (HTML) navigation to the dashboard. API/static 404s must
+    # stay as real 404 responses, otherwise clients silently get an HTML page
+    # instead of an error and API/integration bugs become invisible.
+    path = request.url.path
+    if path.startswith("/api/") or path.startswith("/static/"):
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=404, content={"success": False, "message": "Not found"})
     return RedirectResponse(url="/dashboard")
 
 if __name__ == "__main__":
     import uvicorn
     from config import Config
-    uvicorn.run("app:app", host=Config.HOST, port=Config.PORT, reload=True)
+    # reload=True spawns a file-watcher subprocess meant for local development only.
+    # Set APP_ENV=development in .env to enable it; production defaults to reload=False.
+    uvicorn.run("app:app", host=Config.HOST, port=Config.PORT, reload=(Config.APP_ENV == "development"))
