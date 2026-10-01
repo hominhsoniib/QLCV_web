@@ -1,0 +1,170 @@
+Tôi s? ??c các endpoint, service và lu?ng g?i t? UI ?? xác ??nh Task/file ownership th?c t? tr??c khi s?a. Tôi ch? x? lý SEC-03 và ch?y regression qua sandbox; thao tác Drive nào thi?u metadata ?? ki?m tra ownership s? ???c báo BLOCKED.
+```
+• Ran Get-Content routes/documents.py; Get-Content services/drive_service.py; Get-Content services/document_service.py; Get-Content da…
+  ? templates\tasks\forward.html:297:    fetch("/api/drive/upload-local", {
+    templates\tasks\index.html:564:    fetch("/api/drive/upload-local", {
+    templates\tasks\report.html:254:    fetch("/api/drive/upload-local", {
+• Failed (exit 1) Get-Content services/document_service.py | Select-Object -Skip 88; Get-Content services/auth_service.py | Select-Obj…
+  ? ?? static/sw.js
+    ?? templates/mobile/
+    ?? tests/
+```
+Local upload ???c g?i tr??c khi l?u Task ho?c Document và không nh?n object ?ích; tôi s? gi? flow upload cho ng??i ??ng nh?p, ch? l?y identity t? session.
+
+Ba endpoint rename nh?n `fileId` và `maCV`, nh?ng schema ch? l?u URL do ng??i dùng nh?p, không có mapping Drive file ? tenant/owner ?áng tin c?y. Không th? suy ra ownership t? các URL ?ó. Tôi s? ch?n rename sau b??c authentication và báo BLOCKED cho vi?c cho phép rename; không thêm schema ho?c m? r?ng Task policy.
+```
+• Edited routes\documents.py (+25 -17)
+-from fastapi import APIRouter, Depends, Request, Response, Form, UploadFile, File
++from fastapi import APIRouter, Depends, Request, Response, Form, UploadFile, File, HTTPException
+    ?
+• Edited tests\runtime_sandbox.py (+55 -1)
++    # SEC-03: a recording Drive stub detects any mutation on denied requests.
++    from services.drive_service import DriveService
++    drive_calls = []
+• Edited tests\runtime_sandbox.py (+1 -1)
+-            record('SEC03 ' + actor['actor'] + ' upload content', upload_path.read_bytes(), b'authenticated sandbox upload')
++            record('SEC03 ' + actor['actor'] + ' upload content', upload_path.read_bytes() == b'authenticated sandbox upload', True)
+• Failed (exit 1) .\venv\Scripts\python.exe -B tests/runtime_sandbox.py
+  ? AttributeError: 'NoneType' object has no attribute 'get'
+    Report directory: .test_runtime\run-48f562130d2d45c492ee4901ffbe914f
+    PRODUCTION DB/DATA MODIFIED = NO
+• Ran rg -n "drive|Drive|gapi|google.script|rename|upload|delete|move" templates/tasks/index.html templates/tasks/report.html template…
+  ?  templates/layout.html         |  4 ----
+     vps_default.conf              |  2 +-
+     12 files changed, 82 insertions(+), 135 deletions(-)
+• Ran rg -n "current-user|current_user|company_mst" routes/auth.py | Select-Object -Last 7; Get-Content venv/Lib/site-packages/starlet…
+  ?               timeout=timeout,
+    
+    
+• Edited 2 files (+21 -6)
+  ? tests\RUNTIME_SANDBOX.md (+16 -0)
++
++## Batch 2A SEC-03 regression
++
+
+  ? tests\runtime_sandbox.py (+5 -6)
+-            record(actor['actor'] + ' post logout', AuthService.get_session(type('Request', (), {'cookies': client.cookies})()), None)
++            record(actor['actor'] + ' post logout', client.get('/api/auth/current-user').json().get('ma'), '')
+• Ran .\venv\Scripts\python.exe -B tests/runtime_sandbox.py
+  ? Runtime completed; baseline failures: 2
+    Report directory: .test_runtime\run-e387d8e535344a058a5afaa62f34a928
+    PRODUCTION DB/DATA MODIFIED = NO
+• Ran python -B -c "import ast,json,pathlib; [ast.parse(pathlib.Path(p).read_text(encoding='utf-8-sig')) for p in ['routes/documents.p…
+  ? GUARD VIOLATIONS []
+    BLOCKED {'operations': ['/api/drive/rename-task-file', '/api/drive/rename-report-file', '/api/drive/rename-forward-file'], 'author…
+    AST PASS
+```
+Regression sandbox ?ã hoàn t?t: 84 check SEC-03 ??u PASS. Upload anonymous chuy?n t? 200 sang 401; upload h?p l? v?n ho?t ??ng cho ADMIN/MANAGER/USER. Rename anonymous tr? 401, còn request ?ã ??ng nh?p tr? 403 và không g?i Drive.
+
+Hai mobile baseline 500 v?n còn; d? li?u production không ??i. Tr?ng thái SEC-03 s? là PARTIALLY FIXED: ?ã ?óng ???ng thao tác không xác th?c, nh?ng rename h?p l? ch?a th? b?t l?i khi thi?u ownership metadata.
+```
+• Ran git status --short; git diff --stat; git diff -- routes/documents.py; git diff -- services/document_service.py; git diff -- serv…
+  ? warning: in the working copy of 'vps_default.conf', LF will be replaced by CRLF the next time Git touches it
+    CORE DIFFERENCES SINCE BATCH1: ['routes\\documents.py']
+    TEST FILES REVIEWED: [('tests/runtime_sandbox.py', 382), ('tests/RUNTIME_SANDBOX.md', 91)]
+```
+## A. ROOT CAUSE
+
+Local upload và ba endpoint rename Drive g?i service mà không ki?m tra session.
+
+Drive ch? có credential dùng chung và `fileId/maCV` do client g?i. URL trong Task/Document có th? ch?nh s?a, **không ?? ch?ng minh file thu?c tenant ho?c ng??i dùng**.
+
+Không tìm th?y endpoint Drive upload/move/delete riêng trong QLCV Core.
+
+## B. SECURITY POLICY IMPLEMENTED
+
+- B?t bu?c session QLCV ?ã ký, có mã ng??i dùng và tenant.
+- Anonymous/cookie sai: **401 JSON**, không redirect HTML.
+- Local upload: gi? quy?n upload cho ng??i ??ng nh?p; không dùng client `company/owner` ?? xác ??nh identity.
+- Ba rename: sau authentication tr? **403**, không g?i Drive, vì ownership ch?a xác minh ???c.
+- Không s?a storage, schema, session architecture ho?c Task policy.
+
+## C. FILES MODIFIED
+
+| File | Thay ??i |
+|---|---|
+| /D:/App\_Claude\_Antigravity/QLCV\_web/routes/documents.py:173 | Auth guard cho upload/rename; ch?n rename thi?u ownership |
+| /D:/App\_Claude\_Antigravity/QLCV\_web/tests/runtime\_sandbox.py | Regression SEC-03 và recording Drive stub |
+| /D:/App\_Claude\_Antigravity/QLCV\_web/tests/RUNTIME\_SANDBOX.md | Ghi policy và ph?n BLOCKED |
+
+`document_service.py`, `drive_service.py`, templates và các module khác không thay ??i.
+
+## D. ENDPOINTS PROTECTED
+
+T?t c? endpoint d??i ?ây dùng prefix `/api/drive/`.
+
+| Endpoint | Before | After | Authentication | Authorization | Tenant check |
+|---|---|---|---|---|---|
+| `upload-local` | Anonymous 200 | Anonymous 401; h?p l? 200 | Session ?ã ký | Cho phép flow upload hi?n có | Identity t? session; ch?a tách storage |
+| `rename-task-file` | G?i Drive tr?c ti?p | 401/403 | B?t bu?c | Ch?n khi thi?u ownership | Không cho thao tác object b?t k? |
+| `rename-report-file` | G?i Drive tr?c ti?p | 401/403 | B?t bu?c | Ch?n khi thi?u ownership | Nh? trên |
+| `rename-forward-file` | G?i Drive tr?c ti?p | 401/403 | B?t bu?c | Ch?n khi thi?u ownership | Nh? trên |
+
+## E. TEST RESULTS
+
+Ch?y b?ng runtime sandbox: **136 checks, 134 PASS**.
+
+- **84 check SEC-03: PASS.**
+- Anonymous upload: **200 ? 401**, không t?o file.
+- ADMIN/MANAGER/USER upload: **ALLOW**, n?i dung file ?úng.
+- Cookie sai: **401**.
+- Anonymous rename: **401**.
+- Authenticated/cross-tenant rename: **403**.
+- Drive mutation calls: **0**, không g?i Google th?t.
+- Login/dashboard/tasks/logout: **PASS**.
+- Extension validation v?n ho?t ??ng; size limit và filename handling gi? nguyên.
+- Syntax Python và `git diff --check`: **PASS**.
+
+**Authorized Drive ALLOW test: BLOCKED**, không gi? l?p ownership ?? nh?n PASS.
+
+Chi ti?t: /D:/App\_Claude\_Antigravity/QLCV\_web/.test\_runtime/run-e387d8e535344a058a5afaa62f34a928/runtime\_results.json.
+
+## F. SEC-03 STATUS
+
+**PARTIALLY FIXED**
+
+Upload authentication ?ã s?a. Rename ???c vô hi?u an toàn; b?t l?i c?n mapping ownership ?áng tin c?y và policy ???c xác nh?n. Không thêm schema/migration.
+
+## G. PRODUCTION INTEGRITY
+
+**PRODUCTION DB MODIFIED = NO**  
+**PRODUCTION DATA MODIFIED = NO**
+
+SHA-256, size và mtime tr??c/sau không ??i. Không có unexpected sandbox guard violation.
+
+Integrity report (/D:/App\_Claude\_Antigravity/QLCV\_web/.test\_runtime/run-e387d8e535344a058a5afaa62f34a928/integrity.json).
+
+## H. REGRESSIONS
+
+Hai l?i có s?n v?n còn:
+
+- `/mobile`: **500**.
+- `/mobile/tasks`: **500**.
+
+Không phát hi?n regression ? smoke test Core. Rename nay b? ch?n ch? ??ng; không tìm th?y template Core hi?n t?i g?i ba endpoint này.
+
+## I. GIT DIFF SUMMARY
+
+- Batch 2A: ch? ba file nêu t?i m?c C.
+- Production diff m?i: `routes/documents.py` **\+25/-17**.
+- T?ng tracked working tree: **12 file, +82/-135**, bao g?m thay ??i có s?n/Phase A.
+- Test files v?n untracked t? Batch 1, nên `git diff` thông th??ng không hi?n th? chúng; ?ã review n?i dung.
+- So hash Core v?i snapshot Batch 1: ch? `routes/documents.py` khác.
+
+Không commit, reset/clean/restore ho?c s?a ngoài scope.
+
+## J. REMAINING RISKS
+
+- `/static/uploads` v?n công khai: **SEC-04 ch?a x? lý**.
+- Storage v?n dùng chung; collision filename ch?a s?a.
+- Session expiration/revocation và các finding identity/Task còn nguyên.
+- Rename h?p l? ch?a th? ho?t ??ng khi thi?u ownership metadata.
+
+## K. RECOMMENDED BATCH 2B PLAN
+
+Ki?m kê cách liên k?t file v?i tenant/Task/Document, r?i thi?t k? download/preview có ki?m tra quy?n và ph??ng án t??ng thích URL c?. Không suy ra ownership ch? t? filename ho?c URL do client nh?p.
+
+**?ã d?ng sau Batch 2A. Ch?a th?c hi?n Batch 2B.**
+```
+  Worked for 8m 15s • 7:46 PM
+```
