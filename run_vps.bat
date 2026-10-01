@@ -45,10 +45,6 @@ if exist requirements.txt (
     echo [*] Cai dat dependencies tu requirements.txt
     venv\Scripts\pip.exe install -r requirements.txt
 )
-if exist Bao-gia\requirements.txt (
-    echo [*] Cai dat dependencies tu Bao-gia\requirements.txt
-    venv\Scripts\pip.exe install -r Bao-gia\requirements.txt
-)
 
 :LOAD_ENV
 :: 4. Doc thong so PORT va HOST tu file .env
@@ -69,27 +65,19 @@ echo =====================================================================
 echo [THONG TIN CAU HINH MAY CHU VPS]
 echo   - Binding Host : %APP_HOST% (Cho phep truy cap tu Internet/VPS)
 echo   - FastAPI Port : %APP_PORT%
-echo   - Streamlit Quote Port: 8502 (Neu co phan he Bao Gia)
 echo =====================================================================
 echo.
 
 :: 5. Mo cong firewall neu chua co rule
 netsh advfirewall firewall show rule name="QLCV_Web_Port_%APP_PORT%" >nul 2>&1
 if errorlevel 1 goto ADD_FIREWALL_RULES
-goto START_STREAMLIT
+goto START_BROWSER
 
 :ADD_FIREWALL_RULES
-echo [*] Dang mo cong Firewall Windows cho port %APP_PORT% va 8502
+echo [*] Dang mo cong Firewall Windows cho port %APP_PORT%
 netsh advfirewall firewall add rule name="QLCV_Web_Port_%APP_PORT%" dir=in action=allow protocol=TCP localport=%APP_PORT% >nul 2>&1
-netsh advfirewall firewall add rule name="QLCV_BaoGia_Port_8502" dir=in action=allow protocol=TCP localport=8502 >nul 2>&1
 
-:START_STREAMLIT
-:: 6. Khoi dong Streamlit Quotation Server chay ngam (port 8502)
-if exist Bao-gia\app.py (
-    echo [*] KHOI DONG DICH VU BAO GIA (Streamlit - Port 8502)
-    start "AMS PRO - Sales Quotation Server (Port 8502)" /min cmd /c "cd /d "%~dp0Bao-gia" && ..\venv\Scripts\python.exe -m streamlit run app.py --server.port 8502 --server.address 0.0.0.0 --server.headless true"
-)
-
+:START_BROWSER
 :: 7. Tu dong mo Trinh duyet Web sau 3 giay
 echo [*] Dang tu dong mo trinh duyet truy cap chuong trinh...
 start /b cmd /c "ping 127.0.0.1 -n 4 >nul && start http://localhost:%APP_PORT%"
@@ -105,13 +93,13 @@ echo [+] Nhan Ctrl + C de dung may chu.
 echo =====================================================================
 echo.
 
-:: Chay Uvicorn voi che do --reload de tu dong cap nhat khi co route/file moi
-venv\Scripts\python.exe -m uvicorn app:app --host %APP_HOST% --port %APP_PORT% --reload
+:: Chay Uvicorn che do Production an dinh 24/7 (khong reload gay treo watcher)
+venv\Scripts\python.exe -m uvicorn app:app --host %APP_HOST% --port %APP_PORT% --timeout-keep-alive 65
 
 if errorlevel 1 (
     echo.
-    echo [WARNING] May chu bi ngung hoac gap loi! Tu dong khoi dong lai sau 5 giay...
-    timeout /t 5 /nobreak >nul
+    echo [CANH BAO CRITICAL] May chu ngung hoac gap su co! DANG TU DONG KHOI DONG LAI NGAY LAP TUC...
+    timeout /t 2 /nobreak >nul
     goto SERVER_LOOP
 )
 

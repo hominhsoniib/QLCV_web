@@ -58,8 +58,8 @@ def start_fastapi():
     from config import Config
     
     # Ensure port and host are read from configuration
-    host = "127.0.0.1"
-    port = Config.PORT if Config.PORT else 8000
+    host = Config.HOST if Config.HOST else "0.0.0.0"
+    port = Config.PORT if Config.PORT else 8081
     
     print(f"[*] Starting FastAPI backend at http://{host}:{port} ...")
     # Set reload=False when compiled because uvicorn reloader will fail in frozen executable!
@@ -68,7 +68,7 @@ def start_fastapi():
 def auto_open_browser():
     """Automatically open the browser once servers are online."""
     from config import Config
-    port = Config.PORT if Config.PORT else 8000
+    port = Config.PORT if Config.PORT else 8081
     
     # Wait for FastAPI server to start
     time.sleep(3)

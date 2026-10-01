@@ -43,13 +43,10 @@ venv\Scripts\python.exe -m pip install --upgrade pip >nul 2>&1
 if exist requirements.txt (
     venv\Scripts\pip.exe install -r requirements.txt
 )
-if exist Bao-gia\requirements.txt (
-    venv\Scripts\pip.exe install -r Bao-gia\requirements.txt
-)
 
 :START_SERVICES
 :: Doc PORT tu file .env
-set APP_PORT=8000
+set APP_PORT=8081
 if exist .env (
     for /f "usebackq tokens=2 delims==" %%i in (`findstr "^PORT=" .env`) do (
         for /f %%j in ("%%i") do set APP_PORT=%%j
@@ -60,15 +57,8 @@ echo.
 echo =====================================================================
 echo   DANG KHOI DONG CAC MAY CHU HET THONG WEB QLCV...
 echo   - 1. Main Web System (AMS PRO 5.0 QLCV): http://localhost:%APP_PORT%
-echo   - 2. Quotation Engine (Phan he Bao Gia):  http://localhost:8502
 echo =====================================================================
 echo.
-
-:: Khoi dong Streamlit Quotation Server tu thu muc Bao-gia (Port 8502)
-if exist Bao-gia\app.py (
-    echo [*] Dang khoi dong Quotation Server (Streamlit - Port 8502)...
-    start "QUOTEFLOW OS - Sales Quotation Server" /min cmd /c "cd /d "%~dp0Bao-gia" && ..\venv\Scripts\python.exe -m streamlit run app.py --server.port 8502 --server.headless true"
-)
 
 :: Tu dong mo trinh duyet khi server san sang
 start /b venv\Scripts\python.exe -c "import time, socket, webbrowser; [time.sleep(1) for _ in range(30) if socket.socket().connect_ex(('127.0.0.1', %APP_PORT%)) != 0]; webbrowser.open('http://localhost:%APP_PORT%')"

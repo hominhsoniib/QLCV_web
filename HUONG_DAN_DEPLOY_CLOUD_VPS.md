@@ -63,7 +63,7 @@ chmod +x deploy_vps.sh
 
 ## 🔒 BƯỚC 4: CẤU HÌNH NGINX & CẤP SSL (HTTPS) MIỄN PHÍ
 
-Nginx giúp ẩn cổng `8000` và `8502`, cho phép nhân viên gõ tên miền chuẩn SSL bảo mật `https://app.congty.com`.
+Nginx giúp chuyển tiếp cổng `8081` và `8502` về cổng chuẩn `80` (HTTP) hoặc `443` (HTTPS), giúp người dùng truy cập tên miền chuẩn không cần gõ `:8081` (tránh bị Firewall hay Cloudflare chặn).
 
 ### 1. Tạo file cấu hình Nginx
 ```bash
@@ -74,10 +74,10 @@ Dán nội dung sau vào file:
 ```nginx
 server {
     listen 80;
-    server_name app.congty.com;
+    server_name app.badenfarm.com.vn app.congty.com;
 
     location / {
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:8081;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;

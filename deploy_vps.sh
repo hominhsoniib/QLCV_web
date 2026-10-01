@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================
-# SCRIPT DEPLOY TỰ ĐỘNG AMS PRO & NEXUS-CRM WEB LÊN CLOUD VPS
+# SCRIPT DEPLOY TỰ ĐỘNG AMS PRO QLCV WEB LÊN CLOUD VPS
 # Hỗ trợ OS: Ubuntu 20.04 / 22.04 LTS
 # ============================================================
 
@@ -26,45 +26,32 @@ pip install --upgrade pip
 if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 fi
-if [ -f "Bao-gia/requirements.txt" ]; then
-    pip install -r Bao-gia/requirements.txt
-fi
-pip install uvicorn gunicorn streamlit python-docx
+pip install uvicorn gunicorn python-docx
 
 # Systemd Service setup for FastAPI
-echo "[3/4] Cấu hình Systemd Service cho FastAPI Server..."
+echo "[3/4] Cấu hình Systemd Service cho FastAPI Server (Host 0.0.0.0 - Port 8081)..."
 sudo cat <<EOF | sudo tee /etc/systemd/system/nexus-app.service
 [Unit]
-Description=AMS PRO & NEXUS-CRM Web Service
+Description=AMS PRO QLCV Web Service
 After=network.target
 
 [Service]
 User=root
 WorkingDirectory=$APP_DIR
-ExecStart=$APP_DIR/venv/bin/uvicorn app:app --host 127.0.0.1 --port 8000 --workers 2
+ExecStart=$APP_DIR/venv/bin/uvicorn app:app --host 0.0.0.0 --port 8081 --workers 2
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Systemd Service setup for Streamlit QuoteFlow
-if [ -d "Bao-gia" ]; then
-echo "[3b/4] Cấu hình Systemd Service cho Streamlit QuoteFlow Server..."
-sudo cat <<EOF | sudo tee /etc/systemd/system/nexus-quoteflow.service
-[Unit]
-Description=QuoteFlow Streamlit Service
-After=network.target
-
-[Service]
-User=root
-WorkingDirectory=$APP_DIR/Bao-gia
-ExecStart=$APP_DIR/venv/bin/python3 -m streamlit run app.py --server.port 8502 --server.address 127.0.0.1 --server.headless true
-Restart=always
-
-[Install]
-WantedBy=multi-user.target
-EOF
+# Open Linux UFW Firewall for QLCV and HTTP/HTTPS
+if command -v ufw > /dev/null; then
+    echo "[3c/4] Mở cổng Tường lửa UFW cho port 8081, 80 và 443..."
+    sudo ufw allow 8081/tcp
+    sudo ufw allow 80/tcp
+    sudo ufw allow 443/tcp
+    sudo ufw reload || true
 fi
 
 # Reload and start services
@@ -73,15 +60,8 @@ sudo systemctl daemon-reload
 sudo systemctl enable nexus-app
 sudo systemctl restart nexus-app
 
-if [ -d "Bao-gia" ]; then
-    sudo systemctl enable nexus-quoteflow
-    sudo systemctl restart nexus-quoteflow
-fi
-
 echo "============================================================"
 echo "  DEPLOY THÀNH CÔNG!"
-echo "  - Backend FastAPI running on: http://127.0.0.1:8000"
-if [ -d "Bao-gia" ]; then
-echo "  - Streamlit Báo giá running on: http://127.0.0.1:8502"
-fi
+echo "  - Backend FastAPI running on: http://0.0.0.0:8081"
+echo "  - Truy cập trực tiếp: http://app.badenfarm.com.vn:8081"
 echo "============================================================"
