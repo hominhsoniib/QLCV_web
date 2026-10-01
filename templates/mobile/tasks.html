@@ -1,0 +1,96 @@
+{% extends "mobile/layout.html" %}
+
+{% block title %}Công việc - QLCV Mobile{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <h5 class="fw-700 text-white mb-0">Quản lý Công việc</h5>
+  <a href="/tasks/personal" class="btn btn-sm btn-outline-primary rounded-pill px-3">
+    <i class="fa-solid fa-list me-1"></i>Bản chi tiết
+  </a>
+</div>
+
+<!-- Search Bar -->
+<div class="mb-3">
+  <div class="input-group">
+    <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </span>
+    <input type="text" id="task-search" class="form-control bg-dark text-white border-secondary border-opacity-50" placeholder="Tìm kiếm công việc...">
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="mobile-tabs">
+  <a href="/mobile/tasks?status=all" class="mobile-tab-btn {% if current_status == 'all' %}active{% endif %}">
+    Tất cả
+  </a>
+  <a href="/mobile/tasks?status=doing" class="mobile-tab-btn {% if current_status == 'doing' %}active{% endif %}">
+    Đang thực hiện
+  </a>
+  <a href="/mobile/tasks?status=late" class="mobile-tab-btn {% if current_status == 'late' %}active{% endif %}">
+    Cần chú ý / Quá hạn
+  </a>
+  <a href="/mobile/tasks?status=done" class="mobile-tab-btn {% if current_status == 'done' %}active{% endif %}">
+    Đã hoàn thành
+  </a>
+</div>
+
+<!-- Task Cards List -->
+<div id="task-list-container">
+  {% if tasks %}
+    {% for task in tasks %}
+      <div class="mobile-card task-card-item" data-search="{{ (task.ten_cong_viec or '') ~ ' ' ~ (task.noi_dung or '') ~ ' ' ~ (task.nguoi_giao or '') }}">
+        <div class="d-flex align-items-start justify-content-between mb-2">
+          <div class="fw-600 text-white" style="font-size: 0.95rem;">
+            {{ task.ten_cong_viec or task.noi_dung or 'Công việc #' ~ task.id }}
+          </div>
+          {% if task.trang_thai and 'hoàn thành' in task.trang_thai.lower() %}
+            <span class="mobile-badge bg-done">Hoàn thành</span>
+          {% elif task.trang_thai and 'quá hạn' in task.trang_thai.lower() %}
+            <span class="mobile-badge bg-late">Quá hạn</span>
+          {% else %}
+            <span class="mobile-badge bg-progress">Đang làm</span>
+          {% endif %}
+        </div>
+        
+        {% if task.noi_dung and task.noi_dung != task.ten_cong_viec %}
+          <div class="text-secondary small mb-2 text-truncate-2" style="font-size: 0.82rem;">
+            {{ task.noi_dung }}
+          </div>
+        {% endif %}
+
+        <div class="d-flex align-items-center justify-content-between text-secondary pt-2 border-top border-secondary border-opacity-25" style="font-size: 0.78rem;">
+          <div class="d-flex align-items-center gap-2">
+            <span><i class="fa-regular fa-calendar me-1"></i>{{ task.ngay_het_han or 'Chưa hạn' }}</span>
+            <span><i class="fa-regular fa-user me-1"></i>{{ task.nguoi_giao or 'Admin' }}</span>
+          </div>
+          <button class="btn btn-sm btn-outline-info rounded-pill px-2 py-0" onclick="alert('Mã công việc: {{ task.id_phan_cong or task.id }}\nTrạng thái: {{ task.trang_thai }}')">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+          </button>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="mobile-card text-center py-4">
+      <i class="fa-solid fa-box-open text-secondary display-6 mb-2"></i>
+      <div class="text-secondary">Không có công việc nào trong danh mục này.</div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Dynamic Search Filter JS -->
+<script>
+  document.getElementById('task-search')?.addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase().strip();
+    document.querySelectorAll('.task-card-item').forEach(card => {
+      const searchData = (card.getAttribute('data-search') || '').toLowerCase();
+      if (!query || searchData.includes(query)) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+</script>
+{% endblock %}

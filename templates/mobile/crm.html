@@ -1,0 +1,81 @@
+{% extends "mobile/layout.html" %}
+
+{% block title %}CRM Khách hàng - QLCV Mobile{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <h5 class="fw-700 text-white mb-0">Danh bạ CRM Khách hàng</h5>
+  <a href="/khach-hang" class="btn btn-sm btn-outline-success rounded-pill px-3">
+    <i class="fa-solid fa-users me-1"></i>Bản Desktop
+  </a>
+</div>
+
+<!-- Search Customer Bar -->
+<div class="mb-3">
+  <div class="input-group">
+    <span class="input-group-text bg-dark border-secondary border-opacity-50 text-secondary">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </span>
+    <input type="text" id="crm-search" class="form-control bg-dark text-white border-secondary border-opacity-50" placeholder="Tìm tên, số điện thoại, công ty...">
+  </div>
+</div>
+
+<!-- Customer List Cards -->
+<div class="mobile-card">
+  <div class="mobile-card-title mb-3">
+    <i class="fa-solid fa-user-group me-2 text-success"></i>Danh sách Liên hệ ({{ customers|length }})
+  </div>
+
+  {% if customers %}
+    {% for c in customers %}
+      {% set phone_clean = (c.phone or '')|replace(' ', '')|replace('-', '') %}
+      <div class="contact-item crm-card-item" data-search="{{ (c.name or '') ~ ' ' ~ (c.phone or '') ~ ' ' ~ (c.company_name or '') }}">
+        <div class="d-flex align-items-center gap-3">
+          <div class="contact-avatar">
+            {{ (c.name or 'C')[0]|upper }}
+          </div>
+          <div>
+            <div class="fw-600 text-white" style="font-size: 0.92rem;">{{ c.name or 'Khách hàng' }}</div>
+            {% if c.company_name %}
+              <div class="text-secondary small" style="font-size: 0.78rem;">{{ c.company_name }}</div>
+            {% endif %}
+            <div class="text-info small" style="font-size: 0.8rem;">
+              <i class="fa-solid fa-phone me-1" style="font-size: 0.7rem;"></i>{{ c.phone or 'Chưa có SĐT' }}
+            </div>
+          </div>
+        </div>
+        
+        <div class="d-flex align-items-center">
+          {% if phone_clean %}
+            <a href="tel:{{ phone_clean }}" class="btn-contact-action btn-call" title="Gọi điện">
+              <i class="fa-solid fa-phone"></i>
+            </a>
+            <a href="https://zalo.me/{{ phone_clean }}" target="_blank" class="btn-contact-action btn-zalo" title="Chat Zalo">
+              <i class="fa-solid fa-comment"></i>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center text-secondary py-4">
+      <i class="fa-solid fa-address-card display-6 mb-2"></i>
+      <div>Chưa có dữ liệu khách hàng.</div>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  document.getElementById('crm-search')?.addEventListener('input', function(e) {
+    const query = e.target.value.toLowerCase().trim();
+    document.querySelectorAll('.crm-card-item').forEach(card => {
+      const searchData = (card.getAttribute('data-search') || '').toLowerCase();
+      if (!query || searchData.includes(query)) {
+        card.style.display = 'flex';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+</script>
+{% endblock %}

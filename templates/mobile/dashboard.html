@@ -1,0 +1,113 @@
+{% extends "mobile/layout.html" %}
+
+{% block title %}Trang chủ - QLCV Mobile{% endblock %}
+
+{% block content %}
+<!-- Greeting Banner -->
+<div class="d-flex align-items-center justify-content-between mb-3 mt-1">
+  <div>
+    <div class="text-secondary small fw-500">Xin chào 👋</div>
+    <div class="h5 fw-700 mb-0 text-white">{{ user.ten_nv or user.ma }}</div>
+  </div>
+  <div class="text-end">
+    <span class="badge bg-secondary opacity-75" style="font-size: 0.7rem;">{{ user.ten_cong_ty or 'QLCV' }}</span>
+  </div>
+</div>
+
+<!-- Task Stats Cards Grid -->
+<div class="row g-2 mb-3">
+  <div class="col-6">
+    <div class="mobile-card mb-0 p-3 text-center">
+      <div class="text-secondary small">Tổng công việc</div>
+      <div class="h3 fw-700 text-info my-1">{{ total_count }}</div>
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="mobile-card mb-0 p-3 text-center">
+      <div class="text-secondary small">Đang làm</div>
+      <div class="h3 fw-700 text-primary my-1">{{ in_progress_count }}</div>
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="mobile-card mb-0 p-3 text-center">
+      <div class="text-secondary small">Đã hoàn thành</div>
+      <div class="h3 fw-700 text-success my-1">{{ done_count }}</div>
+    </div>
+  </div>
+  <div class="col-6">
+    <div class="mobile-card mb-0 p-3 text-center">
+      <div class="text-secondary small">Cần chú ý</div>
+      <div class="h3 fw-700 text-danger my-1">{{ late_count }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions Grid -->
+<div class="quick-action-grid">
+  <a href="/mobile/tasks" class="action-card">
+    <div class="action-icon blue">
+      <i class="fa-solid fa-list-check"></i>
+    </div>
+    <div class="action-title">Công việc</div>
+    <div class="action-desc">Quản lý & Tiến độ</div>
+  </a>
+  
+  <a href="/mobile/ai" class="action-card">
+    <div class="action-icon purple">
+      <i class="fa-solid fa-robot"></i>
+    </div>
+    <div class="action-title">Trợ lý AI</div>
+    <div class="action-desc">Hỏi đáp & Lập kế hoạch</div>
+  </a>
+  
+  <a href="/tasks/report" class="action-card">
+    <div class="action-icon amber">
+      <i class="fa-solid fa-chart-pie"></i>
+    </div>
+    <div class="action-title">Báo cáo KPI</div>
+    <div class="action-desc">Thống kê tuần & tháng</div>
+  </a>
+</div>
+
+<!-- Recent Tasks List -->
+<div class="mobile-card">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <div class="mobile-card-title mb-0">
+      <i class="fa-solid fa-clock-rotate-left me-2 text-primary"></i>Công việc gần đây
+    </div>
+    <a href="/mobile/tasks" class="text-primary text-decoration-none small">Xem tất cả</a>
+  </div>
+
+  {% if recent_tasks %}
+    {% for task in recent_tasks %}
+      <div class="border-bottom border-secondary border-opacity-25 py-2">
+        <div class="d-flex align-items-start justify-content-between">
+          <div class="fw-600 text-white" style="font-size: 0.9rem;">
+            {{ task.ten_cong_viec or task.noi_dung or 'Công việc #' ~ task.id }}
+          </div>
+          {% if task.trang_thai and 'hoàn thành' in task.trang_thai.lower() %}
+            <span class="mobile-badge bg-done">Hoàn thành</span>
+          {% elif task.trang_thai and 'quá hạn' in task.trang_thai.lower() %}
+            <span class="mobile-badge bg-late">Quá hạn</span>
+          {% else %}
+            <span class="mobile-badge bg-progress">Đang làm</span>
+          {% endif %}
+        </div>
+        <div class="d-flex align-items-center gap-3 text-secondary mt-1" style="font-size: 0.78rem;">
+          <span><i class="fa-regular fa-calendar me-1"></i>{{ task.ngay_het_han or 'Chưa hạn' }}</span>
+          <span><i class="fa-regular fa-user me-1"></i>{{ task.nguoi_giao or 'Hệ thống' }}</span>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center text-secondary py-3" style="font-size: 0.85rem;">
+      Chưa có công việc nào gần đây.
+    </div>
+  {% endif %}
+</div>
+
+<!-- FAB Button to Quick Create Task -->
+<a href="/mobile/tasks" class="mobile-fab" title="Tạo công việc">
+  <i class="fa-solid fa-plus"></i>
+</a>
+{% endblock %}

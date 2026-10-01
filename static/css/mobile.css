@@ -1,0 +1,299 @@
+/* ==========================================
+   AMS PRO 5.0 - Mobile App Modern CSS Framework
+   ========================================== */
+
+:root {
+  --mb-bg: #0f172a;
+  --mb-card-bg: rgba(30, 41, 59, 0.75);
+  --mb-card-border: rgba(255, 255, 255, 0.08);
+  --mb-primary: #3b82f6;
+  --mb-primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  --mb-accent: #8b5cf6;
+  --mb-success: #10b981;
+  --mb-warning: #f59e0b;
+  --mb-danger: #ef4444;
+  --mb-text-main: #f8fafc;
+  --mb-text-sub: #94a3b8;
+  --mb-nav-height: 65px;
+  --mb-header-height: 56px;
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body.mobile-body {
+  background-color: var(--mb-bg);
+  color: var(--mb-text-main);
+  font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  padding-top: var(--mb-header-height);
+  padding-bottom: calc(var(--mb-nav-height) + var(--safe-area-bottom) + 10px);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+/* Mobile Header Sticky */
+.mobile-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--mb-header-height);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--mb-card-border);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.mobile-brand-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: linear-gradient(135deg, #60a5fa, #a78bfa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Bottom Navigation Bar */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: calc(var(--mb-nav-height) + var(--safe-area-bottom));
+  padding-bottom: var(--safe-area-bottom);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--mb-card-border);
+  z-index: 1000;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--mb-text-sub);
+  text-decoration: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  width: 20%;
+  transition: all 0.2s ease;
+}
+
+.mobile-nav-item i {
+  font-size: 1.3rem;
+  margin-bottom: 3px;
+  transition: transform 0.2s ease;
+}
+
+.mobile-nav-item.active {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.mobile-nav-item.active i {
+  transform: translateY(-2px);
+  color: #60a5fa;
+}
+
+/* Container & Cards */
+.mobile-container {
+  padding: 16px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.mobile-card {
+  background: var(--mb-card-bg);
+  border: 1px solid var(--mb-card-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(8px);
+}
+
+.mobile-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--mb-text-main);
+  margin-bottom: 8px;
+}
+
+/* Quick Action Grid */
+.quick-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.action-card {
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.8));
+  border: 1px solid var(--mb-card-border);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-decoration: none;
+  color: var(--mb-text-main);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.action-card:active {
+  transform: scale(0.97);
+  border-color: var(--mb-primary);
+}
+
+.action-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+.action-icon.blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.action-icon.green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.action-icon.purple { background: rgba(139, 92, 246, 0.2); color: #c084fc; }
+.action-icon.amber { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+
+.action-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.action-desc {
+  font-size: 0.75rem;
+  color: var(--mb-text-sub);
+}
+
+/* Status Filter Tabs */
+.mobile-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+
+.mobile-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-tab-btn {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--mb-card-border);
+  color: var(--mb-text-sub);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.mobile-tab-btn.active {
+  background: var(--mb-primary-gradient);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+/* Floating Action Button (FAB) */
+.mobile-fab {
+  position: fixed;
+  bottom: calc(var(--mb-nav-height) + var(--safe-area-bottom) + 16px);
+  right: 18px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: var(--mb-primary-gradient);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+  border: none;
+  z-index: 999;
+  text-decoration: none;
+  transition: transform 0.2s ease;
+}
+
+.mobile-fab:active {
+  transform: scale(0.92);
+}
+
+/* Contact List Card */
+.contact-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--mb-card-border);
+}
+
+.contact-item:last-child {
+  border-bottom: none;
+}
+
+.contact-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.btn-contact-action {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  margin-left: 6px;
+  text-decoration: none;
+}
+
+.btn-call { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.btn-zalo { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+
+/* Status Badges */
+.mobile-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.bg-done { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+.bg-progress { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+.bg-late { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+.bg-pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }

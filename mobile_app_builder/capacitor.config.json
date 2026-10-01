@@ -1,0 +1,10 @@
+{
+  "appId": "com.amspro.qlcv",
+  "appName": "AMS PRO QLCV Mobile",
+  "webDir": "static",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://app.congty.com/mobile",
+    "cleartext": true
+  }
+}

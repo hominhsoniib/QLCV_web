@@ -1,0 +1,21 @@
+{
+  "short_name": "QLCV Mobile",
+  "name": "AMS PRO 5.0 - Quản Lý Công Việc",
+  "icons": [
+    {
+      "src": "/static/css/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/static/css/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/mobile",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait"
+}

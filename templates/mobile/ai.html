@@ -1,0 +1,101 @@
+{% extends "mobile/layout.html" %}
+
+{% block title %}Trợ lý AI - QLCV Mobile{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <h5 class="fw-700 text-white mb-0">
+    <i class="fa-solid fa-robot text-purple me-2"></i>Trợ lý AI Doanh Nghiệp
+  </h5>
+</div>
+
+<!-- Chat Messages Container -->
+<div class="mobile-card p-3 mb-2" style="min-height: 55vh; max-height: 65vh; overflow-y: auto;" id="ai-chat-box">
+  <!-- Bot Welcome -->
+  <div class="d-flex align-items-start gap-2 mb-3">
+    <div class="contact-avatar bg-purple text-white" style="width: 34px; height: 34px; font-size: 0.9rem;">
+      <i class="fa-solid fa-robot"></i>
+    </div>
+    <div class="p-3 rounded-4 bg-dark text-white border border-secondary border-opacity-25" style="max-width: 82%; font-size: 0.88rem;">
+      Xin chào {{ user.ten_nv or user.ma }}! Tôi là Trợ lý AI QLCV. Tôi có thể giúp gì cho bạn hôm nay?
+    </div>
+  </div>
+</div>
+
+<!-- Preset Quick Suggestions -->
+<div class="d-flex gap-2 overflow-x-auto pb-2 mb-2" style="scrollbar-width: none;">
+  <button class="btn btn-sm btn-outline-secondary text-white rounded-pill text-nowrap px-3 py-1" onclick="sendPresetPrompt('Lập kế hoạch công việc hôm nay cho tôi')">
+    ⚡ Kế hoạch hôm nay
+  </button>
+  <button class="btn btn-sm btn-outline-secondary text-white rounded-pill text-nowrap px-3 py-1" onclick="sendPresetPrompt('Viết mẫu báo cáo tiến độ công việc tuần này')">
+    📝 Báo cáo tuần
+  </button>
+  <button class="btn btn-sm btn-outline-secondary text-white rounded-pill text-nowrap px-3 py-1" onclick="sendPresetPrompt('Gợi ý cách tối ưu quy trình làm việc')">
+    💡 Tối ưu quy trình
+  </button>
+</div>
+
+<!-- Chat Input Bar -->
+<div class="input-group">
+  <input type="text" id="ai-input" class="form-control bg-dark text-white border-secondary border-opacity-50 rounded-pill-start" placeholder="Nhập câu hỏi cho Trợ lý AI..." onkeypress="if(event.key==='Enter') sendAIMessage()">
+  <button class="btn btn-primary rounded-pill-end px-3" type="button" onclick="sendAIMessage()">
+    <i class="fa-solid fa-paper-plane"></i>
+  </button>
+</div>
+
+<script>
+  function appendMessage(sender, text) {
+    const chatBox = document.getElementById('ai-chat-box');
+    const isUser = sender === 'user';
+    const msgHtml = `
+      <div class="d-flex align-items-start gap-2 mb-3 ${isUser ? 'justify-content-end' : ''}">
+        ${!isUser ? '<div class="contact-avatar bg-purple text-white" style="width: 34px; height: 34px; font-size: 0.9rem;"><i class="fa-solid fa-robot"></i></div>' : ''}
+        <div class="p-3 rounded-4 ${isUser ? 'bg-primary text-white' : 'bg-dark text-white border border-secondary border-opacity-25'}" style="max-width: 82%; font-size: 0.88rem;">
+          ${text}
+        </div>
+      </div>
+    `;
+    chatBox.insertAdjacentHTML('beforeend', msgHtml);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  async function sendAIMessage() {
+    const input = document.getElementById('ai-input');
+    const text = input.value.trim();
+    if (!text) return;
+    
+    appendMessage('user', text);
+    input.value = '';
+
+    appendMessage('bot', '<i class="fa-solid fa-spinner fa-spin me-2"></i>Đang suy nghĩ...');
+    
+    try {
+      const res = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: text })
+      });
+      const data = await res.json();
+      
+      // Remove loading indicator
+      const chatBox = document.getElementById('ai-chat-box');
+      chatBox.removeChild(chatBox.lastElementChild);
+
+      if (data.reply) {
+        appendMessage('bot', data.reply.replace(/\n/g, '<br>'));
+      } else {
+        appendMessage('bot', 'Đã xử lý xong yêu cầu của bạn.');
+      }
+    } catch (e) {
+      const chatBox = document.getElementById('ai-chat-box');
+      chatBox.removeChild(chatBox.lastElementChild);
+      appendMessage('bot', 'Xin lỗi, đã xảy ra lỗi kết nối với máy chủ AI.');
+    }
+  }
+
+  function sendPresetPrompt(text) {
+    document.getElementById('ai-input').value = text;
+    sendAIMessage();
+  }
+</script>
+{% endblock %}

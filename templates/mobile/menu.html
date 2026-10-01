@@ -1,0 +1,91 @@
+{% extends "mobile/layout.html" %}
+
+{% block title %}Menu & Cài đặt - QLCV Mobile{% endblock %}
+
+{% block content %}
+<h5 class="fw-700 text-white mb-3">Tài khoản & Menu</h5>
+
+<!-- User Profile Card -->
+<div class="mobile-card p-3 mb-3">
+  <div class="d-flex align-items-center gap-3">
+    <div class="contact-avatar bg-primary text-white" style="width: 50px; height: 50px; font-size: 1.3rem;">
+      <i class="fa-solid fa-user-gear"></i>
+    </div>
+    <div>
+      <div class="fw-700 text-white h6 mb-1">{{ user.ten_nv or user.ma }}</div>
+      <div class="text-secondary small">Mã NV: <span class="text-info">{{ user.ma }}</span></div>
+      <div class="text-secondary small">Chức vụ: {{ user.role or 'Nhân viên' }}</div>
+    </div>
+  </div>
+  {% if user.ten_cong_ty %}
+    <div class="mt-2 pt-2 border-top border-secondary border-opacity-25 text-secondary small">
+      <i class="fa-solid fa-building me-1 text-warning"></i>{{ user.ten_cong_ty }}
+      {% if user.tax_code %}
+        <span class="ms-1">({{ user.tax_code }})</span>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+
+<!-- Navigation List Group -->
+<div class="mobile-card p-2 mb-3">
+  <a href="/dashboard" class="d-flex align-items-center justify-content-between p-3 text-decoration-none border-bottom border-secondary border-opacity-25">
+    <div class="d-flex align-items-center gap-3 text-white">
+      <i class="fa-solid fa-desktop text-primary" style="width: 20px;"></i>
+      <span>Chuyển sang bản Desktop Web</span>
+    </div>
+    <i class="fa-solid fa-chevron-right text-secondary small"></i>
+  </a>
+
+  <a href="/documents" class="d-flex align-items-center justify-content-between p-3 text-decoration-none border-bottom border-secondary border-opacity-25">
+    <div class="d-flex align-items-center gap-3 text-white">
+      <i class="fa-solid fa-folder-open text-warning" style="width: 20px;"></i>
+      <span>Thư mục Tài liệu</span>
+    </div>
+    <i class="fa-solid fa-chevron-right text-secondary small"></i>
+  </a>
+
+  <a href="/processes" class="d-flex align-items-center justify-content-between p-3 text-decoration-none border-bottom border-secondary border-opacity-25">
+    <div class="d-flex align-items-center gap-3 text-white">
+      <i class="fa-solid fa-diagram-project text-info" style="width: 20px;"></i>
+      <span>Quy trình công việc</span>
+    </div>
+    <i class="fa-solid fa-chevron-right text-secondary small"></i>
+  </a>
+
+  <a href="/org-chart" class="d-flex align-items-center justify-content-between p-3 text-decoration-none border-bottom border-secondary border-opacity-25">
+    <div class="d-flex align-items-center gap-3 text-white">
+      <i class="fa-solid fa-sitemap text-success" style="width: 20px;"></i>
+      <span>Sơ đồ tổ chức</span>
+    </div>
+    <i class="fa-solid fa-chevron-right text-secondary small"></i>
+  </a>
+
+  <a href="/auth/change-password" class="d-flex align-items-center justify-content-between p-3 text-decoration-none">
+    <div class="d-flex align-items-center gap-3 text-white">
+      <i class="fa-solid fa-key text-purple" style="width: 20px;"></i>
+      <span>Đổi mật khẩu</span>
+    </div>
+    <i class="fa-solid fa-chevron-right text-secondary small"></i>
+  </a>
+</div>
+
+<!-- PWA Instructions Banner -->
+<div class="mobile-card p-3 mb-3 bg-dark border-primary border-opacity-25">
+  <div class="fw-600 text-primary mb-1">
+    <i class="fa-solid fa-mobile-screen me-2"></i>Cài đặt App lên điện thoại
+  </div>
+  <div class="text-secondary small mb-2">
+    Thêm ứng dụng vào Màn hình chính (Home Screen) để truy cập 1 chạm không cần mở trình duyệt:
+  </div>
+  <div class="small text-white opacity-75">
+    • <b>iOS Safari:</b> Bấm nút <i class="fa-solid fa-share-nodes text-info"></i> Share -> Chọn "Add to Home Screen"<br>
+    • <b>Android Chrome:</b> Bấm menu 3 chấm <i class="fa-solid fa-ellipsis-vertical text-info"></i> -> Chọn "Thêm vào màn hình chính"
+  </div>
+</div>
+
+<!-- Logout Action -->
+<a href="/api/auth/logout" class="btn btn-outline-danger w-100 rounded-pill py-2 font-weight-bold">
+  <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất hệ thống
+</a>
+{% endblock %}
