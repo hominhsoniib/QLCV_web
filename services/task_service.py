@@ -1,24 +1,14 @@
 from sqlalchemy.orm import Session
 from models.models import Task, Employee
+from services.task_policy import can_view_task
+from services.file_binding_service import FileBindingService
 import datetime
 
 class TaskService:
     @staticmethod
-    def get_index_init_data(db: Session, ma_nv: str, role: str):
-        """Retrieves and formats all tasks visible to the user.
-        Admin/CEO see all tasks, Managers/Users see tasks they assigned, are assigned to, or are CC'd in.
-        """
-        ma_nv_upper = str(ma_nv or "").strip().upper()
-        is_super_admin = (ma_nv_upper == "ADMIN")
-        
-        query = db.query(Task)
-        if not is_super_admin:
-            query = query.filter(
-                (Task.nguoi_giao == ma_nv_upper) | 
-                (Task.nguoi_nhan == ma_nv_upper)
-            )
-            
-        tasks = query.all()
+    def get_index_init_data(db: Session, actor):
+        """List uses exactly the tenant-local detail READ capability, including CC."""
+        tasks = [t for t in db.query(Task).all() if can_view_task(actor, t)]
         results = []
         
         for t in tasks:
@@ -117,13 +107,13 @@ class TaskService:
         return f"{prefix_clean}.{str(next_num).zfill(3)}"
 
     @staticmethod
-    def save_task_data(db: Session, obj: dict):
-        """Creates a new task or updates an existing one."""
+    def save_task_data(db: Session, obj: dict, *, task, create: bool, tenant_id: str, actor_ma: str):
+        """Persist the route-authorized CREATE or loaded EDIT; never reclassify."""
         id_pc = str(obj.get("idPhanCong", "")).strip()
+        old_url=task.file_giao_viec or '' if task else ''
         
-        # Check if existing task in database
-        existing_task = db.query(Task).filter(Task.id_phan_cong == id_pc).first() if id_pc and id_pc != "TỰ ĐỘNG" else None
-        is_new = existing_task is None
+        if create == (task is not None):
+            return {"success": False, "message": "Dữ liệu không hợp lệ."}
         
         # Parse progress
         try:
@@ -132,10 +122,7 @@ class TaskService:
             progress = 0
             
         prefix = str(obj.get("nguoiGiao", "")).strip().upper()
-        if "-" in prefix:
-            prefix = prefix.split("-")[0].strip()
-
-        if is_new:
+        if create:
             # It's a new task, calculate max MaCV from database
             ma_cv = str(obj.get("maCV", "")).strip()
             if not ma_cv or ma_cv == "TỰ ĐỘNG" or ma_cv == id_pc:
@@ -155,15 +142,12 @@ class TaskService:
                 tinh_trang=obj.get("status", "Chưa bắt đầu"),
                 file_giao_viec=obj.get("link", ""),
                 nguoi_phoi_hop=obj.get("phoiHop", ""),
-                nhat_ky_bao_cao=obj.get("nhatKyBaoCao", ""),
-                noi_dung_nhac_nho=obj.get("noiDungNhacNho", "")
+                nhat_ky_bao_cao="",
+                noi_dung_nhac_nho=""
             )
-            db.add(task)
-            db.commit()
-            return {"success": True, "message": f"Thêm mới thành công công việc [{ma_cv}]!"}
+            message=f"Thêm mới thành công công việc [{ma_cv}]!"
         else:
             # Updating an existing task
-            task = existing_task
             task.ten_cv = clean_string(obj.get("tenCV", task.ten_cv))
             task.nguoi_giao = prefix if prefix else task.nguoi_giao
             task.nguoi_nhan = str(obj.get("nguoiNhan", task.nguoi_nhan)).strip().upper()
@@ -174,28 +158,24 @@ class TaskService:
             task.file_giao_viec = obj.get("link", task.file_giao_viec)
             task.nguoi_phoi_hop = obj.get("phoiHop", task.nguoi_phoi_hop)
             
-            # Keep previous logs if form does not supply them
-            if obj.get("nhatKyBaoCao"):
-                task.nhat_ky_bao_cao = obj.get("nhatKyBaoCao")
-            if obj.get("noiDungNhacNho"):
-                task.noi_dung_nhac_nho = obj.get("noiDungNhacNho")
-                
+            # Journals and report attachments are never generic-edit fields.
             message = "Cập nhật thành công!"
             
-        db.commit()
-        return {"success": True, "message": message, "id": id_pc}
+        def persist():
+            if create:
+                db.add(task)
+            db.commit()
+            return {"success":True,"message":message,"id":id_pc}
+        return FileBindingService(db,tenant_id,actor_ma).run(Task,'TASK',id_pc,'file_giao_viec',
+            task.file_giao_viec or '',old_url,persist)
 
     @staticmethod
-    def update_bao_cao(db: Session, obj: dict):
+    def update_bao_cao(db: Session, obj: dict, *, task, actor_ma: str, tenant_id: str):
         """Logs a report, prepending comments to nhat_ky_bao_cao and updating progress."""
-        task_id = str(obj.get("id", "")).strip()
-        task = db.query(Task).filter(Task.id_phan_cong == task_id).first()
-        if not task:
-            return {"success": False, "message": f"🚨 Không tìm thấy ID công việc: {task_id}"}
-            
+        old_url=task.file_bao_cao or ''
         # 1. Format report string
         now_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
-        new_entry = f"[{now_str}] NV BÁO CÁO: Đạt {obj.get('tienDo')}% - {obj.get('status')}\n--\n{obj.get('giaiTrinh')}\n\n"
+        new_entry = f"[{now_str}] NV BÁO CÁO: [{actor_ma}] Đạt {obj.get('tienDo')}% - {obj.get('status')}\n--\n{obj.get('giaiTrinh')}\n\n"
         
         # 2. Prepend to history
         old_history = task.nhat_ky_bao_cao or ""
@@ -213,23 +193,21 @@ class TaskService:
         task.tinh_trang = obj.get("status")
         
         # 5. Save attachment link if provided
-        if obj.get("linkBaoCao"):
+        if 'linkBaoCao' in obj:
             task.file_bao_cao = obj.get("linkBaoCao")
             
-        db.commit()
-        return {"success": True, "message": f"✅ Báo cáo thành công! Số lượt đã tăng lên {current_count + 1}"}
+        def persist():
+            db.commit()
+            return {"success":True,"message":f"✅ Báo cáo thành công! Số lượt đã tăng lên {current_count+1}"}
+        return FileBindingService(db,tenant_id,actor_ma).run(Task,'TASK',task.id_phan_cong,'file_bao_cao',
+            task.file_bao_cao or '',old_url,persist)
 
     @staticmethod
-    def update_nhac_nho(db: Session, task_id: str, message: str):
+    def update_nhac_nho(db: Session, message: str, *, task, actor_ma: str):
         """Logs manager directions, prepending comments and incrementing reminder count."""
-        task_id_clean = str(task_id or "").strip()
-        task = db.query(Task).filter(Task.id_phan_cong == task_id_clean).first()
-        if not task:
-            return {"success": False, "message": f"🚨 Không tìm thấy ID công việc: {task_id_clean}"}
-            
         # 1. Format reminder entry
         now_str = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
-        new_entry = f"[{now_str}] SEP CHỈ ĐẠO: {message}\n--\n"
+        new_entry = f"[{now_str}] SEP CHỈ ĐẠO: [{actor_ma}] {message}\n--\n"
         
         # 2. Prepend to history
         old_history = task.noi_dung_nhac_nho or ""
@@ -243,16 +221,9 @@ class TaskService:
         return {"success": True, "message": f"✅ Đã phát lệnh chỉ đạo thành công! Số lần nhắc: {current_count + 1}"}
 
     @staticmethod
-    def save_forward(db: Session, payload: dict):
+    def save_forward(db: Session, payload: dict, *, parent_task, tenant_id: str, actor_ma: str):
         """Delegates/Forwards a task. Marks parent as 'Đã ủy quyền' and spawns child task."""
-        parent_id = str(payload.get("idPhanCongGoc", "")).strip()
-        if not parent_id:
-            return {"success": False, "message": "🚨 Lỗi: Thiếu ID gốc!"}
-            
-        parent_task = db.query(Task).filter(Task.id_phan_cong == parent_id).first()
-        if not parent_task:
-            return {"success": False, "message": "🚨 Lỗi: Không tìm thấy công việc gốc!"}
-            
+        parent_id = parent_task.id_phan_cong
         # Generate new MaCV and child task ID
         receiver = str(payload.get("nguoiNhanUyQuyen", "")).strip().upper()
         new_ma_cv = TaskService.get_suggested_ma_cv(db, receiver)
@@ -274,13 +245,14 @@ class TaskService:
             y_kien_cap_tren=payload.get("txtNote", "") # "Chỉ dẫn: ..."
         )
         
-        db.add(child_task)
-        
-        # Mark parent as delegated/forwarded
-        parent_task.tinh_trang = "Đã ủy quyền"
-        
-        db.commit()
-        return {"success": True, "message": "✅ Xác nhận Ủy quyền thành công!", "id": child_id}
+        def persist():
+            db.add(child_task)
+            parent_task.tinh_trang = "Đã ủy quyền"
+            db.commit()
+            return {"success":True,"message":"✅ Xác nhận Ủy quyền thành công!","id":child_id}
+        return FileBindingService(db,tenant_id,actor_ma).run(Task,'TASK',child_id,'file_giao_viec',
+            child_task.file_giao_viec or '',parent_task.file_giao_viec or '',persist,
+            inherited_from=(Task,parent_id,'file_giao_viec'))
 
 def clean_string(val):
     if val is None:

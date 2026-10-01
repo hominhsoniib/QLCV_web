@@ -1,7 +1,10 @@
 import os
 import shutil
+import uuid
+import hashlib
 from fastapi import UploadFile
 from config import Config
+from services.file_registry import FileRegistry, RegistryError
 
 # Google API libraries
 try:
@@ -63,10 +66,12 @@ class DriveService:
     _MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB
 
     @staticmethod
-    def upload_local_file(file: UploadFile) -> str:
+    def upload_local_file(file: UploadFile, *, tenant_id: str, uploader_id: str) -> str:
         """Saves an uploaded file locally to static/uploads/ and returns its access URL.
         Rejects disallowed extensions and enforces a max file size.
         """
+        registry=None
+        file_id=None
         try:
             filename = file.filename or ""
             # Sanitize filename
@@ -75,20 +80,38 @@ class DriveService:
                 print("Upload rejected: empty/invalid filename after sanitization.")
                 return ""
 
-            base, ext = os.path.splitext(filename_clean)
+            _, ext = os.path.splitext(filename_clean)
             if ext.lower() in DriveService._BLOCKED_EXTENSIONS:
                 print(f"Upload rejected: disallowed file extension '{ext}'.")
                 return ""
 
-            # Append timestamp to prevent overwrite collisions
-            import time
-            timestamp = int(time.time())
-            filename_final = f"{base}_{timestamp}{ext}"
-
-            filepath = os.path.join(Config.UPLOAD_DIR, filename_final)
+            registry=FileRegistry()
+            registry.initialize_registry()
+            # WRITING intent precedes physical creation; locator is server-owned.
+            # Exclusive creation prevents overwrites even if a random ID repeats.
+            for _ in range(8):
+                filename_final = f"{uuid.uuid4().hex}{ext}"
+                filepath = os.path.join(Config.UPLOAD_DIR, filename_final)
+                if os.path.exists(filepath):
+                    continue
+                try:
+                    if registry.get_storage_record(Config.UPLOAD_STORAGE_ROOT_ID,filename_final):
+                        continue
+                    file_id=registry.register_writing(tenant_id,uploader_id,Config.UPLOAD_STORAGE_ROOT_ID,
+                        filename_final,filename_clean)
+                    buffer = open(filepath, "xb")
+                    break
+                except FileExistsError:
+                    registry.mark_revoked(file_id,tenant_id)
+                    file_id=None
+                    continue
+            else:
+                print("Upload rejected: could not allocate a unique filename.")
+                return ""
 
             written = 0
-            with open(filepath, "wb") as buffer:
+            digest=hashlib.sha256()
+            with buffer:
                 while True:
                     chunk = file.file.read(1024 * 1024)
                     if not chunk:
@@ -97,13 +120,24 @@ class DriveService:
                     if written > DriveService._MAX_UPLOAD_BYTES:
                         buffer.close()
                         os.remove(filepath)
+                        registry.mark_revoked(file_id,tenant_id)
                         print(f"Upload rejected: file exceeds {DriveService._MAX_UPLOAD_BYTES // (1024*1024)}MB limit.")
                         return ""
                     buffer.write(chunk)
+                    digest.update(chunk)
+                buffer.flush()
+                os.fsync(buffer.fileno())
+
+            registry.complete_unbound(file_id,tenant_id,written,digest.hexdigest())
 
             return f"/static/uploads/{filename_final}"
         except Exception as e:
-            print("Failed to upload local file:", e)
+            if registry and file_id:
+                try:
+                    registry.mark_revoked(file_id,tenant_id)
+                except RegistryError:
+                    pass  # WRITING remains unusable; no byte cleanup/auto-claim.
+            print("Failed to register/write local upload.")
             return ""
             
     # Bridge functions to match Apps Script function names

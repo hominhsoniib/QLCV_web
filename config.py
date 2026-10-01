@@ -1,5 +1,6 @@
 import os
 import secrets
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Load variables from .env file
@@ -35,7 +36,7 @@ def _resolve_secret_key() -> str:
 class Config:
     SECRET_KEY = _resolve_secret_key()
     DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///qlcv.db")
-    PORT = int(os.getenv("PORT", 8000))
+    PORT = int(os.getenv("PORT", 8081))
     HOST = os.getenv("HOST", "0.0.0.0")
     # Set APP_ENV=development in .env to enable uvicorn --reload and other dev conveniences.
     APP_ENV = os.getenv("APP_ENV", "production").strip().lower()
@@ -47,6 +48,12 @@ class Config:
     
     # Upload settings
     UPLOAD_DIR = os.getenv("UPLOAD_DIR", "static/uploads")
+    # Metadata is opt-in/lazy: configuration never creates the sidecar.
+    FILE_REGISTRY_ROOT = Path(os.getenv("FILE_REGISTRY_ROOT",
+        str(Path(__file__).resolve().parent / "private_metadata"))).resolve()
+    FILE_REGISTRY_PATH = Path(os.getenv("FILE_REGISTRY_PATH",
+        str(FILE_REGISTRY_ROOT / "file_registry.sqlite3"))).resolve()
+    UPLOAD_STORAGE_ROOT_ID = "LOCAL_UPLOADS"
     
     # Ensure upload directory exists
     os.makedirs(UPLOAD_DIR, exist_ok=True)

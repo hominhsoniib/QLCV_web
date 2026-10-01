@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Response, Form, UploadFile, File
+from fastapi import APIRouter, Depends, Request, Response, Form, UploadFile, File, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -7,6 +7,9 @@ from services.auth_service import AuthService
 from services.document_service import DocumentService
 from services.drive_service import DriveService
 from models.models import Department, Employee, Document
+from services.file_registry import FileRegistry, RegistryError
+from services.file_binding_service import FileBindingService
+from config import Config
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -55,8 +58,7 @@ def api_add_document(request: Request, payload: dict, db: Session = Depends(get_
     session = AuthService.get_session(request)
     if not session or session["role"] not in ["ADMIN", "CEO"]:
         return {"success": False, "message": "🚨 Bạn không có quyền thực hiện hành động này!"}
-    msg = DocumentService.add_document(db, payload)
-    return {"success": "Thành công" in msg or "✅" in msg, "message": msg}
+    return _save_document_binding(db,session,payload,create=True)
 
 @router.post("/api/documents/update")
 def api_update_document(request: Request, payload: dict, db: Session = Depends(get_db)):
@@ -64,8 +66,25 @@ def api_update_document(request: Request, payload: dict, db: Session = Depends(g
     session = AuthService.get_session(request)
     if not session or session["role"] not in ["ADMIN", "CEO"]:
         return {"success": False, "message": "🚨 Bạn không có quyền thực hiện hành động này!"}
-    msg = DocumentService.update_document(db, payload)
-    return {"success": "Thành công" in msg or "✅" in msg, "message": msg}
+    return _save_document_binding(db,session,payload,create=False)
+
+
+def _save_document_binding(db,session,payload,*,create):
+    ma=str(payload.get('maTL','')).strip()
+    row=db.query(Document).filter(Document.ma_tl==ma).first()
+    if (create and row is not None) or (not create and row is None) or not db.query(Employee).filter(Employee.ma_nv==session.get('ma')).first():
+        return {'success':False,'message':'Dữ liệu không hợp lệ.'}
+    url=str(payload.get('linkFile','')).strip()
+    old=row.link_file or '' if row else ''
+    def mutate():
+        msg=(DocumentService.add_document if create else DocumentService.update_document)(db,payload)
+        return {'success':'Thành công' in msg or '✅' in msg,'message':msg}
+    try:
+        return FileBindingService(db,session.get('company_mst'),session.get('ma')).run(
+            Document,'DOCUMENT',ma,'link_file',url,old,mutate)
+    except RegistryError:
+        db.rollback()
+        return {'success':False,'message':'Không thể xác thực/lưu liên kết tệp.'}
 
 @router.delete("/api/documents/{ma_tl}")
 def api_delete_document(ma_tl: str, request: Request, db: Session = Depends(get_db)):
@@ -82,19 +101,14 @@ def api_get_next_code(loai: str, db: Session = Depends(get_db)):
     code = DocumentService.get_next_doc_code(db, loai)
     return code
 
-@router.get("/api/documents/library")
-def api_get_library(request: Request, db: Session = Depends(get_db)):
-    """API to fetch documents for the read-only employee library, filtered by department and role permissions."""
-    session = AuthService.get_session(request)
-    if not session:
-        return {"success": False, "message": "🚨 Chưa đăng nhập!"}
-        
+def readable_documents_query(db, session):
+    """Unchanged library READ predicate, shared with the private gateway."""
     role = session.get("role", "USER")
     username = session.get("ma", "")
     
     # 1. Admin and CEO can see all documents
     if role in ["ADMIN", "CEO"]:
-        docs = db.query(Document).all()
+        docs = db.query(Document)
     else:
         from sqlalchemy import or_
         # Get employee's department
@@ -121,8 +135,19 @@ def api_get_library(request: Request, db: Session = Depends(get_db)):
             if user_dept:
                 conds.append(Document.phong_ban == user_dept)
                 
-        docs = db.query(Document).filter(or_(*conds)).all()
-            
+        docs = db.query(Document).filter(or_(*conds))
+    return docs
+
+
+@router.get("/api/documents/library")
+def api_get_library(request: Request, db: Session = Depends(get_db)):
+    """Library and gateway use the same existing READ predicate."""
+    session = AuthService.get_session(request)
+    if not session:
+        return {"success": False, "message": "🚨 Chưa đăng nhập!"}
+    role = session.get("role", "USER")
+    docs = readable_documents_query(db, session).all()
+
     import re
     
     def get_safe_preview_url(link: str) -> str:
@@ -170,34 +195,45 @@ def api_get_library(request: Request, db: Session = Depends(get_db)):
 
 
 # 2. File Upload & Drive Integration Endpoints
+def _require_file_session(request: Request) -> dict:
+    """Use only the signed QLCV identity; never accept a client-supplied tenant."""
+    session = AuthService.get_session(request)
+    if (not isinstance(session, dict)
+            or not isinstance(session.get("ma"), str) or not session["ma"].strip()
+            or not isinstance(session.get("company_mst"), str) or not session["company_mst"].strip()):
+        raise HTTPException(status_code=401, detail="Authentication required.")
+    return session
+
+
+def _deny_unverified_drive_mutation():
+    # Task/Document URLs are editable references, not proof of Drive ownership.
+    # Global service-account access and client fileId/maCV cannot authorize a
+    # tenant-scoped rename. Fail closed until trusted ownership metadata exists.
+    raise HTTPException(status_code=403, detail="Drive file ownership cannot be verified; operation disabled.")
+
+
 @router.post("/api/drive/upload-local")
-def api_upload_local(file: UploadFile = File(...)):
+def api_upload_local(file: UploadFile = File(...), session: dict = Depends(_require_file_session), db: Session = Depends(get_db)):
     """Handles standard local file uploads. Saves file in upload folder and returns path."""
-    url = DriveService.upload_local_file(file)
+    if not db.query(Employee).filter(Employee.ma_nv==session['ma']).first():
+        raise HTTPException(status_code=401,detail='Authentication required.')
+    url = DriveService.upload_local_file(file,tenant_id=session['company_mst'],uploader_id=session['ma'])
     if url:
-        return {"success": True, "url": url, "name": file.filename}
+        record=FileRegistry().get_file_by_storage(session['company_mst'],Config.UPLOAD_STORAGE_ROOT_ID,url.rsplit('/',1)[1])
+        return {"success": True, "url": url, "name": file.filename,"file_id":record['file_id']}
     return {"success": False, "message": "Lỗi lưu file cục bộ."}
 
 @router.post("/api/drive/rename-task-file")
-def api_rename_task_file(payload: dict):
+def api_rename_task_file(payload: dict, session: dict = Depends(_require_file_session)):
     """API to rename a file picked from Google Drive for task assignment."""
-    file_id = payload.get("fileId", "")
-    ma_cv = payload.get("maCV", "")
-    new_url = DriveService.task_rename_file_by_ma_cv(file_id, ma_cv)
-    return new_url
+    _deny_unverified_drive_mutation()
 
 @router.post("/api/drive/rename-report-file")
-def api_rename_report_file(payload: dict):
+def api_rename_report_file(payload: dict, session: dict = Depends(_require_file_session)):
     """API to rename a file picked from Google Drive for progress reporting."""
-    file_id = payload.get("fileId", "")
-    ma_cv = payload.get("maCV", "")
-    new_url = DriveService.task_rename_file_bao_cao(file_id, ma_cv)
-    return new_url
+    _deny_unverified_drive_mutation()
 
 @router.post("/api/drive/rename-forward-file")
-def api_rename_forward_file(payload: dict):
+def api_rename_forward_file(payload: dict, session: dict = Depends(_require_file_session)):
     """API to rename a file picked from Google Drive for task delegation."""
-    file_id = payload.get("fileId", "")
-    ma_cv = payload.get("maCV", "")
-    new_url = DriveService.task_rename_file_uy_quyen(file_id, ma_cv)
-    return {"url": new_url, "name": f"UQ_{ma_cv}_TaiLieuUyQuyen"}
+    _deny_unverified_drive_mutation()

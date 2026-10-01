@@ -1,7 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, Depends, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from database.connection import engine, Base, SessionLocal
 from sqlalchemy import text
 from services.sheet_service import seed_database_from_excel
@@ -15,16 +15,32 @@ from routes.processes import router as processes_router
 from routes.jds import router as jds_router
 from routes.org_chart import router as org_chart_router
 from routes.companies import router as companies_router
+from routes.mobile import router as mobile_router
 from models.models import AIConfig, Process, ProcessStep, JobDescription
 from database.multi_tenant import init_master_and_default_tenant
 import os
 import sys
+
+from fastapi.middleware.cors import CORSMiddleware
+from services.file_access_service import gateway, denied
+from database.connection import get_db
+from pathlib import Path
+from config import Config
 
 # Initialize FastAPI application
 app = FastAPI(
     title="AMS PRO 5.0 - Quản Lý Công Việc (Multi-Tenant)",
     description="Hệ thống Quản lý công việc Đa công ty & Đa Cơ sở dữ liệu theo Mã Số Thuế",
     version="5.0.4"
+)
+
+# Enable CORS for external domains, proxies, and cloudflared tunnels
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 @app.middleware("http")
@@ -36,17 +52,40 @@ async def add_no_cache_header(request: Request, call_next):
         response.headers["Expires"] = "0"
     return response
 
+@app.get("/health")
+def health_check():
+    """Health check endpoint to verify backend service responsiveness."""
+    return {"status": "ok", "service": "AMS PRO 5.0", "version": app.version}
+
 
 # Mount static folder for CSS, JS, uploads
 os.makedirs("static/uploads", exist_ok=True)
-app.mount("/static/uploads", StaticFiles(directory="static/uploads"), name="static_uploads")
+@app.api_route('/static/uploads/{storage_name:path}',methods=['GET','HEAD'])
+def private_upload(request: Request, storage_name: str, db=Depends(get_db)):
+    return gateway(request,storage_name,db)
+
+
+class PublicStaticFiles(StaticFiles):
+    """Defense in depth: parent mount never serves uploads or their aliases."""
+    async def get_response(self,path,scope):
+        parts=path.replace('\\','/').split('/')
+        # StaticFiles normalizes public paths to Windows backslashes itself.
+        # Reject request aliases, not those framework-generated separators.
+        raw=scope.get('raw_path',b'')
+        if '%' in path or b'\\' in raw or any(p.casefold()=='uploads' for p in parts):
+            return denied()
+        target=(Path(self.directory)/path).resolve()
+        forbidden=[Path(Config.UPLOAD_DIR).resolve(),(Path(self.directory)/'uploads').resolve()]
+        if any(target.is_relative_to(root) for root in forbidden):
+            return denied()
+        return await super().get_response(path,scope)
 
 if getattr(sys, 'frozen', False):
-    app.mount("/static", StaticFiles(directory=os.path.join(sys._MEIPASS, "static")), name="static")
+    app.mount("/static", PublicStaticFiles(directory=os.path.join(sys._MEIPASS, "static")), name="static")
 else:
     os.makedirs("static/css", exist_ok=True)
     os.makedirs("static/js", exist_ok=True)
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+    app.mount("/static", PublicStaticFiles(directory="static"), name="static")
 
 # Mount an optional local document directory (configure via LOCAL_DOCS_DIR in .env).
 # Previously this was a hardcoded personal machine path — removed for portability
@@ -66,21 +105,15 @@ app.include_router(ai_router)
 app.include_router(processes_router)
 app.include_router(jds_router)
 app.include_router(org_chart_router)
+app.include_router(mobile_router)
 
-from routes.khach_hang import router as khach_hang_router
-app.include_router(khach_hang_router)
+@app.get("/manifest.json")
+def get_manifest():
+    return FileResponse("static/manifest.json", media_type="application/json")
 
-async def khach_hang_background_loop():
-    import asyncio
-    from services.khach_hang_auth import clean_expired_sessions
-    from services.khach_hang_automation import check_follow_ups_due
-    while True:
-        try:
-            clean_expired_sessions()
-            check_follow_ups_due()
-        except Exception as e:
-            print(f"[KHACH HANG BACKGROUND TASK] Error: {e}")
-        await asyncio.sleep(3600)
+@app.get("/sw.js")
+def get_service_worker():
+    return FileResponse("static/sw.js", media_type="application/javascript")
 
 @app.on_event("startup")
 async def startup_db_init():
@@ -127,9 +160,6 @@ async def startup_db_init():
     finally:
         db.close()
         
-    import asyncio
-    asyncio.create_task(khach_hang_background_loop())
-
 @app.exception_handler(404)
 def custom_404_handler(request: Request, exc):
     # Only redirect page (HTML) navigation to the dashboard. API/static 404s must
