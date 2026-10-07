@@ -2,12 +2,12 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{% block title %}QLCV Mobile - AMS PRO 5.0{% endblock %}</title>
   
   <!-- PWA & Mobile Web App Meta -->
   <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#f4f7fb">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="QLCV Mobile">
@@ -21,11 +21,13 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   
   <!-- Mobile Framework Stylesheet -->
-  <link rel="stylesheet" href="/static/css/mobile.css">
+  <link rel="stylesheet" href="/static/css/ams_light.css?v=full-light-20261006">
+  <link rel="stylesheet" href="/static/css/mobile.css?v=full-light-20261006">
   
   {% block extra_css %}{% endblock %}
 </head>
-<body class="mobile-body">
+<body class="mobile-body ams-light">
+  <a class="mobile-skip-link" href="#mobile-main">Đến nội dung</a>
 
   <!-- Top Sticky Header -->
   <header class="mobile-top-bar">
@@ -33,36 +35,37 @@
       <i class="fa-solid fa-layer-group text-primary"></i>
       <span>AMS PRO 5.0</span>
     </div>
-    <div class="d-flex align-items-center gap-2">
-      <span class="badge bg-primary rounded-pill px-2 py-1" style="font-size: 0.7rem;">
-        <i class="fa-solid fa-user me-1"></i>{{ user.ten_nv or user.ma or 'User' }}
+    <div class="mobile-header-account">
+      <span class="mobile-user-name" title="{{ user.ten or user.ten_nv or user.ma or 'User' }}">
+        <i class="fa-solid fa-user me-1"></i>{{ user.ten or user.ten_nv or user.ma or 'User' }}
       </span>
-      <a href="/dashboard" class="text-secondary text-decoration-none ms-1" title="Bản Desktop">
+      <a href="/dashboard" class="mobile-icon-button" title="Bản Desktop" aria-label="Chuyển sang bản Desktop">
         <i class="fa-solid fa-desktop" style="font-size: 1.1rem;"></i>
+        <span class="mobile-web-label">Web</span>
       </a>
     </div>
   </header>
 
   <!-- Main View Container -->
-  <main class="mobile-container">
+  <main class="mobile-container" id="mobile-main">
     {% block content %}{% endblock %}
   </main>
 
   <!-- Bottom App Navigation Bar -->
-  <nav class="mobile-bottom-nav">
-    <a href="/mobile/dashboard" class="mobile-nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
+  <nav class="mobile-bottom-nav" aria-label="Điều hướng chính">
+    <a href="/mobile/dashboard" {% if active_tab == 'dashboard' %}aria-current="page"{% endif %} class="mobile-nav-item {% if active_tab == 'dashboard' %}active{% endif %}">
       <i class="fa-solid fa-house"></i>
       <span>Trang chủ</span>
     </a>
-    <a href="/mobile/tasks" class="mobile-nav-item {% if active_tab == 'tasks' %}active{% endif %}">
+    <a href="/mobile/tasks" {% if active_tab == 'tasks' %}aria-current="page"{% endif %} class="mobile-nav-item {% if active_tab == 'tasks' %}active{% endif %}">
       <i class="fa-solid fa-list-check"></i>
       <span>Công việc</span>
     </a>
-    <a href="/mobile/ai" class="mobile-nav-item {% if active_tab == 'ai' %}active{% endif %}">
+    <a href="/mobile/ai" {% if active_tab == 'ai' %}aria-current="page"{% endif %} class="mobile-nav-item {% if active_tab == 'ai' %}active{% endif %}">
       <i class="fa-solid fa-robot"></i>
       <span>Trợ lý AI</span>
     </a>
-    <a href="/mobile/menu" class="mobile-nav-item {% if active_tab == 'menu' %}active{% endif %}">
+    <a href="/mobile/menu" {% if active_tab == 'menu' %}aria-current="page"{% endif %} class="mobile-nav-item {% if active_tab == 'menu' %}active{% endif %}">
       <i class="fa-solid fa-bars"></i>
       <span>Menu</span>
     </a>
@@ -72,7 +75,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
+        navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
           .then(reg => console.log('PWA ServiceWorker registered:', reg.scope))
           .catch(err => console.log('PWA ServiceWorker registration failed:', err));
       });
