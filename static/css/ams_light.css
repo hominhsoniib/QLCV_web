@@ -1,0 +1,409 @@
+/* ==========================================================================
+   AMS PRO 5.0 — FULL LIGHT THEME DESIGN SYSTEM (APPROVED REFERENCE MATCHING)
+   ========================================================================== */
+
+:root {
+  --ams-bg: #f4f7fb;
+  --ams-surface: #ffffff;
+  --ams-text: #0f2147;
+  --ams-secondary: #536987;
+  --ams-muted: #71829b;
+  --ams-border: #dce7f3;
+  --ams-border-soft: #e8eff7;
+
+  --ams-primary: #1677ff;
+  --ams-primary-strong: #0865e8;
+  --ams-primary-soft: #eaf3ff;
+
+  --ams-danger: #ff334b;
+  --ams-danger-soft: #fff0f2;
+
+  --ams-warning: #f5a000;
+  --ams-warning-soft: #fff8e8;
+
+  --ams-success: #08b65c;
+  --ams-success-soft: #ebfbf2;
+
+  --ams-purple: #7c3aed;
+  --ams-purple-soft: #f4efff;
+
+  --ams-cyan: #05aeda;
+  --ams-cyan-soft: #eafaff;
+
+  --ams-shadow-sm: 0 4px 18px rgba(30, 80, 140, 0.06);
+  --ams-shadow-lg: 0 12px 32px rgba(30, 80, 140, 0.12);
+}
+
+body.ams-light {
+  --bg-gradient: linear-gradient(135deg, #f4f7fb 0%, #eef4fc 100%);
+  --card-bg: #ffffff;
+  --card-border: #dce7f3;
+  --navy-dark: #f4f7fb;
+  --text-main: #0f2147;
+  --text-muted: #536987;
+  --accent-blue: #1677ff;
+  --accent-cyan: #05aeda;
+  --accent-green: #08b65c;
+  --accent-orange: #f5a000;
+  --accent-red: #ff334b;
+  --shadow-sm: var(--ams-shadow-sm);
+  --shadow-lg: var(--ams-shadow-lg);
+
+  background: var(--bg-gradient) !important;
+  color: #0f2147 !important;
+  color-scheme: light;
+}
+
+/* ==========================================
+   1. SIDEBAR (MATCHING APPROVED REFERENCE)
+   ========================================== */
+body.ams-light .app-sidebar {
+  background: #0f1d36 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+body.ams-light .sidebar-brand {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 20px !important;
+}
+
+body.ams-light .sidebar-brand i {
+  color: #1677ff !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+body.ams-light .sidebar-user-wrapper {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.ams-light .sidebar-user-name {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+body.ams-light .sidebar-user-role {
+  color: #38bdf8 !important;
+  background: rgba(56, 189, 248, 0.15) !important;
+  border: 1px solid rgba(56, 189, 248, 0.3) !important;
+}
+
+body.ams-light .sidebar-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-size: 14.5px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  margin: 2px 10px !important;
+  padding: 10px 14px !important;
+  transition: all 0.2s ease !important;
+}
+
+body.ams-light .sidebar-link i {
+  font-size: 16px !important;
+  width: 24px !important;
+  text-align: center !important;
+}
+
+body.ams-light .sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+}
+
+body.ams-light .sidebar-link.active {
+  background: #1677ff !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(22, 119, 255, 0.4) !important;
+}
+
+body.ams-light .sidebar-link.active i {
+  color: #ffffff !important;
+}
+
+body.ams-light .sidebar-header {
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.8px !important;
+  margin-top: 15px !important;
+  padding-left: 20px !important;
+}
+
+body.ams-light .sidebar-footer {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+body.ams-light .btn-sidebar-pw {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+body.ams-light .btn-sidebar-out {
+  background: #ff334b !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================
+   2. TOP HEADER & NAVBAR
+   ========================================== */
+body.ams-light .top-navbar,
+body.ams-light .mobile-header {
+  background: #ffffff !important;
+  border-bottom: 1px solid #dce7f3 !important;
+  box-shadow: 0 2px 10px rgba(30, 80, 140, 0.04) !important;
+}
+
+body.ams-light .brand-logo {
+  color: #1677ff !important;
+}
+
+body.ams-light .user-name {
+  color: #0f2147 !important;
+}
+
+body.ams-light .user-role {
+  color: #1677ff !important;
+  background: #eaf3ff !important;
+  border-color: #c6daf5 !important;
+}
+
+body.ams-light .btn-pw {
+  background: #f1f5f9 !important;
+  color: #0f2147 !important;
+  border-color: #cbd5e1 !important;
+}
+
+body.ams-light .btn-out {
+  background: #ff334b !important;
+  color: #ffffff !important;
+}
+
+/* ==========================================
+   3. CARDS, PANELS & CONTAINERS
+   ========================================== */
+body.ams-light .premium-card,
+body.ams-light .stat-card,
+body.ams-light .menu-item-card,
+body.ams-light .lux-card,
+body.ams-light .jd-box,
+body.ams-light .card,
+body.ams-light .right-pane,
+body.ams-light .left-pane .lux-card {
+  background: #ffffff !important;
+  border: 1px solid #dce7f3 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 18px rgba(30, 80, 140, 0.06) !important;
+  color: #0f2147 !important;
+}
+
+body.ams-light .dashboard-hero {
+  background: linear-gradient(135deg, #eaf3ff 0%, #f4f7fb 100%) !important;
+  border: 1px solid #c6daf5 !important;
+}
+
+body.ams-light .dashboard-hero h1 {
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  color: #0f2147 !important;
+  font-weight: 800 !important;
+}
+
+body.ams-light .dashboard-hero p {
+  color: #536987 !important;
+}
+
+/* KPI Stats Cards */
+body.ams-light .stat-blue {
+  background: #eaf3ff !important;
+  color: #1677ff !important;
+  border-color: #c6daf5 !important;
+}
+
+body.ams-light .stat-green, body.ams-light .stat-success {
+  background: #ebfbf2 !important;
+  color: #08b65c !important;
+  border-color: #b7eed0 !important;
+}
+
+body.ams-light .stat-orange, body.ams-light .stat-warning {
+  background: #fff8e8 !important;
+  color: #f5a000 !important;
+  border-color: #fce7b2 !important;
+}
+
+body.ams-light .stat-red, body.ams-light .stat-danger {
+  background: #fff0f2 !important;
+  color: #ff334b !important;
+  border-color: #ffc2c9 !important;
+}
+
+body.ams-light .stat-purple {
+  background: #f4efff !important;
+  color: #7c3aed !important;
+  border-color: #ddd0fc !important;
+}
+
+body.ams-light .stat-num {
+  color: #0f2147 !important;
+}
+
+body.ams-light .stat-label {
+  color: #536987 !important;
+}
+
+/* ==========================================
+   4. TABLES & DATA GRIDS
+   ========================================== */
+body.ams-light .premium-table-container,
+body.ams-light .table-responsive {
+  background: #ffffff !important;
+  border: 1px solid #dce7f3 !important;
+  border-radius: 12px !important;
+}
+
+body.ams-light .premium-table,
+body.ams-light .table,
+body.ams-light #taskTable {
+  background: #ffffff !important;
+  color: #0f2147 !important;
+}
+
+body.ams-light .premium-table th,
+body.ams-light .table th,
+body.ams-light #taskTable thead th {
+  background: #f8fafc !important;
+  color: #0f2147 !important;
+  border-bottom: 2px solid #dce7f3 !important;
+  font-weight: 700 !important;
+}
+
+body.ams-light .premium-table td,
+body.ams-light .table td,
+body.ams-light #taskTable tbody td {
+  border-bottom: 1px solid #e8eff7 !important;
+  color: #0f2147 !important;
+}
+
+body.ams-light .premium-table tbody tr:hover,
+body.ams-light .table tbody tr:hover,
+body.ams-light #taskTable tbody tr:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* ==========================================
+   5. FORMS & INPUTS
+   ========================================== */
+body.ams-light .form-control-lux,
+body.ams-light .input-lux,
+body.ams-light .form-control,
+body.ams-light select,
+body.ams-light textarea,
+body.ams-light .emp-search-input {
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #0f2147 !important;
+  border-radius: 8px !important;
+}
+
+body.ams-light .form-control-lux:focus,
+body.ams-light .input-lux:focus,
+body.ams-light .form-control:focus,
+body.ams-light select:focus,
+body.ams-light textarea:focus {
+  border-color: #1677ff !important;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.18) !important;
+  background-color: #ffffff !important;
+}
+
+body.ams-light input::placeholder,
+body.ams-light textarea::placeholder {
+  color: #64748b !important;
+}
+
+body.ams-light select option {
+  background-color: #ffffff !important;
+  color: #0f2147 !important;
+}
+
+/* ==========================================
+   6. MODALS & POPUPS
+   ========================================== */
+body.ams-light .modal-content,
+body.ams-light .swal2-popup {
+  background-color: #ffffff !important;
+  color: #0f2147 !important;
+  border: 1px solid #dce7f3 !important;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15) !important;
+  border-radius: 16px !important;
+}
+
+body.ams-light .modal-header,
+body.ams-light .modal-footer {
+  border-color: #e8eff7 !important;
+}
+
+body.ams-light .modal-title,
+body.ams-light .swal2-title {
+  color: #0f2147 !important;
+  font-weight: 700 !important;
+}
+
+body.ams-light .close {
+  color: #0f2147 !important;
+  opacity: 0.7 !important;
+}
+
+/* ==========================================
+   7. TEXT & BADGES OVERRIDES
+   ========================================== */
+body.ams-light .text-white {
+  color: #0f2147 !important;
+}
+
+body.ams-light .text-muted,
+body.ams-light .text-secondary {
+  color: #536987 !important;
+}
+
+body.ams-light .badge-info {
+  background: #eaf3ff !important;
+  color: #1677ff !important;
+}
+
+body.ams-light .badge-warning {
+  background: #fff8e8 !important;
+  color: #f5a000 !important;
+}
+
+body.ams-light .badge-success {
+  background: #ebfbf2 !important;
+  color: #08b65c !important;
+}
+
+body.ams-light .badge-danger {
+  background: #fff0f2 !important;
+  color: #ff334b !important;
+}
+
+body.ams-light .sealed-badge {
+  background: #ffffff !important;
+  color: #1677ff !important;
+  border: 1px solid #dce7f3 !important;
+  box-shadow: 0 4px 14px rgba(30, 80, 140, 0.08) !important;
+}
+
+/* Loader */
+body.ams-light #globalLoader {
+  background: #f4f7fb !important;
+}
+
+body.ams-light .pulse-logo {
+  color: #1677ff !important;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+}
