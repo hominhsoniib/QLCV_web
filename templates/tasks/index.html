@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 
 {% block title %}AMS PRO 5.0 - Quản lý Công việc{% endblock %}
+{% block body_class %}task-index-page{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -42,7 +43,7 @@
     border-left: 4px solid;
     line-height: 1.4;
     margin-bottom: 12px;
-    background: rgba(10, 15, 29, 0.4);
+    background: #ffffff; border: 1px solid #dce7f3;
   }
   .panel-remind { border-color: var(--accent-red); color: #fca5a5; }
   .panel-report { border-color: var(--accent-orange); color: #fcd34d; }
@@ -63,7 +64,7 @@
     border: 1px solid var(--card-border);
     border-radius: 8px;
     overflow: hidden;
-    background: rgba(10, 15, 29, 0.6);
+    background: #ffffff; border: 1px solid #dce7f3;
   }
   .link-group-wrapper input {
     border: none !important;
@@ -99,16 +100,41 @@
   }
   
   #taskTable {
-    width: 2500px;
+    width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
     margin-bottom: 0;
   }
+  #taskTable th, #taskTable td { overflow: hidden; vertical-align: middle; }
+  #taskTable th { padding: 12px; font-size: 13px; font-weight: 700; letter-spacing: .2px; line-height: 1.25; white-space: normal; }
+  #taskTable td { padding: 10px 12px; font-size: 14px; font-weight: 500 !important; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+  #taskTable tbody tr { height: 54px; }
+  #taskTable th:nth-child(-n+2), #taskTable td:nth-child(-n+2) { text-align: left; }
+  #taskTable td:nth-child(1) { color: #175ac0; font-weight: 600 !important; }
+  #taskTable td:nth-child(5), #taskTable td:nth-child(6), #taskTable td:nth-child(7) { font-weight: 600 !important; }
+  #taskTable td:nth-child(5) { color: #b42332 !important; }
+  #taskTable td:nth-child(7) { color: #8a5700 !important; }
+  /* Secondary history/status remains in the selected task form and panels. */
+  #taskTable th:nth-child(n+8), #taskTable td:nth-child(n+8) { display: none; }
+  body.ams-light #taskTable tbody tr:hover { background: #f2f7fd; }
+  body.ams-light #taskTable tbody tr.selected { background: #e8f1fc; }
+  #taskTable .task-cell-preview {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    word-break: normal;
+    white-space: normal;
+    line-height: 1.35;
+    font-weight: 500 !important;
+  }
+  #taskTable .badge-status { white-space: normal; overflow-wrap: anywhere; }
   #taskTable thead th {
     position: sticky;
     top: 0;
     z-index: 10;
-    background-color: var(--navy-dark);
+    background-color: #f8fafc; color: #0f2147;
     border-bottom: 2px solid var(--card-border);
   }
   .badge-status {
@@ -121,7 +147,39 @@
   .badge-secondary { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.2); }
   .badge-primary { background: rgba(59, 130, 246, 0.15); color: var(--accent-blue); border: 1px solid rgba(59, 130, 246, 0.2); }
   .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--accent-green); border: 1px solid rgba(16, 185, 129, 0.2); }
+  /* Desktop-only density overrides; this stylesheet belongs to /tasks. */
+  @media (min-width: 1200px) {
+    .app-sidebar { width: 240px; }
+    .app-main { margin-left: 240px; }
+    .sidebar-brand-wrapper { padding: 18px 16px; }
+    .sidebar-user-wrapper { padding: 16px; gap: 12px; }
+    .sidebar-menu { padding: 15px 10px; gap: 3px; }
+    .sidebar-link { padding: 8px 12px; gap: 11px; }
+    .sidebar-footer { padding: 15px 12px; }
+    .app-main > .container-fluid { padding-top: 18px !important; padding-bottom: 18px !important; }
+    .index-banner { padding: 12px 18px; margin-bottom: 15px; gap: 16px; }
+    .index-banner h2 { font-size: 18px !important; }
+    .command-bar { padding: 9px; gap: 6px; margin-bottom: 15px; }
+    .command-bar button { min-height: 34px; padding: 7px 10px; font-size: 11px; white-space: nowrap; }
+    .command-bar > .ml-auto { min-width: 190px !important; flex: 1; max-width: 300px; }
+    .workspace-card { padding: 15px; margin-bottom: 15px; }
+    .workspace-card > .row > .col-md-9 { flex: 1; max-width: none; min-width: 0; padding-right: 18px !important; }
+    .workspace-card > .row > .col-md-3 { flex: 0 0 clamp(230px, 20vw, 300px); max-width: 300px; padding-left: 18px !important; }
+    .workspace-card .row.mb-3 { margin-bottom: 10px !important; }
+    .workspace-card .field-label { margin-bottom: 4px; font-size: 10px; line-height: 1.35; }
+    .workspace-card .form-control-lux { height: 40px !important; padding: 7px 10px !important; font-size: 12px !important; min-width: 0; }
+    #selPH { flex: 0 0 75px; }
+    #phTagContainer { min-width: 0; height: 40px !important; }
+    .link-group-wrapper { height: 42px; }
+    .link-group-wrapper input { min-width: 0; }
+    .btn-drive { padding: 0 12px; }
+    .history-panel { padding: 10px; margin-bottom: 10px; height: 85px; }
+    .history-title { gap: 6px; flex-wrap: wrap; }
+    .history-panel > div { overflow-wrap: anywhere; }
+    .table-responsive-lux { max-width: 100%; }
+  }
 </style>
+<link rel="stylesheet" href="/static/css/task_phone.css?v=tasks-phone-20261006-v6">
 {% endblock %}
 
 {% block content %}
@@ -264,18 +322,17 @@
     <table id="taskTable" class="premium-table">
       <thead>
         <tr>
-          <th style="width: 140px;">ID_PC</th>
-          <th style="width: 100px;">MÃ CV</th>
-          <th style="width: 350px;">NỘI DUNG CÔNG VIỆC</th>
-          <th style="width: 80px;">GIAO</th>
-          <th style="width: 80px;">NHẬN</th>
-          <th style="width: 110px;">HẠN KT</th>
-          <th style="width: 80px;">TIẾN ĐỘ</th>
-          <th style="width: 60px;">BC</th>
-          <th style="width: 60px;">NHẮC</th>
-          <th style="width: 120px;">TRẠNG THÁI</th>
-          <th style="width: 650px; text-align: left;">NHẬT KÝ BÁO CÁO (CỘT J)</th>
-          <th style="width: 650px; text-align: left;">CHỈ ĐẠO CẤP TRÊN (CỘT N)</th>
+          <th style="width: 15%;">MÃ CV</th>
+          <th style="width: 43%;">NỘI DUNG CÔNG VIỆC</th>
+          <th style="width: 9%;">GIAO</th>
+          <th style="width: 9%;">NHẬN</th>
+          <th style="width: 11%;">HẠN KT</th>
+          <th style="width: 8%;">TIẾN ĐỘ</th>
+          <th style="width: 5%;">BC</th>
+          <th style="width: 3%;">NHẮC</th>
+          <th style="width: 6%;">TRẠNG THÁI</th>
+          <th style="width: 5%; text-align: left;">NHẬT KÝ BÁO CÁO (CỘT J)</th>
+          <th style="width: 6%; text-align: left;">CHỈ ĐẠO CẤP TRÊN (CỘT N)</th>
         </tr>
       </thead>
       <tbody id="tableBody"></tbody>
@@ -285,11 +342,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="/static/js/plain_dom.js"></script>
 <script>
   let globalTaskList = [];
   let currentPHList = []; 
   let isAddMode = false;
-  let loggedInUser = "{{ user.ma }}";
+  let loggedInUser = {{ user.ma | tojson }};
 
   window.addEventListener("load", function() {
     updateClock(); 
@@ -316,10 +374,10 @@
     fetch("/api/employees?dropdown=true")
       .then(res => res.json())
       .then(emps => {
-        const opt = '<option value="">-- Chọn --</option>' + emps.map(e => `<option value="${e.maNV}">${e.maNV} - ${e.tenNV}</option>`).join("");
         ["selGiao", "selNhan", "selPH"].forEach(id => {
           const el = document.getElementById(id);
-          if (el) el.innerHTML = opt;
+          if (el) PlainDOM.options(el, "-- Chọn --", emps,
+            e => e.maNV + " - " + e.tenNV, e => e.maNV);
         });
         loadTaskData();
       })
@@ -349,40 +407,53 @@
   function renderTable(data) {
     const tbody = document.getElementById("tableBody");
     if (!tbody) return;
-    
+    tbody.replaceChildren();
     if (data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="12" class="text-center py-5 text-muted font-weight-bold">Không tìm thấy công việc nào</td></tr>';
+      const row = PlainDOM.node("tr");
+      const cell = PlainDOM.node("td", "text-center py-5 text-muted font-weight-bold", "Không tìm thấy công việc nào");
+      cell.colSpan = 11;
+      row.appendChild(cell);
+      tbody.appendChild(row);
       return;
     }
-
-    tbody.innerHTML = data.map(t => {
+    data.forEach(t => {
       let stClass = "badge-secondary";
       if (t.status === "Hoàn thành") stClass = "badge-success";
       else if (t.status === "Đang thực hiện") stClass = "badge-primary";
       else if (t.status === "Vướng mắc") stClass = "badge-danger";
       else if (t.status === "Tạm dừng") stClass = "badge-warning";
-      
-      let diary = t.nhatKyBaoCao || "";
-      let remind = t.noiDungNhacNho || "";
-      let soLanNhac = parseInt(t.soLanNhac) || 0;
-      let nhacStyle = soLanNhac >= 3 ? "color: var(--accent-red); font-weight: 800; font-size: 13px;" : "font-weight: bold;";
-
-      return `
-        <tr onclick="selectTaskRow(this, '${t.idPhanCong}')">
-          <td class="text-center font-weight-bold" style="color: var(--accent-cyan);">${t.idPhanCong}</td>
-          <td class="text-center"><b>${t.maCV}</b></td>
-          <td style="white-space: normal; font-weight: 600;">${t.tenCV}</td>
-          <td class="text-center">${t.nguoiGiao}</td>
-          <td class="text-center">${t.nguoiNhan}</td>
-          <td class="text-center text-danger font-weight-bold">${formatDisplayDate(t.ngayKT)}</td>
-          <td class="text-center font-weight-bold">${t.tienDo}%</td>
-          <td class="text-center font-weight-bold text-warning" style="background: rgba(245,158,11,0.05);">${t.soLanBaoCao || 0}</td>
-          <td class="text-center" style="${nhacStyle} background: rgba(239,68,68,0.05);">${soLanNhac}</td>
-          <td class="text-center"><span class="badge ${stClass} badge-status">${t.status}</span></td>
-          <td class="text-left text-muted small" style="white-space: normal; line-height: 1.5;">${diary.replace(/\n/g, "<br>")}</td>
-          <td class="text-left small" style="white-space: normal; line-height: 1.5; color: #fca5a5;">${remind.replace(/\n/g, "<br>")}</td>
-        </tr>`;
-    }).join("");
+      const row = PlainDOM.node("tr");
+      row.dataset.idPc = t.idPhanCong;
+      row.addEventListener("click", () => selectTaskRow(row, t.idPhanCong));
+      const cell = (text, classes = "text-center", style = "") => {
+        const td = PlainDOM.node("td", classes, text);
+        td.style.cssText = style;
+        td.title = String(text ?? "");
+        row.appendChild(td);
+        return td;
+      };
+      cell(t.maCV, "font-weight-bold");
+      cell("").appendChild(PlainDOM.node("span", "task-cell-preview font-weight-bold", t.tenCV));
+      row.children[1].title = t.tenCV || "";
+      cell(t.nguoiGiao);
+      cell(t.nguoiNhan);
+      cell(formatDisplayDate(t.ngayKT), "text-center text-danger font-weight-bold task-due");
+      cell(t.tienDo + "%", "text-center font-weight-bold");
+      cell(t.soLanBaoCao || 0, "text-center font-weight-bold text-warning", "background: rgba(245,158,11,0.05)");
+      const soLanNhac = parseInt(t.soLanNhac) || 0;
+      cell(soLanNhac, "text-center", (soLanNhac >= 3
+        ? "color: var(--accent-red); font-weight: 800; font-size: 13px;"
+        : "font-weight: bold;") + "background: rgba(239,68,68,0.05)");
+      cell("").appendChild(PlainDOM.node("span", "badge " + stClass + " badge-status", t.status));
+      const preview = (text, classes) => {
+        const td = cell("", classes);
+        td.title = text || "";
+        td.appendChild(PlainDOM.node("span", "task-cell-preview", text || ""));
+      };
+      preview(t.nhatKyBaoCao, "text-left text-muted small");
+      preview(t.noiDungNhacNho, "text-left small");
+      tbody.appendChild(row);
+    });
   }
 
   function selectTaskRow(el, id) {
@@ -412,9 +483,13 @@
     renderPHTags();
     
     // Load historical text panels
-    document.getElementById("displayLichSuNhac").innerHTML = item.noiDungNhacNho ? item.noiDungNhacNho.replace(/\n/g, "<br>") : "Chưa có chỉ đạo...";
-    document.getElementById("displayLichSuBC").innerHTML = item.nhatKyBaoCao ? item.nhatKyBaoCao.replace(/\n/g, "<br>") : "Chưa có báo cáo...";
-    
+    const remindPanel = document.getElementById("displayLichSuNhac");
+    remindPanel.textContent = item.noiDungNhacNho || "Chưa có chỉ đạo...";
+    remindPanel.style.whiteSpace = "pre-wrap";
+    const reportPanel = document.getElementById("displayLichSuBC");
+    reportPanel.textContent = item.nhatKyBaoCao || "Chưa có báo cáo...";
+    reportPanel.style.whiteSpace = "pre-wrap";
+
     document.getElementById("countRemind").innerText = item.soLanNhac;
     document.getElementById("countReport").innerText = item.soLanBaoCao;
 
@@ -444,8 +519,8 @@
     currentPHList = [];
     renderPHTags();
     
-    document.getElementById("displayLichSuNhac").innerHTML = "Đang thêm mới...";
-    document.getElementById("displayLichSuBC").innerHTML = "Đang thêm mới...";
+    document.getElementById("displayLichSuNhac").textContent = "Đang thêm mới...";
+    document.getElementById("displayLichSuBC").textContent = "Đang thêm mới...";
     document.getElementById("countRemind").innerText = 0;
     document.getElementById("countReport").innerText = 0;
 
@@ -482,12 +557,17 @@
   function renderPHTags() {
     const container = document.getElementById("phTagContainer");
     if (!container) return;
-    container.innerHTML = currentPHList.map(ma => `
-      <span class="badge badge-info mr-1 text-uppercase" style="font-size: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px;">
-        ${ma} 
-        <i class="fas fa-times" onclick="removePHTag('${ma}')" style="cursor: pointer; color: #ffcccc;" title="Xóa"></i>
-      </span>
-    `).join("");
+    container.replaceChildren();
+    currentPHList.forEach(ma => {
+      const tag = PlainDOM.node("span", "badge badge-info mr-1 text-uppercase", ma + " ");
+      tag.style.cssText = "font-size: 10px; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px";
+      const remove = PlainDOM.node("i", "fas fa-times");
+      remove.style.cssText = "cursor: pointer; color: #ffcccc";
+      remove.title = "Xóa";
+      remove.addEventListener("click", () => removePHTag(ma));
+      tag.appendChild(remove);
+      container.appendChild(tag);
+    });
   }
 
   function removePHTag(maNV) {
@@ -528,7 +608,7 @@
     .then(res => {
       toggleLoader(false);
       if (res.success) {
-        showToast("success", res.message);
+        PlainDOM.toast("success", res.message);
         if (isTT) {
           handleBtnAdd();
         }
@@ -572,7 +652,7 @@
         const inputLink = document.getElementById("txtLink");
         inputLink.value = res.name;
         inputLink.setAttribute("data-url", res.url);
-        showToast("success", "✅ Đính kèm tệp tin thành công!");
+        PlainDOM.toast("success", "✅ Đính kèm tệp tin thành công!");
       } else {
         showNotify("error", "Thất bại", res.message);
       }
