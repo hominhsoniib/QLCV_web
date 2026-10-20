@@ -177,6 +177,31 @@
       <div class="modal-body p-4" style="max-height: 80vh; overflow-y: auto;">
         <input type="hidden" id="jdEmpId">
         
+        <!-- AI Assistant Fast Generation Banner -->
+        <div class="p-3 mb-4 rounded-lg" style="background: rgba(56, 189, 248, 0.08); border: 1px dashed rgba(56, 189, 248, 0.35); border-radius: 10px;">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-info font-weight-bold" style="font-size: 13px;">
+              <i class="fas fa-wand-magic-sparkles mr-1"></i> TRỢ LÝ AI SOẠN NHANH / SINH LẠI NỘI DUNG:
+            </span>
+            <button type="button" class="btn btn-sm btn-info font-weight-bold px-3 py-1" onclick="regenerateInEditModal()">
+              <i class="fas fa-magic mr-1"></i> AI VIẾT LẠI MTCV
+            </button>
+          </div>
+          <div class="input-group">
+            <input type="text" id="editModalAiNote" class="form-control form-control-lux" style="font-size: 13px;" 
+              placeholder="Ghi chú định hướng chuyên môn (VD: Thiết kế công trình thi công, bản vẽ kiến trúc kết cấu và lập dự toán...)">
+            <div class="input-group-append">
+              <button class="btn btn-outline-info dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="font-size: 12px;">Gợi ý mẫu</button>
+              <div class="dropdown-menu dropdown-menu-right" style="background: #1e293b; border-color: rgba(255,255,255,0.2);">
+                <a class="dropdown-item text-white" href="javascript:void(0)" onclick="setEditModalNote('Thiết kế công trình thi công, bản vẽ kiến trúc kết cấu, bóc tách khối lượng và lập dự toán công trình')">🏗️ Thiết kế công trình & dự toán</a>
+                <a class="dropdown-item text-white" href="javascript:void(0)" onclick="setEditModalNote('Giám sát chất lượng và tiến độ thi công hiện trường, nghiệm thu công trình')">👷 Giám sát thi công & nghiệm thu</a>
+                <a class="dropdown-item text-white" href="javascript:void(0)" onclick="setEditModalNote('Thiết kế đồ họa thương hiệu, bao bì nhãn mác sản phẩm và truyền thông')">🎨 Thiết kế đồ họa & bao bì</a>
+                <a class="dropdown-item text-white" href="javascript:void(0)" onclick="setEditModalNote('Kế toán chi phí công trình, quản lý vật tư và hồ sơ thanh quyết toán dự án')">📊 Kế toán xây dựng & dự án</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
         <div class="row">
           <div class="col-md-6 form-group mb-3">
             <label class="field-label">NHÂN SỰ THỰC HIỆN</label>
@@ -226,6 +251,54 @@
         </button>
         <button class="btn btn-success font-weight-bold px-4" onclick="saveJD()">
           <i class="fas fa-save mr-1"></i> LƯU LẠI
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Prompt Modal for Interactive Guidance -->
+<div class="modal fade" id="aiPromptModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content" style="background: #0f172a; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 16px; color: #fff; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);">
+      <div class="modal-header border-bottom px-4 py-3" style="border-color: rgba(255,255,255,0.1) !important;">
+        <h5 class="modal-title font-weight-bold text-white d-flex align-items-center">
+          <i class="fas fa-wand-magic-sparkles text-info mr-2"></i> Trợ lý AI Soạn thảo Mô tả công việc (MTCV/JD)
+        </h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="opacity: 0.8;">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="hidden" id="modalAiEmpId">
+        <div class="form-group mb-3">
+          <label class="field-label">CHỨC DANH / VỊ TRÍ CÔNG VIỆC</label>
+          <input type="text" id="modalAiTitle" class="form-control form-control-lux" placeholder="VD: Nhân viên thiết kế, Kỹ sư xây dựng...">
+        </div>
+        <div class="form-group mb-3">
+          <label class="field-label d-flex justify-content-between align-items-center">
+            <span><i class="fas fa-comment-dots mr-1"></i> KHUNG CHAT / ĐỊNH HƯỚNG CHUYÊN MÔN CHO AI:</span>
+            <small class="text-warning font-weight-normal">(Giúp AI hiểu đúng lĩnh vực & chuyên môn thực tế)</small>
+          </label>
+          <textarea id="modalAiNote" class="form-control form-control-lux" rows="3" 
+            placeholder="Mô tả sơ bộ ngắn gọn vài ý về chuyên môn... Ví dụ: Thiết kế công trình thi công, bản vẽ kỹ thuật kiến trúc/kết cấu, bóc tách khối lượng và lập dự toán..."></textarea>
+        </div>
+        <div class="mb-3">
+          <small class="text-muted d-block mb-1 font-weight-bold" style="font-size: 11px;">GỢI Ý NHANH (BẤM ĐỂ TỰ ĐIỀN):</small>
+          <div class="d-flex flex-wrap" style="gap: 8px;">
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="setModalPromptNote('Thiết kế công trình thi công, bản vẽ kiến trúc kết cấu, bóc tách khối lượng và lập dự toán công trình')">🏗️ Thiết kế công trình & dự toán</button>
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="setModalPromptNote('Giám sát chất lượng và tiến độ thi công hiện trường, nghiệm thu công trình')">👷 Giám sát thi công & nghiệm thu</button>
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="setModalPromptNote('Thiết kế đồ họa thương hiệu, bao bì nhãn mác sản phẩm và ấn phẩm truyền thông')">🎨 Thiết kế đồ họa & bao bì</button>
+            <button type="button" class="btn btn-sm btn-outline-info" onclick="setModalPromptNote('Kế toán chi phí công trình, quản lý vật tư và hồ sơ thanh quyết toán dự án')">📊 Kế toán xây dựng & dự án</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top px-4 py-3" style="border-color: rgba(255,255,255,0.1) !important;">
+        <button class="btn btn-secondary font-weight-bold px-4" data-dismiss="modal">
+          <i class="fas fa-times mr-1"></i> ĐÓNG
+        </button>
+        <button class="btn btn-info font-weight-bold px-4" onclick="executeAiGenerationFromModal()">
+          <i class="fas fa-magic mr-1"></i> BẮT ĐẦU SINH VỚI AI
         </button>
       </div>
     </div>
@@ -307,17 +380,68 @@
     }
     if (!jd) {
       header.appendChild(labels); pane.appendChild(header);
-      const empty = PlainDOM.node('div', 'd-flex justify-content-center align-items-center flex-column p-5 text-muted bg-dark-50 rounded');
-      empty.append(PlainDOM.node('i', 'fas fa-wand-magic-sparkles fa-3x mb-3 text-info'),
-        PlainDOM.node('h5', '', 'Nhân sự này chưa được thiết lập Bản mô tả công việc (MTCV/JD)'),
-        PlainDOM.node('p', 'text-center text-muted', 'Hãy click nút dưới đây để AI tự động phân tích chức danh và viết bản mô tả công việc hoàn chỉnh cho vị trí này.'),
-        WorkflowDOM.button('SINH BẢN MÔ TẢ BẰNG AI', 'btn btn-info font-weight-bold mt-2', () => generateJDByAI(emp?.chuc_danh || 'Nhân viên', emp?.ma_nv || ''), 'fas fa-magic mr-1'));
-      pane.appendChild(empty);
+      const chucDanh = emp?.chuc_danh || emp?.chuc_vu || 'Nhân viên';
+      const maNv = emp?.ma_nv || '';
+      const emptyCard = document.createElement('div');
+      emptyCard.className = 'w-100 mt-2';
+      emptyCard.innerHTML = `
+        <div class="p-4 rounded-lg" style="background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 14px; box-shadow: 0 10px 25px rgba(0,0,0,0.3);">
+          <div class="d-flex align-items-center mb-3">
+            <div class="mr-3" style="width: 48px; height: 48px; border-radius: 12px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+              <i class="fas fa-wand-magic-sparkles text-info fa-lg"></i>
+            </div>
+            <div>
+              <h5 class="text-white font-weight-bold mb-1">Soạn thảo Bản mô tả công việc (MTCV/JD) bằng AI</h5>
+              <div class="text-muted" style="font-size: 13px;">
+                Nhân sự này chưa có MTCV/JD. Nhập mô tả ngắn gọn định hướng chuyên môn để AI tạo chuẩn xác nhất.
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="field-label d-flex justify-content-between align-items-center mb-1">
+              <span><i class="fas fa-comment-dots mr-1"></i> KHUNG CHAT / ĐỊNH HƯỚNG CHUYÊN MÔN CHO AI:</span>
+              <span class="text-warning font-weight-normal" style="text-transform: none; font-size: 11px;">(Tránh AI hiểu sai chức danh)</span>
+            </label>
+            <textarea id="aiJdPromptNote" class="form-control form-control-lux" rows="3" 
+              placeholder="Mô tả sơ bộ ngắn gọn vài ý về chuyên môn vị trí này... Ví dụ: Thiết kế công trình thi công, bản vẽ kiến trúc kết cấu, bóc tách khối lượng và lập dự toán công trình..." 
+              style="font-size: 14px; min-height: 85px;"></textarea>
+          </div>
+
+          <div class="mb-3">
+            <small class="text-muted d-block mb-2 font-weight-bold" style="font-size: 11px; letter-spacing: 0.5px;">GỢI Ý NHANH (BẤM ĐỂ TỰ ĐIỀN NỘI DUNG):</small>
+            <div class="d-flex flex-wrap" style="gap: 8px;">
+              <button type="button" class="btn btn-sm btn-outline-info" onclick="setInlinePromptNote('Thiết kế công trình thi công, bản vẽ kiến trúc kết cấu, bóc tách khối lượng và lập dự toán công trình')">
+                🏗️ Thiết kế công trình & dự toán
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-info" onclick="setInlinePromptNote('Giám sát chất lượng và tiến độ thi công hiện trường, nghiệm thu công trình')">
+                👷 Giám sát thi công & nghiệm thu
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-info" onclick="setInlinePromptNote('Thiết kế đồ họa thương hiệu, nhận diện sản phẩm, bao bì nhãn mác và truyền thông')">
+                🎨 Thiết kế đồ họa & bao bì
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-info" onclick="setInlinePromptNote('Kế toán chi phí công trình, quản lý vật tư và hồ sơ thanh quyết toán dự án')">
+                📊 Kế toán xây dựng & dự án
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary mt-3">
+            <span class="text-muted" style="font-size: 13px;">
+              <i class="fas fa-info-circle text-info mr-1"></i> Chức danh phân tích: <strong class="text-warning">${chucDanh}</strong>
+            </span>
+            <button class="btn btn-info font-weight-bold px-4 py-2" onclick="generateFromInline('${chucDanh}', '${maNv}')">
+              <i class="fas fa-magic mr-1"></i> SINH BẢN MÔ TẢ BẰNG AI
+            </button>
+          </div>
+        </div>
+      `;
+      pane.appendChild(emptyCard);
       return;
     }
     {% if user.role in ['ADMIN', 'CEO', 'MANAGER'] %}
     actions.append(WorkflowDOM.button('CHỈNH SỬA', 'btn btn-warning mr-2', openEditJDModal, 'fas fa-edit mr-1'),
-      WorkflowDOM.button('SINH LẠI AI', 'btn btn-outline-info', () => generateJDByAI(jd.chuc_danh, emp?.ma_nv || ''), 'fas fa-magic mr-1'));
+      WorkflowDOM.button('SINH LẠI AI', 'btn btn-outline-info', () => openAiPromptModal(jd.chuc_danh, emp?.ma_nv || ''), 'fas fa-magic mr-1'));
     {% endif %}
     header.append(labels, actions); pane.appendChild(header);
     pane.appendChild(WorkflowDOM.section('Mục tiêu công việc chính', WorkflowDOM.text('p', 'text-white mb-0', jd.objective || 'Chưa có thông tin')));
@@ -342,6 +466,83 @@
     window.currentEmp = emp;
   }
 
+  function setInlinePromptNote(val) {
+    const el = document.getElementById("aiJdPromptNote");
+    if (el) el.value = val;
+  }
+
+  function generateFromInline(chucDanh, maNv) {
+    const note = document.getElementById("aiJdPromptNote")?.value?.trim() || "";
+    generateJDByAI(chucDanh, maNv, note);
+  }
+
+  function openAiPromptModal(chucDanh, maNv) {
+    document.getElementById("modalAiEmpId").value = maNv;
+    document.getElementById("modalAiTitle").value = chucDanh || "";
+    document.getElementById("modalAiNote").value = "";
+    $("#aiPromptModal").modal("show");
+  }
+
+  function setModalPromptNote(val) {
+    const el = document.getElementById("modalAiNote");
+    if (el) el.value = val;
+  }
+
+  function executeAiGenerationFromModal() {
+    const maNv = document.getElementById("modalAiEmpId").value;
+    const chucDanh = document.getElementById("modalAiTitle").value.trim();
+    const note = document.getElementById("modalAiNote").value.trim();
+    if (!chucDanh) {
+      showNotify("warning", "Thiếu chức danh", "Vui lòng nhập chức danh cần sinh!");
+      return;
+    }
+    $("#aiPromptModal").modal("hide");
+    generateJDByAI(chucDanh, maNv, note);
+  }
+
+  function setEditModalNote(val) {
+    const el = document.getElementById("editModalAiNote");
+    if (el) el.value = val;
+  }
+
+  function regenerateInEditModal() {
+    const maNv = document.getElementById("jdEmpId").value;
+    const chucDanh = document.getElementById("jdTitle").value.trim();
+    const note = document.getElementById("editModalAiNote").value.trim();
+    if (!chucDanh) {
+      showNotify("warning", "Thiếu chức danh", "Vui lòng nhập chức danh trước khi sinh AI!");
+      return;
+    }
+    
+    toggleLoader(true, `AI ĐANG SINH LẠI MTCV CHO ${chucDanh.toUpperCase()}...`);
+    fetch("/api/jds/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: chucDanh, note: note })
+    })
+    .then(res => res.json())
+    .then(res => {
+      toggleLoader(false);
+      if (res.success && res.data) {
+        const d = res.data;
+        document.getElementById("jdTitle").value = d.position_title || chucDanh;
+        document.getElementById("jdObjective").value = d.objective || "";
+        document.getElementById("jdReportsTo").value = d.reports_to || "";
+        document.getElementById("jdResponsibilities").value = (d.responsibilities || []).join("\n");
+        document.getElementById("jdAuthority").value = (d.authority || []).join("\n");
+        document.getElementById("jdKpi").value = (d.kpi || []).join("\n");
+        document.getElementById("jdCompetencies").value = (d.competencies || []).join("\n");
+        PlainDOM.toast("success", "AI đã cập nhật lại nội dung MTCV thành công!");
+      } else {
+        showNotify("error", "Lỗi sinh AI", res.message);
+      }
+    })
+    .catch(err => {
+      toggleLoader(false);
+      showNotify("error", "Lỗi kết nối", err.message);
+    });
+  }
+
   function openEditJDModal() {
     const jd = window.currentJD;
     const emp = window.currentEmp;
@@ -359,7 +560,7 @@
     $("#jdModal").modal("show");
   }
 
-  function generateJDByAI(chucDanh, maNv) {
+  function generateJDByAI(chucDanh, maNv, note = "") {
     if (!chucDanh) {
       showNotify("warning", "Thiếu thông tin", "Vị trí không có chức danh để sinh AI!");
       return;
@@ -370,7 +571,7 @@
     fetch("/api/jds/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: chucDanh })
+      body: JSON.stringify({ prompt: chucDanh, note: note })
     })
     .then(res => res.json())
     .then(res => {

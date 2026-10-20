@@ -435,16 +435,17 @@ class AIService:
     @staticmethod
     def generate_jd(db: Session, prompt: str) -> dict:
         system_prompt = (
-            "Bạn là một chuyên gia nhân sự (HR Specialist).\n"
-            "Hãy phân tích chức danh/vị trí công việc và xuất ra bản mô tả công việc (JD) dạng JSON sau:\n"
+            "Bạn là một chuyên gia nhân sự và xây dựng khung năng lực cấp cao (Senior HR Specialist & Competency Framework Architect).\n"
+            "Nhiệm vụ của bạn là phân tích chức danh/vị trí công việc và đặc biệt lưu ý định hướng, mô tả đặc thù chuyên môn hoặc ngành nghề mà người dùng cung cấp để xây dựng bản mô tả công việc (JD) chính xác tuyệt đối, tránh nhầm lẫn giữa các ngành nghề khác nhau (Ví dụ: 'Nhân viên thiết kế' nếu có ghi chú về công trình/thi công/dự toán thì TUYỆT ĐỐI KHÔNG viết về thiết kế đồ họa hay nhãn mác bao bì mà phải viết chuẩn về thiết kế kỹ thuật công trình, hồ sơ thiết kế thi công, bóc tách khối lượng và lập dự toán xây dựng).\n\n"
+            "Hãy xuất ra bản mô tả công việc (JD) dạng JSON sau (không kèm lời dẫn ngoài JSON):\n"
             "{\n"
-            "  \"position_title\": \"Tên chức danh/vị trí\",\n"
-            "  \"objective\": \"Mục tiêu công việc chính\",\n"
-            "  \"responsibilities\": [\"Trách nhiệm/Nhiệm vụ chính 1\", \"Trách nhiệm/Nhiệm vụ chính 2...\"],\n"
+            "  \"position_title\": \"Tên chức danh/vị trí chuẩn xác\",\n"
+            "  \"objective\": \"Mục tiêu công việc chính (gắn liền với lĩnh vực chuyên môn được chỉ định)\",\n"
+            "  \"responsibilities\": [\"Trách nhiệm/Nhiệm vụ chính 1 (chi tiết, chuyên nghiệp theo đúng định hướng ngành nghề)\", \"Trách nhiệm/Nhiệm vụ chính 2...\"],\n"
             "  \"authority\": [\"Quyền hạn vị trí này được phép thực hiện 1\", \"Quyền hạn 2...\"],\n"
             "  \"kpi\": [\"Chỉ số đánh giá hiệu quả KPI chính của vị trí này 1\", \"KPI 2...\"],\n"
-            "  \"competencies\": [\"Năng lực chuyên môn/Kinh nghiệm/Kỹ năng yêu cầu 1\", \"Yêu cầu năng lực 2...\"],\n"
-            "  \"reports_to\": \"Chức danh cấp trên trực tiếp quản lý vị trí này (VD: Giám đốc kinh doanh, CFO, CEO...)\"\n"
+            "  \"competencies\": [\"Năng lực chuyên môn/Kỹ năng/Phần mềm bắt buộc (VD: AutoCAD, Revit, Dự toán GXD, Sketchup, hoặc phần mềm chuyên ngành tương ứng) 1\", \"Yêu cầu năng lực 2...\"],\n"
+            "  \"reports_to\": \"Chức danh cấp trên trực tiếp quản lý vị trí này (VD: Trưởng phòng Kỹ thuật, Chỉ huy trưởng, Giám đốc Dự án, v.v.)\"\n"
             "}"
         )
         raw_json = AIService.call_ai_structured(db, f"Hãy viết bản mô tả công việc (JD) chi tiết cho: {prompt}", system_prompt)

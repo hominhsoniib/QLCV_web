@@ -110,11 +110,16 @@ def api_generate_jd_draft(request: Request, payload: dict, db: Session = Depends
         return {"success": False, "message": "Chưa đăng nhập!"}
         
     prompt = payload.get("prompt", "").strip()
+    note = payload.get("note", "").strip()
     if not prompt:
         return {"success": False, "message": "Nội dung yêu cầu không được trống!"}
         
+    full_prompt = prompt
+    if note:
+        full_prompt = f"Chức danh: {prompt}. Định hướng & mô tả đặc thù chuyên môn: {note}"
+        
     try:
-        draft = AIService.generate_jd(db, prompt)
+        draft = AIService.generate_jd(db, full_prompt)
         return {"success": True, "data": draft}
     except Exception as e:
         return {"success": False, "message": f"AI Generation Error: {str(e)}"}
