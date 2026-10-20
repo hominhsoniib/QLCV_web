@@ -136,7 +136,7 @@ class AIService:
             config = AIConfig(
                 provider="gemini",
                 gemini_api_key=os.getenv("GEMINI_API_KEY") or getattr(Config, "GEMINI_API_KEY", ""),
-                gemini_model="gemini-2.5-flash",
+                gemini_model="gemini-3.5-flash",
                 claude_api_key=os.getenv("CLAUDE_API_KEY") or getattr(Config, "CLAUDE_API_KEY", ""),
                 claude_model="claude-sonnet-5"
             )
@@ -252,11 +252,11 @@ class AIService:
         if not base.startswith("http"):
             base = "https://" + base
             
-        clean_model = (model_name or "gemini-2.5-flash").strip()
+        clean_model = (model_name or "gemini-3.5-flash").strip()
         
         # Build candidate models to try: selected model first, then ultra-stable fallbacks
         models_to_try = [clean_model]
-        for fallback in ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash"]:
+        for fallback in ["gemini-3.5-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash-lite", "gemini-2.5-flash"]:
             if fallback not in models_to_try:
                 models_to_try.append(fallback)
                 
@@ -306,9 +306,9 @@ class AIService:
                 except Exception:
                     pass
                 last_error = err_msg
-                # If Google returns 503 (high demand) or 404 (deprecated model), try next model
-                if err.code in (503, 404):
-                    print(f"[AI_SERVICE] Model {current_model} returned {err.code}, trying next model...")
+                # If Google returns 400 (location/capability error), 429 (quota exceeded), 503 (high demand) or 404 (model not found), try next fallback model
+                if err.code in (400, 404, 429, 503):
+                    print(f"[AI_SERVICE] Model {current_model} returned {err.code} ({err_msg}), falling back to next candidate model...")
                     continue
                 else:
                     raise Exception(f"Lỗi kết nối Gemini: {err_msg}")
