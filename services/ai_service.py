@@ -407,7 +407,7 @@ class AIService:
             "      \"sla\": \"Thời gian SLA hoàn thành định mức (VD: 2 giờ, 1 ngày, 3 ngày làm việc...)\"\n"
             "    }\n"
             "  ],\n"
-            "  \"flowchart_mermaid\": \"Mã vẽ sơ đồ Mermaid.js dạng graph TD trực quan thể hiện luồng các bước trên, bắt đầu bằng 'graph TD'. Các node nên có nhãn rõ ràng, dùng chữ tiếng Việt không dấu hoặc dấu chuẩn. VD: A[Yeu cau] --> B[Duyet]\",\n"
+            "  \"flowchart_mermaid\": \"Mã vẽ sơ đồ Mermaid.js dạng graph TD trực quan thể hiện luồng các bước trên. QUY TẮC CÚ PHÁP BẮT BUỘC: 1. Bắt đầu bằng 'graph TD'. 2. Nhãn node PHẢI bọc trong dấu ngoặc kép bên trong ngoặc vuông, VD: A[\\\"Yêu cầu\\\"] --> B[\\\"Duyệt\\\"]. 3. Điều kiện rẽ nhánh dùng ngoặc nhọn có nháy kép C{\\\"Hợp lệ?\\\"} và mũi tên C -->|Đồng ý| D. 4. Tuyệt đối không được có ký tự xuống dòng bên trong nhãn node.\",\n"
             "  \"checklist\": [\"Công việc kiểm tra 1\", \"Công việc kiểm tra 2\"],\n"
             "  \"kpi_suggestions\": [\"KPI đo lường hiệu quả quy trình 1\", \"KPI đo lường hiệu quả quy trình 2\"]\n"
             "}\n"

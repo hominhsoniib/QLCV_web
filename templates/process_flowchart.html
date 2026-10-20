@@ -398,14 +398,73 @@
   <!-- Load Mermaid Client-Side -->
   <script src="https://cdn.jsdelivr.net/npm/mermaid@12.1.0/dist/mermaid.min.js"></script>
   <script>
+    function cleanMermaidCode(raw) {
+      if (!raw) return "graph TD\n  A[Bắt đầu] --> B[Kết thúc]";
+      let code = raw.trim();
+      if (!code.startsWith("graph ") && !code.startsWith("flowchart ")) {
+        code = "graph TD\n" + code;
+      }
+      // Fix curly braces { ... } with internal newlines or unquoted special chars
+      code = code.replace(/\{([^}]+)\}/g, function(match, inner) {
+        let txt = inner.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!txt.startsWith('"') && !txt.endsWith('"')) {
+          txt = '"' + txt.replace(/"/g, "'") + '"';
+        }
+        return '{' + txt + '}';
+      });
+      // Fix square brackets [ ... ] with internal newlines
+      code = code.replace(/\[([^\]]+)\]/g, function(match, inner) {
+        let txt = inner.replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+        if (!txt.startsWith('"') && !txt.endsWith('"') && !txt.includes('|')) {
+          txt = '"' + txt.replace(/"/g, "'") + '"';
+        }
+        return '[' + txt + ']';
+      });
+      // Fix arrows: -- Dong y --> to -->|Dong y|
+      code = code.replace(/--\s+([^\r\n>]+?)\s+-->/g, '-->|$1| ');
+      return code;
+    }
+
     mermaid.initialize({
-      startOnLoad: true,
+      startOnLoad: false,
       theme: 'default',
       securityLevel: 'loose',
       flowchart: {
         htmlLabels: true,
         useMaxWidth: false,
         curve: 'basis'
+      }
+    });
+
+    document.addEventListener("DOMContentLoaded", async function() {
+      const diagramEl = document.getElementById("diagramContent");
+      if (diagramEl) {
+        const rawCode = diagramEl.textContent;
+        const cleaned = cleanMermaidCode(rawCode);
+        diagramEl.textContent = cleaned;
+        try {
+          await mermaid.run({ nodes: [diagramEl] });
+        } catch (e) {
+          console.warn("Mermaid auto-render failed, retrying with fallback...", e);
+          try {
+            diagramEl.removeAttribute("data-processed");
+            let fallbackGraph = "graph TD\n";
+            cleaned.split("\n").forEach(l => {
+              let trimmed = l.trim();
+              if (trimmed && !trimmed.startsWith("graph ") && !trimmed.startsWith("flowchart ")) {
+                fallbackGraph += "  " + trimmed + "\n";
+              }
+            });
+            diagramEl.textContent = fallbackGraph;
+            await mermaid.run({ nodes: [diagramEl] });
+          } catch (err2) {
+            diagramEl.innerHTML = `<div style="padding: 24px 32px; text-align: center; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; margin: 20px;">
+              <i class="fas fa-exclamation-triangle fa-2x mb-2" style="color: #d97706;"></i>
+              <div style="font-weight: 700; font-size: 15px; margin-bottom: 4px;">Sơ đồ lưu đồ đang được tối ưu cú pháp hiển thị</div>
+              <div style="font-size: 13px; color: #78350f;">Toàn bộ các bước thực hiện chi tiết được trình bày đầy đủ ở bảng bên dưới.</div>
+            </div>`;
+          }
+        }
       }
     });
 
