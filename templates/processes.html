@@ -362,8 +362,16 @@
       WorkflowDOM.text('span', 'badge badge-info mr-2', 'Mã: ' + p.code),
       WorkflowDOM.text('span', 'badge badge-success', 'Phiên bản: ' + p.version),
       WorkflowDOM.text('span', 'badge badge-warning ml-2', p.type));
-    const actions = PlainDOM.node('div', 'd-flex gap-2');
-    const exportLink = PlainDOM.node('a', 'btn btn-outline-info mr-2', 'XUẤT WORD');
+    const actions = PlainDOM.node('div', 'd-flex gap-2 align-items-center');
+    if (p.flowchart_mermaid) {
+      const viewHtmlLink = PlainDOM.node('a', 'btn btn-outline-success mr-2 font-weight-bold', 'XEM LƯU ĐỒ (HTML)');
+      viewHtmlLink.href = WorkflowDOM.processPath(p.id) + '/flowchart-html';
+      viewHtmlLink.target = '_blank';
+      viewHtmlLink.title = 'Mở sơ đồ lưu đồ quy trình toàn màn hình dạng .html';
+      viewHtmlLink.prepend(PlainDOM.node('i', 'fas fa-project-diagram mr-1'));
+      actions.appendChild(viewHtmlLink);
+    }
+    const exportLink = PlainDOM.node('a', 'btn btn-outline-info mr-2 font-weight-bold', 'XUẤT WORD');
     exportLink.href = WorkflowDOM.processPath(p.id) + '/export-word';
     exportLink.prepend(PlainDOM.node('i', 'fas fa-file-word mr-1'));
     actions.appendChild(exportLink);
@@ -378,7 +386,15 @@
       WorkflowDOM.section('Phạm vi áp dụng', WorkflowDOM.text('div', 'meta-value text-white', p.scope || 'Chưa thiết lập'), 'meta-box'));
     pane.appendChild(metadata);
     if (p.flowchart_mermaid) {
-      pane.appendChild(PlainDOM.node('div', 'meta-title mb-2', 'Sơ đồ quy trình (Flowchart)'));
+      const flowHeader = PlainDOM.node('div', 'd-flex justify-content-between align-items-center mb-2');
+      flowHeader.appendChild(PlainDOM.node('div', 'meta-title mb-0', 'Sơ đồ quy trình (Flowchart)'));
+      const flowBtn = PlainDOM.node('a', 'btn btn-xs btn-outline-info font-weight-bold px-2 py-1', ' Xem lưu đồ HTML toàn màn hình');
+      flowBtn.href = WorkflowDOM.processPath(p.id) + '/flowchart-html';
+      flowBtn.target = '_blank';
+      flowBtn.prepend(PlainDOM.node('i', 'fas fa-external-link-alt mr-1'));
+      flowHeader.appendChild(flowBtn);
+      pane.appendChild(flowHeader);
+
       const graph = PlainDOM.node('div', 'mermaid-viewer');
       graph.id = 'mermaidContainer';
       // Stored Mermaid DSL remains structured data; the renderer boundary enforces policy.

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lưu đồ quy trình: {{ process.name }} ({{ process.code }})</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --bg-page: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Sticky Header */
+    .top-bar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .brand-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-code {
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-ver {
+      background: #ecfdf5;
+      color: #047857;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-action {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+      border-color: var(--primary-hover);
+    }
+
+    /* Main Diagram Canvas */
+    .canvas-container {
+      flex: 1;
+      padding: 24px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .diagram-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow: auto;
+      min-height: 480px;
+    }
+
+    .diagram-toolbar {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px;
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .tool-btn {
+      background: transparent;
+      border: none;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-main);
+      font-size: 13px;
+      transition: background 0.15s;
+    }
+
+    .tool-btn:hover {
+      background: #e2e8f0;
+    }
+
+    #mermaidViewport {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transform-origin: center top;
+      transition: transform 0.2s ease-out;
+      padding: 20px 0;
+    }
+
+    #mermaidViewport svg {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Info Card */
+    .info-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 24px;
+    }
+
+    .info-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .info-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .info-value {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    /* Steps Table */
+    .steps-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    .steps-table th {
+      background: #f1f5f9;
+      color: var(--text-main);
+      font-weight: 700;
+      text-align: left;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+    }
+
+    .steps-table td {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    .steps-table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    /* Print styling */
+    @media print {
+      .top-bar, .diagram-toolbar {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+      .canvas-container {
+        padding: 0;
+        max-width: 100%;
+      }
+      .diagram-card, .info-card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin-bottom: 20px;
+      }
+      #mermaidViewport {
+        transform: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Header -->
+  <header class="top-bar">
+    <div class="brand-title">
+      <i class="fas fa-project-diagram text-primary" style="color: #1d4ed8;"></i>
+      <span>{{ process.name }}</span>
+      <span class="badge-code">{{ process.code }}</span>
+      <span class="badge-ver">v{{ process.version }}</span>
+    </div>
+
+    <div class="btn-group">
+      <button class="btn-action" onclick="downloadHtmlFile()">
+        <i class="fas fa-file-download text-success"></i> Tải file .HTML
+      </button>
+      <button class="btn-action" onclick="window.print()">
+        <i class="fas fa-print text-primary"></i> In / Xuất PDF
+      </button>
+      <button class="btn-action btn-primary" onclick="window.close()">
+        <i class="fas fa-times"></i> Đóng
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Canvas -->
+  <main class="canvas-container">
+    
+    <!-- Flowchart Canvas Card -->
+    <div class="diagram-card">
+      <div class="diagram-toolbar">
+        <button class="tool-btn" onclick="zoomIn()" title="Phóng to (+)"><i class="fas fa-search-plus"></i></button>
+        <button class="tool-btn" onclick="zoomOut()" title="Thu nhỏ (-)"><i class="fas fa-search-minus"></i></button>
+        <button class="tool-btn" onclick="resetZoom()" title="Vừa màn hình (100%)"><i class="fas fa-compress-arrows-alt"></i></button>
+      </div>
+
+      <div id="mermaidViewport">
+        <div class="mermaid" id="diagramContent">
+{{ process.flowchart_mermaid }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Process Overview & Steps Card -->
+    <div class="info-card">
+      <div class="info-title">
+        <i class="fas fa-info-circle text-primary"></i>
+        <span>THÔNG TIN CHI TIẾT QUY TRÌNH</span>
+      </div>
+
+      <div class="info-grid">
+        <div class="info-box">
+          <div class="info-label">Mục tiêu quy trình</div>
+          <div class="info-value">{{ process.objective or 'Chưa thiết lập' }}</div>
+        </div>
+        <div class="info-box">
+          <div class="info-label">Phạm vi áp dụng</div>
+          <div class="info-value">{{ process.scope or 'Chưa thiết lập' }}</div>
+        </div>
+      </div>
+
+      {% if steps %}
+      <div class="info-title" style="margin-top: 15px;">
+        <i class="fas fa-list-ol text-primary"></i>
+        <span>CÁC BƯỚC THỰC HIỆN CHI TIẾT</span>
+      </div>
+      <table class="steps-table">
+        <thead>
+          <tr>
+            <th style="width: 50px; text-align: center;">Bước</th>
+            <th>Tên bước thực hiện</th>
+            <th>Người / Vai trò phụ trách</th>
+            <th>Đầu vào</th>
+            <th>Đầu ra</th>
+            <th style="width: 100px; text-align: center;">SLA</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in steps %}
+          <tr>
+            <td style="text-align: center; font-weight: 700; color: #1d4ed8;">{{ s.step_no }}</td>
+            <td style="font-weight: 600;">{{ s.name }}</td>
+            <td style="color: #b45309; font-weight: 500;">{{ s.owner or '---' }}</td>
+            <td>{{ s.input or '---' }}</td>
+            <td>{{ s.output or '---' }}</td>
+            <td style="text-align: center; font-weight: 700; color: #047857;">{{ s.sla or '---' }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+
+  </main>
+
+  <!-- Load Mermaid Client-Side -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@12.1.0/dist/mermaid.min.js"></script>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose',
+      flowchart: {
+        htmlLabels: true,
+        useMaxWidth: false,
+        curve: 'basis'
+      }
+    });
+
+    let currentZoom = 1.0;
+    const viewport = document.getElementById('mermaidViewport');
+
+    function zoomIn() {
+      currentZoom = Math.min(currentZoom + 0.15, 2.5);
+      applyZoom();
+    }
+
+    function zoomOut() {
+      currentZoom = Math.max(currentZoom - 0.15, 0.4);
+      applyZoom();
+    }
+
+    function resetZoom() {
+      currentZoom = 1.0;
+      applyZoom();
+    }
+
+    function applyZoom() {
+      viewport.style.transform = `scale(${currentZoom})`;
+    }
+
+    // Function to download the entire standalone HTML file
+    function downloadHtmlFile() {
+      const htmlContent = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: "text/html;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "Luu_do_{{ process.code or 'Quy_trinh' }}.html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }
+  </script>
+</body>
+</html>

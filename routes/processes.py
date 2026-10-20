@@ -244,6 +244,26 @@ def api_delete_process(id: int, request: Request, db: Session = Depends(get_db))
         db.rollback()
         return {"success": False, "message": f"Lỗi xóa quy trình: {str(e)}"}
 
+@router.get("/api/processes/{id}/flowchart-html", response_class=HTMLResponse)
+@router.get("/processes/{id}/flowchart-html", response_class=HTMLResponse)
+def get_process_flowchart_html(id: int, request: Request, db: Session = Depends(get_db)):
+    """Serves a standalone, full-screen HTML flowchart view of the process."""
+    session = AuthService.get_session(request)
+    if not session:
+        return RedirectResponse(url="/login")
+        
+    process = db.query(Process).filter(Process.id == id).first()
+    if not process:
+        raise HTTPException(status_code=404, detail="Quy trình không tồn tại")
+        
+    steps = db.query(ProcessStep).filter(ProcessStep.process_id == id).order_by(ProcessStep.step_no).all()
+    
+    return templates.TemplateResponse(request, "process_flowchart.html", {
+        "user": session,
+        "process": process,
+        "steps": steps
+    })
+
 @router.get("/api/processes/{id}/export-word")
 def api_export_process_to_word(id: int, request: Request, db: Session = Depends(get_db)):
     """Exports process and steps into a styled, professional Word docx file."""
