@@ -252,51 +252,71 @@ class AIService:
         if not base.startswith("http"):
             base = "https://" + base
             
-        clean_model = (model_name or "gemini-2.0-flash").strip()
-        url = f"{base}/v1beta/models/{clean_model}:generateContent?key={api_key}"
+        clean_model = (model_name or "gemini-2.5-flash").strip()
         
-        parts = []
-        for item in contents:
-            if isinstance(item, str) and item:
-                parts.append({"text": item})
-            elif isinstance(item, dict):
-                parts.append(item)
+        # Build candidate models to try: selected model first, then ultra-stable fallbacks
+        models_to_try = [clean_model]
+        for fallback in ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-3.5-flash"]:
+            if fallback not in models_to_try:
+                models_to_try.append(fallback)
                 
-        payload = {
-            "contents": [{"parts": parts}]
-        }
-        if response_mime_type:
-            payload["generationConfig"] = {"responseMimeType": response_mime_type}
+        last_error = None
+        for current_model in models_to_try:
+            url = f"{base}/v1beta/models/{current_model}:generateContent?key={api_key}"
             
-        headers = {
-            "Content-Type": "application/json",
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        }
-        req = urllib.request.Request(
-            url,
-            data=json.dumps(payload).encode("utf-8"),
-            headers=headers,
-            method="POST"
-        )
-        try:
-            with urllib.request.urlopen(req, timeout=timeout) as response:
-                res_data = json.loads(response.read().decode("utf-8"))
-                candidates = res_data.get("candidates", [])
-                if candidates and "content" in candidates[0]:
-                    parts_resp = candidates[0]["content"].get("parts", [])
-                    if parts_resp and "text" in parts_resp[0]:
-                        return parts_resp[0]["text"]
-                raise Exception("Không nhận được nội dung từ Gemini API. Phản hồi: " + json.dumps(res_data))
-        except urllib.error.HTTPError as err:
-            err_msg = str(err)
+            parts = []
+            for item in contents:
+                if isinstance(item, str) and item:
+                    parts.append({"text": item})
+                elif isinstance(item, dict):
+                    parts.append(item)
+                    
+            payload = {
+                "contents": [{"parts": parts}]
+            }
+            if response_mime_type:
+                payload["generationConfig"] = {"responseMimeType": response_mime_type}
+                
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers=headers,
+                method="POST"
+            )
             try:
-                err_body = json.loads(err.read().decode("utf-8"))
-                api_msg = err_body.get("error", {}).get("message")
-                if api_msg:
-                    err_msg = f"{err.code} {api_msg}"
-            except Exception:
-                pass
-            raise Exception(f"Lỗi kết nối Gemini: {err_msg}")
+                with urllib.request.urlopen(req, timeout=timeout) as response:
+                    res_data = json.loads(response.read().decode("utf-8"))
+                    candidates = res_data.get("candidates", [])
+                    if candidates and "content" in candidates[0]:
+                        parts_resp = candidates[0]["content"].get("parts", [])
+                        if parts_resp and "text" in parts_resp[0]:
+                            return parts_resp[0]["text"]
+                    raise Exception("Không nhận được nội dung từ Gemini API. Phản hồi: " + json.dumps(res_data))
+            except urllib.error.HTTPError as err:
+                err_msg = str(err)
+                try:
+                    err_body = json.loads(err.read().decode("utf-8"))
+                    api_msg = err_body.get("error", {}).get("message")
+                    if api_msg:
+                        err_msg = f"{err.code} {api_msg}"
+                except Exception:
+                    pass
+                last_error = err_msg
+                # If Google returns 503 (high demand) or 404 (deprecated model), try next model
+                if err.code in (503, 404):
+                    print(f"[AI_SERVICE] Model {current_model} returned {err.code}, trying next model...")
+                    continue
+                else:
+                    raise Exception(f"Lỗi kết nối Gemini: {err_msg}")
+            except Exception as e:
+                last_error = str(e)
+                continue
+                
+        raise Exception(f"Lỗi kết nối Gemini: {last_error}")
 
     @staticmethod
     def call_ai_structured(db: Session, prompt: str, system_prompt: str) -> str:
