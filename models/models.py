@@ -209,6 +209,7 @@ class AIConfig(Base):
     provider = Column(String, default="gemini") # "gemini", "claude", or "none"
     gemini_api_key = Column(String, nullable=True)
     gemini_model = Column(String, default="gemini-1.5-flash")
+    gemini_proxy_url = Column(String, nullable=True) # Cloudflare Worker URL e.g. https://xxx.workers.dev
     claude_api_key = Column(String, nullable=True)
     claude_model = Column(String, default="claude-3-5-sonnet-20241022")
 

@@ -17,6 +17,10 @@ class AIService:
                 (Task.nguoi_giao == ma_nv_upper) | 
                 (Task.nguoi_nhan == ma_nv_upper)
             )
+        if ma_nv_upper == "CEO":
+            from services.task_policy import TaskActor, can_view_task
+            return [t for t in db.query(Task).all()
+                    if can_view_task(TaskActor("CEO", role == "ADMIN"), t)]
         return query.all()
 
     @staticmethod
@@ -180,12 +184,14 @@ class AIService:
             
             if api_key:
                 try:
-                    import google.generativeai as genai
-                    genai.configure(api_key=api_key)
-                    model_name = config.gemini_model if config else 'gemini-1.5-flash'
-                    model = genai.GenerativeModel(model_name)
-                    response = model.generate_content([system_prompt, query_text])
-                    return response.text
+                    proxy_url = getattr(config, "gemini_proxy_url", None)
+                    model_name = (config.gemini_model if config and config.gemini_model else 'gemini-2.0-flash').strip()
+                    return AIService.call_gemini_api(
+                        api_key=api_key,
+                        model_name=model_name,
+                        contents=[system_prompt, query_text],
+                        proxy_url=proxy_url
+                    )
                 except Exception as e:
                     print("[AI_SERVICE] Gemini API error:", e)
                     return AIService.run_fallback_ai(query_text, tasks, ma_nv, ten_nv)
@@ -236,6 +242,62 @@ class AIService:
             return AIService.run_fallback_ai(query_text, tasks, ma_nv, ten_nv)
 
     @staticmethod
+    def call_gemini_api(api_key: str, model_name: str, contents: list, proxy_url: str = None, response_mime_type: str = None, timeout: int = 40) -> str:
+        """Call Gemini REST API directly or through a reverse proxy (e.g. Cloudflare Worker)."""
+        import urllib.request
+        import urllib.error
+        import json
+        
+        base = (proxy_url or "").strip().rstrip("/") or "https://generativelanguage.googleapis.com"
+        if not base.startswith("http"):
+            base = "https://" + base
+            
+        clean_model = (model_name or "gemini-2.0-flash").strip()
+        url = f"{base}/v1beta/models/{clean_model}:generateContent?key={api_key}"
+        
+        parts = []
+        for item in contents:
+            if isinstance(item, str) and item:
+                parts.append({"text": item})
+            elif isinstance(item, dict):
+                parts.append(item)
+                
+        payload = {
+            "contents": [{"parts": parts}]
+        }
+        if response_mime_type:
+            payload["generationConfig"] = {"responseMimeType": response_mime_type}
+            
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        }
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode("utf-8"),
+            headers=headers,
+            method="POST"
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                res_data = json.loads(response.read().decode("utf-8"))
+                candidates = res_data.get("candidates", [])
+                if candidates and "content" in candidates[0]:
+                    parts_resp = candidates[0]["content"].get("parts", [])
+                    if parts_resp and "text" in parts_resp[0]:
+                        return parts_resp[0]["text"]
+                raise Exception("Không nhận được nội dung từ Gemini API. Phản hồi: " + json.dumps(res_data))
+        except urllib.error.HTTPError as err:
+            err_msg = str(err)
+            try:
+                err_body = json.loads(err.read().decode("utf-8"))
+                api_msg = err_body.get("error", {}).get("message")
+                if api_msg:
+                    err_msg = f"{err.code} {api_msg}"
+            except Exception:
+                pass
+            raise Exception(f"Lỗi kết nối Gemini: {err_msg}")
+
     @staticmethod
     def call_ai_structured(db: Session, prompt: str, system_prompt: str) -> str:
         """Call the active AI provider to generate structured JSON text."""
@@ -258,18 +320,16 @@ class AIService:
             if not api_key:
                 raise Exception("Chưa cấu hình GEMINI_API_KEY!")
                 
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            model_name = config.gemini_model if config else 'gemini-2.5-flash'
-            model = genai.GenerativeModel(model_name)
+            proxy_url = getattr(config, "gemini_proxy_url", None)
+            model_name = (config.gemini_model if config and config.gemini_model else 'gemini-2.0-flash').strip()
             
-            response = model.generate_content(
-                [full_system_prompt, prompt],
-                generation_config=genai.GenerationConfig(
-                    response_mime_type="application/json"
-                )
+            return AIService.call_gemini_api(
+                api_key=api_key,
+                model_name=model_name,
+                contents=[full_system_prompt, prompt],
+                proxy_url=proxy_url,
+                response_mime_type="application/json"
             )
-            return response.text
             
         elif provider == "claude":
             api_key = config.claude_api_key if config else None

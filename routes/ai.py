@@ -6,7 +6,7 @@ from database.connection import get_db
 from services.auth_service import AuthService
 from services.ai_service import AIService
 from models.models import AIConfig
-import markdown
+from services.ai_content import presentation
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -38,12 +38,12 @@ def api_ai_chat(
         
     try:
         response_md = AIService.ask_ai(db, session["ma"], session["role"], query_text)
-        # Convert Markdown to HTML for nicer display
-        response_html = markdown.markdown(response_md, extensions=['extra', 'tables'])
+        # Untrusted Markdown is projected to inert data, not raw HTML.
+        response_nodes = presentation(response_md)
         return {
             "success": True,
             "response_md": response_md,
-            "response_html": response_html
+            "response_nodes": response_nodes
         }
     except Exception as e:
         return {"success": False, "message": f"Lỗi xử lý câu hỏi: {str(e)}"}
@@ -96,6 +96,7 @@ def api_get_ai_config(request: Request, db: Session = Depends(get_db)):
             "provider": config.provider,
             "gemini_api_key": config.gemini_api_key,
             "gemini_model": config.gemini_model,
+            "gemini_proxy_url": getattr(config, "gemini_proxy_url", ""),
             "claude_api_key": config.claude_api_key,
             "claude_model": config.claude_model
         }
@@ -117,7 +118,8 @@ def api_save_ai_config(request: Request, payload: dict, db: Session = Depends(ge
         
     config.provider = payload.get("provider", "gemini")
     config.gemini_api_key = payload.get("gemini_api_key", "").strip()
-    config.gemini_model = payload.get("gemini_model", "gemini-1.5-flash").strip()
+    config.gemini_model = payload.get("gemini_model", "gemini-2.0-flash").strip()
+    config.gemini_proxy_url = payload.get("gemini_proxy_url", "").strip()
     config.claude_api_key = payload.get("claude_api_key", "").strip()
     config.claude_model = payload.get("claude_model", "claude-3-5-sonnet-20241022").strip()
     
@@ -140,6 +142,7 @@ def api_test_ai_config(request: Request, payload: dict):
     provider = payload.get("provider")
     api_key = payload.get("api_key", "").strip()
     model = payload.get("model", "").strip()
+    proxy_url = payload.get("proxy_url", "").strip()
     
     if not api_key:
         return {"success": False, "message": "Vui lòng nhập API Key trước khi kiểm thử!"}
@@ -148,14 +151,14 @@ def api_test_ai_config(request: Request, payload: dict):
     
     try:
         if provider == "gemini":
-            import google.generativeai as genai
-            genai.configure(api_key=api_key)
-            genai_model = genai.GenerativeModel(model or 'gemini-1.5-flash')
-            response = genai_model.generate_content(test_prompt)
-            if response and response.text:
-                return {"success": True, "message": f"Kết nối Gemini thành công! Phản hồi: {response.text.strip()}"}
-            else:
-                return {"success": False, "message": "Không nhận được phản hồi từ Gemini."}
+            response_text = AIService.call_gemini_api(
+                api_key=api_key,
+                model_name=model or 'gemini-2.0-flash',
+                contents=[test_prompt],
+                proxy_url=proxy_url,
+                timeout=15
+            )
+            return {"success": True, "message": f"Kết nối Gemini thành công! Phản hồi: {response_text.strip()}"}
                 
         elif provider == "claude":
             import urllib.request
@@ -187,4 +190,3 @@ def api_test_ai_config(request: Request, payload: dict):
             return {"success": False, "message": "Provider không hợp lệ!"}
     except Exception as e:
         return {"success": False, "message": f"Lỗi kết nối: {str(e)}"}
-
