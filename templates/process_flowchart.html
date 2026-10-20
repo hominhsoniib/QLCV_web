@@ -366,6 +366,7 @@
             <th>Người / Vai trò phụ trách</th>
             <th>Đầu vào</th>
             <th>Đầu ra</th>
+            <th>Mẫu biểu / Văn bản đính kèm</th>
             <th style="width: 100px; text-align: center;">SLA</th>
           </tr>
         </thead>
@@ -377,6 +378,13 @@
             <td style="color: #b45309; font-weight: 500;">{{ s.owner or '---' }}</td>
             <td>{{ s.input or '---' }}</td>
             <td>{{ s.output or '---' }}</td>
+            <td style="color: #0284c7; font-weight: 600;">
+              {% if s.template_form and s.template_form.strip() and s.template_form.strip() != '---' %}
+              <i class="fas fa-file-alt mr-1" style="color: #0284c7;"></i> {{ s.template_form }}
+              {% else %}
+              <span style="color: #94a3b8; font-weight: normal;">---</span>
+              {% endif %}
+            </td>
             <td style="text-align: center; font-weight: 700; color: #047857;">{{ s.sla or '---' }}</td>
           </tr>
           {% endfor %}

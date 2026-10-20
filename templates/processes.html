@@ -254,13 +254,14 @@
             <table class="table table-bordered text-white table-sm" id="modalStepsTable">
               <thead>
                 <tr>
-                  <th style="width: 60px;">STT</th>
+                  <th style="width: 50px;">STT</th>
                   <th>TÊN BƯỚC</th>
                   <th>VAI TRÒ PHỤ TRÁCH</th>
                   <th>ĐẦU VÀO</th>
                   <th>ĐẦU RA</th>
-                  <th style="width: 100px;">SLA</th>
-                  <th style="width: 50px;">Xóa</th>
+                  <th>MẪU BIỂU ĐÍNH KÈM</th>
+                  <th style="width: 90px;">SLA</th>
+                  <th style="width: 45px;">Xóa</th>
                 </tr>
               </thead>
               <tbody id="modalStepsBody">
@@ -408,19 +409,19 @@
     const table = PlainDOM.node('table', 'table table-bordered text-white step-table');
     const head = PlainDOM.node('thead');
     const heading = PlainDOM.node('tr');
-    ['BƯỚC', 'NỘI DUNG / TÊN BƯỚC', 'VAI TRÒ PHỤ TRÁCH', 'ĐẦU VÀO', 'ĐẦU RA', 'SLA'].forEach(value => heading.appendChild(PlainDOM.node('th', '', value)));
+    ['BƯỚC', 'NỘI DUNG / TÊN BƯỚC', 'VAI TRÒ PHỤ TRÁCH', 'ĐẦU VÀO', 'ĐẦU RA', 'MẪU BIỂU ĐÍNH KÈM', 'SLA'].forEach(value => heading.appendChild(PlainDOM.node('th', '', value)));
     head.appendChild(heading);
     const body = PlainDOM.node('tbody');
     (p.steps || []).forEach(step => {
       const row = PlainDOM.node('tr', 'step-row');
-      const classes = ['text-center font-weight-bold text-info', 'font-weight-bold text-white', 'text-warning', '', '', 'text-center text-success font-weight-bold'];
-      [step.step_no, step.name, step.owner || '---', step.input || '---', step.output || '---', step.sla || '---'].forEach((value, i) => row.appendChild(WorkflowDOM.text('td', classes[i], value)));
+      const classes = ['text-center font-weight-bold text-info', 'font-weight-bold text-white', 'text-warning', '', '', 'text-info font-weight-bold', 'text-center text-success font-weight-bold'];
+      [step.step_no, step.name, step.owner || '---', step.input || '---', step.output || '---', step.template_form || '---', step.sla || '---'].forEach((value, i) => row.appendChild(WorkflowDOM.text('td', classes[i], value)));
       body.appendChild(row);
     });
     if (!body.children.length) {
       const row = PlainDOM.node('tr');
       const cell = PlainDOM.node('td', 'text-center text-muted', 'Chưa định nghĩa các bước');
-      cell.colSpan = 6;
+      cell.colSpan = 7;
       row.appendChild(cell); body.appendChild(row);
     }
     table.append(head, body); wrapper.appendChild(table); pane.appendChild(wrapper);
@@ -530,6 +531,7 @@
               owner: step.owner,
               input: step.input,
               output: step.output,
+              template_form: step.template_form,
               sla: step.sla
             });
           });
@@ -555,7 +557,7 @@
     const count = tbody.children.length + 1;
     const row = document.createElement("tr");
     row.appendChild(PlainDOM.node('td', 'text-center font-weight-bold step-no', count));
-    [['name', 'Tên bước...'], ['owner', 'Bộ phận...'], ['input', 'Đầu vào...'], ['output', 'Đầu ra...'], ['sla', 'SLA...']].forEach(([field, placeholder]) => {
+    [['name', 'Tên bước...'], ['owner', 'Bộ phận...'], ['input', 'Đầu vào...'], ['output', 'Đầu ra...'], ['template_form', 'Mẫu biểu / văn bản đính kèm...'], ['sla', 'SLA...']].forEach(([field, placeholder]) => {
       const cell = PlainDOM.node('td');
       const input = PlainDOM.node('input', 'form-control form-control-lux form-control-sm step-' + field);
       input.type = 'text';
@@ -598,6 +600,7 @@
         owner: row.querySelector(".step-owner").value.trim(),
         input: row.querySelector(".step-input").value.trim(),
         output: row.querySelector(".step-output").value.trim(),
+        template_form: (row.querySelector(".step-template_form") ? row.querySelector(".step-template_form").value.trim() : ""),
         sla: row.querySelector(".step-sla").value.trim()
       });
     });

@@ -239,6 +239,7 @@ class ProcessStep(Base):
     owner = Column(String, nullable=True)
     input = Column(Text, nullable=True)
     output = Column(Text, nullable=True)
+    template_form = Column(Text, nullable=True, default="")
     sla = Column(String, nullable=True)
 
 class JobDescription(Base):

@@ -78,6 +78,7 @@ def api_get_process_detail(id: int, request: Request, db: Session = Depends(get_
             "owner": s.owner,
             "input": s.input,
             "output": s.output,
+            "template_form": getattr(s, "template_form", "") or "",
             "sla": s.sla
         })
         
@@ -169,6 +170,7 @@ def api_create_process(request: Request, payload: dict, db: Session = Depends(ge
                 owner=s.get("owner"),
                 input=s.get("input"),
                 output=s.get("output"),
+                template_form=s.get("template_form", ""),
                 sla=s.get("sla")
             )
             db.add(step)
@@ -217,6 +219,7 @@ def api_update_process(id: int, request: Request, payload: dict, db: Session = D
                 owner=s.get("owner"),
                 input=s.get("input"),
                 output=s.get("output"),
+                template_form=s.get("template_form", ""),
                 sla=s.get("sla")
             )
             db.add(step)
@@ -366,12 +369,12 @@ def api_export_process_to_word(id: int, request: Request, db: Session = Depends(
     run_steps_h.font.color.rgb = RGBColor(11, 37, 69)
     
     # Steps Table
-    table_steps = doc.add_table(rows=1, cols=6)
+    table_steps = doc.add_table(rows=1, cols=7)
     table_steps.style = 'Table Grid'
     
-    headers = ["STT", "TÊN BƯỚC CÔNG VIỆC", "BỘ PHẬN CHỦ TRÌ", "ĐẦU VÀO", "ĐẦU RA", "SLA"]
+    headers = ["STT", "TÊN BƯỚC CÔNG VIỆC", "BỘ PHẬN CHỦ TRÌ", "ĐẦU VÀO", "ĐẦU RA", "MẪU BIỂU ĐÍNH KÈM", "SLA"]
     hdr_cells = table_steps.rows[0].cells
-    for i in range(6):
+    for i in range(7):
         hdr_cells[i].text = headers[i]
         set_cell_background(hdr_cells[i], "0B2545") # Dark Navy
         run = hdr_cells[i].paragraphs[0].runs[0]
@@ -386,7 +389,8 @@ def api_export_process_to_word(id: int, request: Request, db: Session = Depends(
         row_cells[2].text = s.owner or ""
         row_cells[3].text = s.input or ""
         row_cells[4].text = s.output or ""
-        row_cells[5].text = s.sla or ""
+        row_cells[5].text = getattr(s, "template_form", "") or ""
+        row_cells[6].text = s.sla or ""
         
         # Style row text size
         for cell in row_cells:
