@@ -102,12 +102,17 @@
 </style>
 
 <!-- Load Mermaid.js Client-Side -->
-<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@12.1.0/dist/mermaid.min.js" integrity="sha384-EbBpjO7rlR6eqZEcG7GaPpyk9H9WrMyPWX4d3KvPYltgt8Z8l0z6R56B1qP40pR4" crossorigin="anonymous"></script>
+<script src="/static/js/mermaid_boundary.js"></script>
 <script>
   mermaid.initialize({
     startOnLoad: false,
     theme: 'forest',
-    securityLevel: 'loose'
+    securityLevel: 'strict',
+    htmlLabels: false,
+    flowchart: { htmlLabels: false },
+    suppressErrorRendering: true,
+    secure: ['secure', 'securityLevel', 'startOnLoad', 'htmlLabels', 'flowchart', 'theme', 'themeCSS', 'themeVariables', 'maxTextSize', 'maxEdges', 'suppressErrorRendering']
   });
 </script>
 
@@ -164,7 +169,7 @@
 
 <!-- Add/Edit Modal -->
 <div class="modal fade" id="processModal" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-xl" role="document">
+  <div class="modal-dialog modal-xl" role="document" style="max-width: 1200px;">
     <div class="modal-content" style="background: #0b1a30; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff;">
       <div class="modal-header border-bottom-0">
         <h5 class="modal-title font-weight-bold text-white" id="modalTitle">Thiết lập Quy trình</h5>
@@ -221,12 +226,12 @@
         <div class="row">
           <div class="col-md-6 form-group">
             <label class="field-label">MỤC TIÊU QUY TRÌNH</label>
-            <textarea id="pObjective" class="form-control form-control-lux" rows="2" placeholder="Quy trình hướng đến mục tiêu gì..."></textarea>
+            <textarea id="pObjective" class="form-control form-control-lux" rows="4" style="height: 130px; min-height: 100px; resize: vertical; overflow-y: auto; line-height: 1.5;" placeholder="Quy trình hướng đến mục tiêu gì..."></textarea>
             <small class="text-muted" style="font-size: 10px; display: block; margin-top: 3px;">Mô tả ngắn gọn kết quả mong đợi của quy trình này</small>
           </div>
           <div class="col-md-6 form-group">
             <label class="field-label">PHẠM VI ÁP DỤNG</label>
-            <textarea id="pScope" class="form-control form-control-lux" rows="2" placeholder="Áp dụng cho đối tượng nào..."></textarea>
+            <textarea id="pScope" class="form-control form-control-lux" rows="4" style="height: 130px; min-height: 100px; resize: vertical; overflow-y: auto; line-height: 1.5;" placeholder="Áp dụng cho đối tượng nào..."></textarea>
             <small class="text-muted" style="font-size: 10px; display: block; margin-top: 3px;">Bộ phận, nhân viên hoặc các sản phẩm chịu ảnh hưởng</small>
           </div>
         </div>
@@ -234,7 +239,7 @@
         <div class="row">
           <div class="col-12 form-group">
             <label class="field-label">SƠ ĐỒ QUY TRÌNH (MÃ MERMAID)</label>
-            <textarea id="pMermaid" class="form-control form-control-lux" rows="3" placeholder="graph TD&#10;  A[Bắt đầu] --> B[Xử lý]..."></textarea>
+            <textarea id="pMermaid" class="form-control form-control-lux" rows="6" style="height: 180px; min-height: 130px; resize: vertical; overflow-y: auto; font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px; line-height: 1.5;" placeholder="graph TD&#10;  A[Bắt đầu] --> B[Xử lý]..."></textarea>
             <small class="text-muted" style="font-size: 10px; display: block; margin-top: 3px;">Định dạng Mermaid.js (VD: <code>graph TD</code> hoặc <code>graph LR</code>, các nhãn đặt trong ngoặc vuông <code>[ ]</code>)</small>
           </div>
         </div>
@@ -268,12 +273,12 @@
         <div class="row">
           <div class="col-md-6 form-group">
             <label class="field-label">DANH MỤC KIỂM TRA (CHECKLIST - MỖI DÒNG 1 Ý)</label>
-            <textarea id="pChecklist" class="form-control form-control-lux" rows="3" placeholder="Bước 1 cần kiểm tra chứng từ...&#10;Bước 2 cần ký xác nhận..."></textarea>
+            <textarea id="pChecklist" class="form-control form-control-lux" rows="4" style="height: 110px; min-height: 90px; resize: vertical; overflow-y: auto; line-height: 1.5;" placeholder="Bước 1 cần kiểm tra chứng từ...&#10;Bước 2 cần ký xác nhận..."></textarea>
             <small class="text-muted" style="font-size: 10px; display: block; margin-top: 3px;">Danh sách các điểm kiểm soát chất lượng hoặc chứng từ (xuống dòng cho mỗi ý)</small>
           </div>
           <div class="col-md-6 form-group">
             <label class="field-label">KPI GỢI Ý (MỖI DÒNG 1 Ý)</label>
-            <textarea id="pKpis" class="form-control form-control-lux" rows="3" placeholder="Thời gian xử lý < 2 ngày&#10;Tỷ lệ lỗi hồ sơ < 5%"></textarea>
+            <textarea id="pKpis" class="form-control form-control-lux" rows="4" style="height: 110px; min-height: 90px; resize: vertical; overflow-y: auto; line-height: 1.5;" placeholder="Thời gian xử lý < 2 ngày&#10;Tỷ lệ lỗi hồ sơ < 5%"></textarea>
             <small class="text-muted" style="font-size: 10px; display: block; margin-top: 3px;">Chỉ số đo lường hiệu suất hoặc thời hạn hoàn thành (xuống dòng cho mỗi ý)</small>
           </div>
         </div>
@@ -286,6 +291,8 @@
   </div>
 </div>
 
+<script src="/static/js/plain_dom.js"></script>
+<script src="/static/js/workflow_dom.js"></script>
 <script>
   let processesList = [];
   let selectedId = null;
@@ -311,15 +318,17 @@
       list.innerHTML = `<div class="text-center text-muted p-3">Chưa có quy trình nào</div>`;
       return;
     }
-    list.innerHTML = processesList.map(p => `
-      <div class="list-group-item-lux ${selectedId === p.id ? 'active' : ''}" onclick="selectProcess(${p.id})">
-        <div>
-          <span class="font-weight-bold d-block">${p.name}</span>
-          <small class="text-muted" style="font-size: 11px;">Mã: ${p.code} | VB: ${p.version}</small>
-        </div>
-        <i class="fas fa-chevron-right text-muted"></i>
-      </div>
-    `).join("");
+    list.replaceChildren();
+    processesList.forEach(p => {
+      const row = PlainDOM.node('div', 'list-group-item-lux');
+      if (selectedId === p.id) row.classList.add('active');
+      row.addEventListener('click', () => selectProcess(p.id));
+      const content = PlainDOM.node('div');
+      content.append(WorkflowDOM.text('span', 'font-weight-bold d-block', p.name),
+        WorkflowDOM.text('small', 'text-muted', `Mã: ${p.code} | VB: ${p.version}`));
+      row.append(content, PlainDOM.node('i', 'fas fa-chevron-right text-muted'));
+      list.appendChild(row);
+    });
   }
 
   function selectProcess(id) {
@@ -327,7 +336,7 @@
     renderList();
     toggleLoader(true, "ĐANG TẢI CHI TIẾT QUY TRÌNH...");
     
-    fetch(`/api/processes/${id}`)
+    fetch(WorkflowDOM.processPath(id))
       .then(res => res.json())
       .then(res => {
         toggleLoader(false);
@@ -346,108 +355,71 @@
   function renderDetail(p) {
     const pane = document.getElementById("detailPane");
     
-    // Convert steps to rows
-    const stepRows = p.steps.map(s => `
-      <tr class="step-row">
-        <td class="text-center font-weight-bold text-info">${s.step_no}</td>
-        <td class="font-weight-bold text-white">${s.name}</td>
-        <td class="text-warning">${s.owner || '---'}</td>
-        <td style="font-size: 12px; color: #cbd5e1;">${s.input || '---'}</td>
-        <td style="font-size: 12px; color: #cbd5e1;">${s.output || '---'}</td>
-        <td class="text-center text-success font-weight-bold">${s.sla || '---'}</td>
-      </tr>
-    `).join("");
-
-    // Build lists
-    const checklistHtml = (p.checklist || []).map(item => `<li><i class="fas fa-check-circle text-success mr-2"></i>${item}</li>`).join("");
-    const kpiHtml = (p.kpi_suggestions || []).map(item => `<li><i class="fas fa-chart-line text-info mr-2"></i>${item}</li>`).join("");
-
-    pane.innerHTML = `
-      <div class="d-flex justify-content-between align-items-start mb-3 border-bottom pb-3 border-secondary">
-        <div>
-          <h3 class="text-white font-weight-bold mb-1">${p.name}</h3>
-          <span class="badge badge-info mr-2">Mã: ${p.code}</span>
-          <span class="badge badge-success">Phiên bản: ${p.version}</span>
-          <span class="badge badge-warning ml-2">${p.type}</span>
-        </div>
-        <div class="d-flex gap-2">
-          <a href="/api/processes/${p.id}/export-word" class="btn btn-outline-info mr-2"><i class="fas fa-file-word mr-1"></i> XUẤT WORD</a>
-          {% if user.role in ['ADMIN', 'CEO', 'MANAGER'] %}
-          <button class="btn btn-warning mr-2" onclick="editProcess(${p.id})"><i class="fas fa-edit mr-1"></i> SỬA</button>
-          <button class="btn btn-danger" onclick="deleteProcess(${p.id})"><i class="fas fa-trash-alt mr-1"></i> XÓA</button>
-          {% endif %}
-        </div>
-      </div>
-
-      <div class="process-meta-grid">
-        <div class="meta-box">
-          <div class="meta-title">Mục tiêu quy trình</div>
-          <div class="meta-value text-white">${p.objective || 'Chưa thiết lập'}</div>
-        </div>
-        <div class="meta-box">
-          <div class="meta-title">Phạm vi áp dụng</div>
-          <div class="meta-value text-white">${p.scope || 'Chưa thiết lập'}</div>
-        </div>
-      </div>
-
-      ${p.flowchart_mermaid ? `
-      <div class="meta-title mb-2">Sơ đồ quy trình (Flowchart)</div>
-      <div class="mermaid-viewer" id="mermaidContainer">
-        <div class="mermaid" id="mermaidDiv">${p.flowchart_mermaid}</div>
-      </div>
-      ` : ''}
-
-      <div class="meta-title mb-2">Các bước thực hiện</div>
-      <div class="table-responsive mb-4">
-        <table class="table table-bordered text-white step-table">
-          <thead>
-            <tr>
-              <th style="width: 50px;" class="text-center">BƯỚC</th>
-              <th>NỘI DUNG / TÊN BƯỚC</th>
-              <th>VAI TRÒ PHỤ TRÁCH</th>
-              <th>ĐẦU VÀO</th>
-              <th>ĐẦU RA</th>
-              <th style="width: 100px;" class="text-center">SLA</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${stepRows || '<tr><td colspan="6" class="text-center text-muted">Chưa định nghĩa các bước</td></tr>'}
-          </tbody>
-        </table>
-      </div>
-
-      <div class="row">
-        <div class="col-md-6">
-          <div class="meta-title mb-2">Checklist kiểm soát chất lượng</div>
-          <ul class="list-unstyled text-white pl-2" style="line-height: 1.8;">
-            ${checklistHtml || '<li class="text-muted">Chưa có checklist</li>'}
-          </ul>
-        </div>
-        <div class="col-md-6">
-          <div class="meta-title mb-2">Chỉ số đánh giá (KPI gợi ý)</div>
-          <ul class="list-unstyled text-white pl-2" style="line-height: 1.8;">
-            ${kpiHtml || '<li class="text-muted">Chưa thiết lập KPI</li>'}
-          </ul>
-        </div>
-      </div>
-    `;
+    pane.replaceChildren();
+    const header = PlainDOM.node('div', 'd-flex justify-content-between align-items-start mb-3 border-bottom pb-3 border-secondary');
+    const labels = PlainDOM.node('div');
+    labels.append(WorkflowDOM.text('h3', 'text-white font-weight-bold mb-1', p.name),
+      WorkflowDOM.text('span', 'badge badge-info mr-2', 'Mã: ' + p.code),
+      WorkflowDOM.text('span', 'badge badge-success', 'Phiên bản: ' + p.version),
+      WorkflowDOM.text('span', 'badge badge-warning ml-2', p.type));
+    const actions = PlainDOM.node('div', 'd-flex gap-2');
+    const exportLink = PlainDOM.node('a', 'btn btn-outline-info mr-2', 'XUẤT WORD');
+    exportLink.href = WorkflowDOM.processPath(p.id) + '/export-word';
+    exportLink.prepend(PlainDOM.node('i', 'fas fa-file-word mr-1'));
+    actions.appendChild(exportLink);
+    {% if user.role in ['ADMIN', 'CEO', 'MANAGER'] %}
+    actions.append(WorkflowDOM.button('SỬA', 'btn btn-warning mr-2', () => editProcess(p.id), 'fas fa-edit mr-1'),
+      WorkflowDOM.button('XÓA', 'btn btn-danger', () => deleteProcess(p.id), 'fas fa-trash-alt mr-1'));
+    {% endif %}
+    header.append(labels, actions);
+    pane.appendChild(header);
+    const metadata = PlainDOM.node('div', 'process-meta-grid');
+    metadata.append(WorkflowDOM.section('Mục tiêu quy trình', WorkflowDOM.text('div', 'meta-value text-white', p.objective || 'Chưa thiết lập'), 'meta-box'),
+      WorkflowDOM.section('Phạm vi áp dụng', WorkflowDOM.text('div', 'meta-value text-white', p.scope || 'Chưa thiết lập'), 'meta-box'));
+    pane.appendChild(metadata);
+    if (p.flowchart_mermaid) {
+      pane.appendChild(PlainDOM.node('div', 'meta-title mb-2', 'Sơ đồ quy trình (Flowchart)'));
+      const graph = PlainDOM.node('div', 'mermaid-viewer');
+      graph.id = 'mermaidContainer';
+      // Stored Mermaid DSL remains structured data; the renderer boundary enforces policy.
+      const source = PlainDOM.node('div', 'mermaid', p.flowchart_mermaid);
+      source.id = 'mermaidDiv';
+      graph.appendChild(source);
+      pane.appendChild(graph);
+    }
+    pane.appendChild(PlainDOM.node('div', 'meta-title mb-2', 'Các bước thực hiện'));
+    const wrapper = PlainDOM.node('div', 'table-responsive mb-4');
+    const table = PlainDOM.node('table', 'table table-bordered text-white step-table');
+    const head = PlainDOM.node('thead');
+    const heading = PlainDOM.node('tr');
+    ['BƯỚC', 'NỘI DUNG / TÊN BƯỚC', 'VAI TRÒ PHỤ TRÁCH', 'ĐẦU VÀO', 'ĐẦU RA', 'SLA'].forEach(value => heading.appendChild(PlainDOM.node('th', '', value)));
+    head.appendChild(heading);
+    const body = PlainDOM.node('tbody');
+    (p.steps || []).forEach(step => {
+      const row = PlainDOM.node('tr', 'step-row');
+      const classes = ['text-center font-weight-bold text-info', 'font-weight-bold text-white', 'text-warning', '', '', 'text-center text-success font-weight-bold'];
+      [step.step_no, step.name, step.owner || '---', step.input || '---', step.output || '---', step.sla || '---'].forEach((value, i) => row.appendChild(WorkflowDOM.text('td', classes[i], value)));
+      body.appendChild(row);
+    });
+    if (!body.children.length) {
+      const row = PlainDOM.node('tr');
+      const cell = PlainDOM.node('td', 'text-center text-muted', 'Chưa định nghĩa các bước');
+      cell.colSpan = 6;
+      row.appendChild(cell); body.appendChild(row);
+    }
+    table.append(head, body); wrapper.appendChild(table); pane.appendChild(wrapper);
+    const lists = PlainDOM.node('div', 'row');
+    [['Checklist kiểm soát chất lượng', p.checklist, 'fas fa-check-circle text-success mr-2', 'Chưa có checklist'],
+     ['Chỉ số đánh giá (KPI gợi ý)', p.kpi_suggestions, 'fas fa-chart-line text-info mr-2', 'Chưa thiết lập KPI']].forEach(([title, values, icon, fallback]) => {
+      const column = PlainDOM.node('div', 'col-md-6');
+      column.appendChild(WorkflowDOM.section(title, WorkflowDOM.list(values, icon, fallback), ''));
+      lists.appendChild(column);
+    });
+    pane.appendChild(lists);
 
     // Render Mermaid Graph
     if (p.flowchart_mermaid) {
-      try {
-        const container = document.getElementById("mermaidContainer");
-        const div = document.getElementById("mermaidDiv");
-        
-        // Remove parsed flag and redraw
-        delete div.dataset.processed;
-        if (typeof mermaid.run === "function") {
-          mermaid.run({ nodes: [div] });
-        } else {
-          mermaid.contentLoaded();
-        }
-      } catch (err) {
-        console.error("Mermaid parsing error:", err);
-      }
+      MermaidBoundary.draw(document.getElementById("mermaidDiv"), p.flowchart_mermaid);
     }
   }
 
@@ -549,7 +521,7 @@
           addStepRow(); // fallback default row
         }
         
-        showToast("success", "AI đã tạo bản thảo thành công! Bạn hãy xem xét và chỉnh sửa.");
+        PlainDOM.toast("success", "AI đã tạo bản thảo thành công! Bạn hãy xem xét và chỉnh sửa.");
       } else {
         showNotify("error", "Lỗi sinh bản thảo", res.message);
       }
@@ -566,15 +538,18 @@
     const tbody = document.getElementById("modalStepsBody");
     const count = tbody.children.length + 1;
     const row = document.createElement("tr");
-    row.innerHTML = `
-      <td class="text-center font-weight-bold step-no">${count}</td>
-      <td><input type="text" class="form-control form-control-lux form-control-sm step-name" value="${data.name || ''}" placeholder="Tên bước..."></td>
-      <td><input type="text" class="form-control form-control-lux form-control-sm step-owner" value="${data.owner || ''}" placeholder="Bộ phận..."></td>
-      <td><input type="text" class="form-control form-control-lux form-control-sm step-input" value="${data.input || ''}" placeholder="Đầu vào..."></td>
-      <td><input type="text" class="form-control form-control-lux form-control-sm step-output" value="${data.output || ''}" placeholder="Đầu ra..."></td>
-      <td><input type="text" class="form-control form-control-lux form-control-sm step-sla" value="${data.sla || ''}" placeholder="SLA..."></td>
-      <td class="text-center"><button class="btn btn-xs btn-danger" onclick="this.closest('tr').remove(); reorderSteps();"><i class="fas fa-times"></i></button></td>
-    `;
+    row.appendChild(PlainDOM.node('td', 'text-center font-weight-bold step-no', count));
+    [['name', 'Tên bước...'], ['owner', 'Bộ phận...'], ['input', 'Đầu vào...'], ['output', 'Đầu ra...'], ['sla', 'SLA...']].forEach(([field, placeholder]) => {
+      const cell = PlainDOM.node('td');
+      const input = PlainDOM.node('input', 'form-control form-control-lux form-control-sm step-' + field);
+      input.type = 'text';
+      input.value = data[field] || '';
+      input.placeholder = placeholder;
+      cell.appendChild(input); row.appendChild(cell);
+    });
+    const action = PlainDOM.node('td', 'text-center');
+    action.appendChild(WorkflowDOM.button('', 'btn btn-xs btn-danger', () => { row.remove(); reorderSteps(); }, 'fas fa-times'));
+    row.appendChild(action);
     tbody.appendChild(row);
   }
 
@@ -633,7 +608,7 @@
     toggleLoader(true, "ĐANG LƯU QUY TRÌNH...");
     
     const method = id ? "PUT" : "POST";
-    const url = id ? `/api/processes/${id}` : "/api/processes";
+    const url = id ? WorkflowDOM.processPath(id) : "/api/processes";
 
     fetch(url, {
       method: method,
@@ -645,7 +620,7 @@
       toggleLoader(false);
       if (res.success) {
         $("#processModal").modal("hide");
-        showToast("success", res.message);
+        PlainDOM.toast("success", res.message);
         loadProcessesList();
         if (!id && res.id) {
           setTimeout(() => selectProcess(res.id), 500);
@@ -664,7 +639,7 @@
 
   function editProcess(id) {
     toggleLoader(true, "ĐANG TẢI THÔNG TIN SỬA...");
-    fetch(`/api/processes/${id}`)
+    fetch(WorkflowDOM.processPath(id))
       .then(res => res.json())
       .then(res => {
         toggleLoader(false);
@@ -698,12 +673,12 @@
   function deleteProcess(id) {
     showNotify("warning", "XÓA QUY TRÌNH", "Bạn có chắc chắn muốn xóa quy trình này vĩnh viễn?", function() {
       toggleLoader(true, "ĐANG XÓA QUY TRÌNH...");
-      fetch(`/api/processes/${id}`, { method: "DELETE" })
+      fetch(WorkflowDOM.processPath(id), { method: "DELETE" })
         .then(res => res.json())
         .then(res => {
           toggleLoader(false);
           if (res.success) {
-            showToast("success", res.message);
+            PlainDOM.toast("success", res.message);
             selectedId = null;
             document.getElementById("detailPane").innerHTML = `
               <div class="d-flex justify-content-center align-items-center h-100 text-muted flex-column">
@@ -758,7 +733,7 @@
           addStepRow();
         }
         
-        showToast("success", "AI đã sinh nháp quy trình thành công! Vui lòng kiểm tra lại và nhấn Lưu.");
+        PlainDOM.toast("success", "AI đã sinh nháp quy trình thành công! Vui lòng kiểm tra lại và nhấn Lưu.");
       } else {
         showNotify("error", "Lỗi sinh quy trình", res.message || "Lỗi phản hồi từ AI.");
       }
